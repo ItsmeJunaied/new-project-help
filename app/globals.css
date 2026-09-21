@@ -1,0 +1,206 @@
+@import "tailwindcss";
+
+:root {
+  --color-white: #ffffff;
+  --color-bg: #fffdfb;
+  --color-black: #151515;
+  --color-pure-black: #020202;
+  --color-ash-dark: #454545;
+  --color-neutral-paragraph: #646464;
+  --color-text-ash: #b6b6b6;
+  --color-primary-orange: #ff6d0c;
+  --color-ink: #050505;
+  --color-ash-muted: #aeaeae;
+  --color-ash-deep: #343434;
+}
+
+@theme inline {
+  --color-white: var(--color-white);
+  --color-bg: var(--color-bg);
+  --color-black: var(--color-black);
+  --color-pure-black: var(--color-pure-black);
+  --color-ash-dark: var(--color-ash-dark);
+  --color-neutral-paragraph: var(--color-neutral-paragraph);
+  --color-text-ash: var(--color-text-ash);
+  --color-primary-orange: var(--color-primary-orange);
+  --color-ink: var(--color-ink);
+  --color-ash-muted: var(--color-ash-muted);
+  --color-ash-deep: var(--color-ash-deep);
+
+  --font-display: var(--font-geist-sans);
+  --font-body: var(--font-inter-display);
+  --font-mono: var(--font-jetbrains-mono);
+  --font-alt: var(--font-plus-jakarta);
+}
+
+/* The layout is drawn on a 1440 canvas, so full-bleed sections are exactly as
+   wide as the container — and a real 1440 window is 1440 minus the scrollbar.
+   `clip` (not `hidden`) trims that sliver without creating a scroll container,
+   so sticky positioning and the scroll-driven animations still work. This has
+   to sit on the root element: an overflow value on `body` propagates to the
+   viewport instead of clipping, which does nothing for us. `hidden` rather than
+   `clip` because a propagated `clip` does not currently stop the viewport from
+   scrolling sideways; on the root element `hidden` keeps the viewport as the
+   scroll container, so sticky positioning and ScrollTrigger are unaffected. */
+html {
+  overflow-x: hidden;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-black);
+}
+
+/* Rich-text blocks authored in the admin's editor arrive as raw HTML, so the
+   article page has no class names to hang styling on. These rules give that
+   HTML the same type scale the hand-built article uses, and nothing else on the
+   site is allowed to reach into it. */
+.prose-content {
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: -0.16px;
+  color: var(--color-ash-dark);
+}
+
+.prose-content > * + * {
+  margin-top: 18px;
+}
+
+.prose-content h2,
+.prose-content h3,
+.prose-content h4 {
+  font-family: var(--font-display);
+  color: var(--color-pure-black);
+  letter-spacing: -0.5px;
+}
+
+.prose-content h2 {
+  font-size: 32px;
+  font-weight: 600;
+  line-height: 46px;
+  margin-top: 40px;
+}
+
+.prose-content h3 {
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 34px;
+  margin-top: 32px;
+}
+
+.prose-content h4 {
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 30px;
+  margin-top: 28px;
+}
+
+/* A heading opening the block should not push away from the block above it —
+   the article already spaces its sections. */
+.prose-content > :first-child {
+  margin-top: 0;
+}
+
+.prose-content strong {
+  font-weight: 600;
+  color: var(--color-black);
+}
+
+.prose-content a {
+  color: var(--color-black);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color 0.2s ease;
+}
+
+.prose-content a:hover {
+  color: var(--color-primary-orange);
+}
+
+.prose-content ul,
+.prose-content ol {
+  padding-left: 22px;
+}
+
+.prose-content ul {
+  list-style: disc;
+}
+
+.prose-content ol {
+  list-style: decimal;
+}
+
+.prose-content li + li {
+  margin-top: 8px;
+}
+
+.prose-content li::marker {
+  color: var(--color-primary-orange);
+}
+
+.prose-content blockquote {
+  border-left: 2px solid var(--color-primary-orange);
+  padding-left: 20px;
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 32px;
+  color: var(--color-black);
+}
+
+.prose-content code {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  background: #f1f1f1;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+.prose-content pre {
+  background: var(--color-black);
+  color: #f7f7f7;
+  padding: 20px;
+  overflow-x: auto;
+  border-radius: 8px;
+}
+
+.prose-content pre code {
+  background: transparent;
+  padding: 0;
+  color: inherit;
+}
+
+.prose-content img {
+  width: 100%;
+  height: auto;
+}
+
+.prose-content table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 15px;
+}
+
+.prose-content th,
+.prose-content td {
+  border: 1px solid #e7e7e7;
+  padding: 10px 12px;
+  text-align: left;
+}
+
+.prose-content th {
+  font-weight: 600;
+  color: var(--color-black);
+}
+
+.prose-content hr {
+  border: 0;
+  border-top: 1px solid #e7e7e7;
+}
