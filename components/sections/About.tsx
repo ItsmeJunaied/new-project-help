@@ -25,15 +25,29 @@ const STATS = [
   { value: 25, label: "Technology Experts", pl: "", gap: "gap-[19.99px]" },
 ];
 
-function AboutStatement({ tone }: { tone: "dark" | "light" }) {
+/**
+ * The statement renders twice on the home page — once on the dark section and
+ * again on the light band below it — so the photograph has to be passed in.
+ * Both copies used to hardcode the same file, which put the identical picture
+ * on screen twice within one scroll.
+ */
+function AboutStatement({
+  tone,
+  photo,
+  photoAlt,
+}: {
+  tone: "dark" | "light";
+  photo: string;
+  photoAlt: string;
+}) {
   const isDark = tone === "dark";
 
   return (
     <div className="about-statement flex w-full flex-col items-start gap-[48px] lg:flex-row lg:justify-end lg:gap-[100px]">
       <div className="about-photo relative h-[240px] w-full max-w-[408px] shrink-0 overflow-hidden sm:h-[295px] lg:w-[388px]">
         <Image
-          src="/images/about-photo-working.webp"
-          alt="Engineers reviewing an architecture diagram at a studio desk"
+          src={photo}
+          alt={photoAlt}
           fill
           sizes="(max-width: 1023px) 100vw, 408px"
           className="object-cover"
@@ -200,9 +214,11 @@ export default function About() {
         ref={sectionRef}
         id="about"
         data-node-id="156:6770"
-        className="relative w-full overflow-hidden bg-ink py-[80px] lg:h-[1184px] lg:py-0"
+        // 1292 = the lower block's top offset (396) plus its new height (896),
+        // which grew when the wordmark moved onto its own row.
+        className="relative w-full overflow-hidden bg-ink py-[80px] lg:h-[1292px] lg:py-0"
       >
-        <div className="relative mx-auto h-full w-full max-w-[1440px] px-6 lg:px-0">
+        <div className="relative mx-auto h-full w-full max-w-[1440px] px-6 lg:px-[40px]">
           <p className="about-label font-body text-[18px] font-medium leading-[18px] tracking-[-0.25px] text-white lg:absolute lg:left-[1014px] lg:top-[147px] lg:-translate-y-1/2">
             [ ABOUT US ]
           </p>
@@ -260,25 +276,27 @@ export default function About() {
             </h2>
           </div>
 
-          <div className="mt-[60px] w-full lg:pointer-events-none lg:absolute lg:left-0 lg:top-[396px] lg:mt-0 lg:h-[788px]">
-            {/* `w-full` rather than a hard 1440: the parent is already capped at
-                the canvas width, and pinning this to 1440 pushed the section
-                past the viewport on every window between lg and 1440. */}
+          {/* left/right rather than left-0 + w-full. An absolutely positioned
+              child resolves against the container's PADDING box, so left-0 put
+              this whole lower half flush to the window edge while the heading
+              above it sat on the 40px gutter. */}
+          <div className="mt-[60px] w-full lg:pointer-events-none lg:absolute lg:left-[40px] lg:right-[40px] lg:top-[396px] lg:mt-0 lg:h-[896px] lg:w-auto">
             <div className="flex w-full flex-col items-start gap-[80px] lg:pointer-events-auto lg:sticky lg:top-0 lg:gap-[120px] lg:pb-[24px] lg:pt-[80px]">
-              <AboutStatement tone="dark" />
+              <AboutStatement
+                tone="dark"
+                photo="/images/about-photo-working.webp"
+                photoAlt="Engineers reviewing an architecture diagram at a studio desk"
+              />
 
-              <div className="w-full overflow-hidden lg:pl-[530.33px]">
-                <div className="flex w-full flex-col items-start justify-end lg:w-[1296px] lg:items-end">
+              {/* The stats and the wordmark are two rows now. As one row they
+                  measured 1819px inside a 1425px frame and overflowed BOTH
+                  ways: "28" started at x=-91 so it read as "8", and "Featured
+                  Work" ran 402px past the right edge so it read as "Featured
+                  W". The 530px left padding and the hard 1296px width below
+                  were measured against a 1826px canvas that does not exist. */}
+              <div className="w-full overflow-hidden">
+                <div className="flex w-full flex-col items-start gap-[32px] lg:items-end lg:gap-[40px]">
                   <div className="about-stats-row flex flex-col items-start gap-[32px] lg:flex-row lg:items-start lg:justify-end lg:gap-[48px]">
-                    <div
-                      aria-hidden
-                      className="hidden shrink-0 flex-col items-start justify-center gap-[20px] lg:flex"
-                    >
-                      <div className="flex items-start justify-end pr-[42px]">
-                        <div className="h-[132px] w-[181.14px]" />
-                      </div>
-                      <div className="h-[24px] w-[208.86px]" />
-                    </div>
 
                     <div
                       className={`flex shrink-0 flex-col items-start justify-center gap-[20px] ${STATS[0].pl}`}
@@ -332,11 +350,12 @@ export default function About() {
                       </span>
                     </div>
 
-                    <div className="hidden shrink-0 items-start justify-center lg:flex">
-                      <span className="about-marquee-word font-display text-[160px] font-medium uppercase leading-[160px] tracking-[-10px] text-bg">
-                        Featured Work
-                      </span>
-                    </div>
+                  </div>
+
+                  <div className="hidden shrink-0 items-start justify-end lg:flex">
+                    <span className="about-marquee-word font-display text-[160px] font-medium uppercase leading-[160px] tracking-[-10px] text-bg">
+                      Featured Work
+                    </span>
                   </div>
                 </div>
               </div>
@@ -350,9 +369,13 @@ export default function About() {
         data-node-id="156:6841"
         className="relative w-full bg-bg py-[60px] lg:py-0"
       >
-        <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-0">
+        <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
           <div className="w-full lg:pb-[24px] lg:pt-[80px]">
-            <AboutStatement tone="light" />
+            <AboutStatement
+              tone="light"
+              photo="/images/about-mission.jpg"
+              photoAlt="A Project Help engineer walking a client through a delivery plan"
+            />
           </div>
         </div>
       </section>
