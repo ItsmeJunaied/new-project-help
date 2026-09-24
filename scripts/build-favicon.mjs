@@ -12,7 +12,11 @@ import { readFileSync, writeFileSync } from "node:fs";
 import sharp from "sharp";
 
 const SRC = "assets/brand/logo-source-vector.svg";
-const INK = "#111820";
+
+// The mark is knocked out in white on the green tile. The source artwork draws
+// it in #111820, which is what the <g fill> below is matched on — that stays,
+// it is how the mark's paths are located in the file.
+const MARK = "#ffffff";
 
 const green = readFileSync("app/globals.css", "utf8").match(
   /--color-primary-green:\s*(#[0-9a-fA-F]{6})/,
@@ -51,7 +55,7 @@ const geom = (pad) => {
 };
 const PAD_DEFAULT = 1.22;
 const PAD_TIGHT = 1.02;
-const { side, vx, vy } = geom(PAD_DEFAULT);
+const { side } = geom(PAD_DEFAULT);
 
 /**
  * `px` gives the raster a fixed size to render at; without it sharp scales the
@@ -70,11 +74,11 @@ ${mark.map((d) => `    <path d="${d}"/>`).join("\n")}
 
 // Rounded for the SVG favicon and the Apple touch icon; square for the .ico,
 // which is composited onto the browser's own tab chrome.
-writeFileSync("app/icon.svg", tile(green, INK, Math.round(side * 0.18)));
+writeFileSync("app/icon.svg", tile(green, MARK, Math.round(side * 0.18)));
 
 const png = (size, radius, pad) =>
   // Rendered at 4x then downsampled, so the arrow stays clean at small sizes.
-  sharp(Buffer.from(tile(green, INK, radius, size * 4, pad)))
+  sharp(Buffer.from(tile(green, MARK, radius, size * 4, pad)))
     .resize(size, size)
     .png()
     .toBuffer();
