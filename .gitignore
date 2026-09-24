@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# case-study image sources — ~400 MB of original Gemini renders, the brief
+# spreadsheet and the old placeholders. scripts/case-images/resize.js reads
+# assets/case-study-sources/ to regenerate public/images/case/, so keep these
+# backed up somewhere off this machine; they are deliberately not in git.
+/assets/

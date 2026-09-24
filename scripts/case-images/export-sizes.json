@@ -1,0 +1,7 @@
+{
+  "Device art":                      { "w": 2048, "h": 1024 },
+  "Device art · social share image": { "w": 2560, "h": 1220 },
+  "Device art · whole system":       { "w": 2560, "h": 960 },
+  "Product detail":                  { "w": 1200, "h": 780 },
+  "Still-life photograph":           { "w": 800,  "h": 800 }
+}
