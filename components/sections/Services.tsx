@@ -211,18 +211,33 @@ export default function Services({
 
         // Cards recede as the next one arrives, so the stack reads as depth
         // rather than four separate blocks scrolling past.
-        gsap.to(card, {
-          scale: 0.94,
-          opacity: 0.55,
-          ease: "none",
-          scrollTrigger: {
-            trigger: card,
-            start: "bottom 70%",
-            end: "bottom 15%",
-            scrub: true,
-            invalidateOnRefresh: true,
+        //
+        // fromTo with explicit start values, not a bare to(). A to() reads its
+        // start when it first renders, and the enter tween above has the card
+        // at opacity 0 at that moment — so the recede interpolated 0 -> 0.55
+        // instead of 1 -> 0.55. The card snapped from fully readable to ~13%
+        // the instant its bottom crossed 70%, then brightened as it left. That
+        // is the "content vanishes before you can read it" behaviour.
+        //
+        // immediateRender: false is what keeps this fromTo from writing
+        // opacity 1 over the enter tween's start state at build time.
+        gsap.fromTo(
+          card,
+          { scale: 1, opacity: 1 },
+          {
+            scale: 0.94,
+            opacity: 0.55,
+            ease: "none",
+            immediateRender: false,
+            scrollTrigger: {
+              trigger: card,
+              start: "bottom 70%",
+              end: "bottom 15%",
+              scrub: true,
+              invalidateOnRefresh: true,
+            },
           },
-        });
+        );
 
         gsap.set(card, { transformOrigin: "center top", zIndex: i + 1 });
       });
@@ -236,7 +251,7 @@ export default function Services({
       data-node-id="156:7010"
       className={`w-full bg-bg ${spacingClassName}`}
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-[40px]">
         <div className="flex w-full flex-col gap-[8px]">
           <div className="services-meta flex w-full items-center justify-between text-[18px] leading-[25.714px] text-black">
             {/* Carries the section heading so the card titles below have a
