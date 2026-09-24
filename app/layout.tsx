@@ -4,6 +4,7 @@ import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 
 import Analytics from "@/components/analytics/Analytics";
 import JsonLd from "@/components/JsonLd";
+import AmbientAudio from "@/components/ui/AmbientAudio";
 import FloatingActions from "@/components/ui/FloatingActions";
 import ScrollProgress from "@/components/ui/ScrollProgress";
 import RouteTransition from "@/components/ui/RouteTransition";
@@ -114,6 +115,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ScrollProgress />
         <RouteTransition>{children}</RouteTransition>
         <FloatingActions />
+        <AmbientAudio />
 
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <Analytics />
