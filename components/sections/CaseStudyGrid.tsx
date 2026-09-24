@@ -119,7 +119,7 @@ export default function CaseStudyGrid() {
     >
       {/* Two-up, then one full-bleed, repeating — so the rhythm holds however
           many projects the data carries. */}
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[48px] px-6 lg:gap-[71px] lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[48px] px-6 lg:gap-[71px] lg:px-[40px]">
         {caseStudyRows(PUBLISHED_CASE_STUDIES).map((row) =>
           row.wide ? (
             <CaseCard key={row.items[0].slug} item={row.items[0]} wide />

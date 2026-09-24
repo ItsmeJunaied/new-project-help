@@ -130,7 +130,7 @@ function TestimonialsCarousel() {
       data-node-id="156:7475"
       className="relative w-full overflow-hidden bg-black py-[80px] lg:pb-[87px] lg:pt-[120px]"
     >
-      <div className="pointer-events-none absolute inset-0 mx-auto w-full max-w-[1440px] px-6 lg:px-0">
+      <div className="pointer-events-none absolute inset-0 mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="relative h-full w-full">
           {RULE_POSITIONS.map((position) => (
             <span
@@ -141,7 +141,7 @@ function TestimonialsCarousel() {
         </div>
       </div>
 
-      <div className="relative mx-auto flex w-full max-w-[1440px] flex-col gap-[48px] px-6 lg:px-0">
+      <div className="relative mx-auto flex w-full max-w-[1440px] flex-col gap-[48px] px-6 lg:px-[40px]">
         <div className="testimonial-meta flex w-full flex-col gap-[8px]">
           <div className="flex w-full items-center justify-between text-[18px] leading-[25.714px] text-white">
             <p className="font-display font-medium">&copy; Client Feedback</p>

@@ -72,7 +72,7 @@ export default function JobDetail({ job }: { job: Job }) {
 
   return (
     <section ref={sectionRef} className="w-full bg-bg pb-[80px] pt-[40px] lg:pb-[120px] lg:pt-[90px]">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-[40px]">
         <Link
           href="/career"
           className="mb-[24px] inline-flex items-center gap-[8px] font-body text-[15px] leading-[22px] tracking-[-0.16px] text-[#707070] transition-colors hover:text-black"

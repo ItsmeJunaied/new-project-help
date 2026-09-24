@@ -70,7 +70,7 @@ export default function UnsubscribeForm() {
   return (
     <section
       ref={sectionRef}
-      className="w-full bg-bg px-6 pb-[120px] pt-[60px] lg:px-0 lg:pb-[180px] lg:pt-[100px]"
+      className="w-full bg-bg px-6 pb-[120px] pt-[60px] lg:px-[40px] lg:pb-[180px] lg:pt-[100px]"
     >
       <div className="mx-auto w-full max-w-[1440px]">
         <p className="unsub-reveal font-mono text-[14px] font-medium uppercase leading-[16px] tracking-[0.5px] text-primary-green">

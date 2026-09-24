@@ -34,7 +34,7 @@ export default function ServicesHero() {
       data-node-id="156:7820"
       className="w-full bg-bg pt-[40px] lg:pt-[57px]"
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-[32px] px-6 lg:flex-row lg:items-end lg:justify-between lg:gap-0 lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-[32px] px-6 lg:flex-row lg:items-end lg:justify-between lg:gap-0 lg:px-[40px]">
         <h1 className="font-display text-[clamp(3.5rem,8.4vw,160px)] font-medium uppercase leading-[1] tracking-[-0.0625em] text-black">
           <span className="block overflow-hidden">
             <span className="services-hero-line block">Solutions</span>

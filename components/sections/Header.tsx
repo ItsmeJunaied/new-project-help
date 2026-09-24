@@ -109,7 +109,7 @@ export default function Header({ activeLabel = "HOME" }: HeaderProps) {
     <>
       <header
         ref={navRef}
-        className="relative z-30 mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-6 pt-6 lg:px-0 lg:pt-[24px]"
+        className="relative z-30 mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-6 pt-6 lg:px-[40px] lg:pt-[24px]"
       >
         {/* The lockup is stacked — mark over wordmark, about 1.8:1 — so it is
             sized by height and left to find its own width. `text-black` is the

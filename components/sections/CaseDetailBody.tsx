@@ -107,7 +107,7 @@ export default function CaseDetailBody({ study }: { study: CaseStudy }) {
       data-node-id="156:10430"
       className="w-full bg-bg pb-[80px] pt-[48px] lg:pb-[180px] lg:pt-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-0">
+      <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="mx-auto flex w-full flex-col gap-[40px] lg:w-[710px]">
           <div className="case-body-block flex w-full flex-col gap-[18px]">
             <Heading>Problem:</Heading>

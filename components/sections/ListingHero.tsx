@@ -60,7 +60,7 @@ export default function ListingHero({
       data-node-id={nodeId}
       className={`w-full bg-bg ${spacingClassName}`}
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[40px] px-6 lg:gap-[60px] lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[40px] px-6 lg:gap-[60px] lg:px-[40px]">
         <div className="flex w-full flex-col items-start gap-[40px] lg:flex-row lg:items-center lg:gap-[88px]">
           <h1 className="font-display text-[clamp(3.5rem,8.4vw,160px)] font-medium uppercase leading-[1] tracking-[-0.0625em] text-black">
             <span className="block overflow-hidden">

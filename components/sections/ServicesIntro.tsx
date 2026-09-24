@@ -86,7 +86,7 @@ export default function ServicesIntro({
       data-node-id={nodeId}
       className="relative flex w-full items-center justify-center overflow-hidden bg-black py-[100px] lg:h-[1184px] lg:py-0"
     >
-      <div className="pointer-events-none absolute inset-0 mx-auto w-full max-w-[1440px] px-6 lg:px-0">
+      <div className="pointer-events-none absolute inset-0 mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="relative h-full w-full">
           {RULE_POSITIONS.map((position) => (
             <span
@@ -97,7 +97,7 @@ export default function ServicesIntro({
         </div>
       </div>
 
-      <h2 className="relative mx-auto w-full max-w-[1440px] px-6 text-center font-display text-[clamp(2.5rem,8.33vw,160px)] font-medium uppercase leading-[1] tracking-[-0.0625em] text-white lg:px-0">
+      <h2 className="relative mx-auto w-full max-w-[1440px] px-6 text-center font-display text-[clamp(2.5rem,8.33vw,160px)] font-medium uppercase leading-[1] tracking-[-0.0625em] text-white lg:px-[40px]">
         {lines.map((line) => (
           <span key={line} className="block overflow-hidden">
             <span className="services-heading-inner block">{line}</span>

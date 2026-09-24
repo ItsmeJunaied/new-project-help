@@ -75,7 +75,7 @@ export default async function BlogPostPage({ params }: PageProps<"/blog/[slug]">
             showIntro={false}
             ctaLabel="Back to Blog"
             ctaHref="/blog"
-            sectionClassName="bg-[#f4f4f4] px-6 py-[80px] lg:px-0 lg:pb-[165px] lg:pt-[163px]"
+            sectionClassName="bg-[#f4f4f4] px-6 py-[80px] lg:px-[40px] lg:pb-[165px] lg:pt-[163px]"
             containerClassName="max-w-[1440px] gap-[48px] lg:gap-[100px]"
             groupClassName="gap-[48px] lg:gap-[60px]"
             cardClassName="sm:w-[467px]"

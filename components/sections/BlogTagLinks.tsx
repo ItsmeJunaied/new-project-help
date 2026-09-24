@@ -22,7 +22,7 @@ export default function BlogTagLinks({
   return (
     <nav
       aria-label="Article topics"
-      className="mx-auto w-full max-w-[1440px] px-6 pb-[48px] lg:px-0 lg:pb-[64px]"
+      className="mx-auto w-full max-w-[1440px] px-6 pb-[48px] lg:px-[40px] lg:pb-[64px]"
     >
       <ul className="flex flex-wrap items-center gap-[10px]">
         <li>

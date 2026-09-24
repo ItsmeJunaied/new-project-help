@@ -45,7 +45,7 @@ export default function ServiceDetailHero({ service }: { service: Service }) {
       data-node-id="156:8130"
       className="w-full bg-bg pb-[60px] pt-[40px] lg:pt-[57px]"
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[48px] px-6 lg:gap-[60px] lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[48px] px-6 lg:gap-[60px] lg:px-[40px]">
         <div className="flex w-full flex-col items-start gap-[40px] lg:flex-row lg:items-end lg:gap-[254px]">
           <h1 className="font-display text-[clamp(3.5rem,8.4vw,160px)] font-medium leading-[1] tracking-[-0.0625em] text-black lg:min-w-0 lg:max-w-[719px] lg:flex-1">
             {service.heroLines.map((line) => (

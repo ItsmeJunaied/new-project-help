@@ -76,7 +76,7 @@ export default function CaseDetailHero({ study }: { study: CaseStudy }) {
       data-node-id="156:10321"
       className="w-full bg-bg pt-[40px] lg:pt-[57px]"
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-[40px]">
         <div className="flex w-full flex-col items-start gap-[40px] lg:flex-row lg:items-start lg:gap-[123px]">
           <h1 className="case-detail-title font-display text-[clamp(2.5rem,4.7vw,68px)] font-medium leading-[1.1] tracking-[-1.5px] text-black lg:min-w-0 lg:max-w-[917px] lg:flex-1">
             {study.title}

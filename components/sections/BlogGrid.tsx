@@ -95,7 +95,7 @@ export default function BlogGrid({ posts }: BlogGridProps) {
       data-node-id="156:9952"
       className="w-full overflow-x-clip bg-bg pb-[80px] lg:pb-[147px]"
     >
-      <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-0">
+      <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         {posts.length === 0 ? (
           <p className="py-[80px] text-center font-body text-[16px] leading-[24px] text-[#707070]">
             No articles published yet — check back soon.

@@ -98,7 +98,7 @@ export default function ContactDetails() {
       data-node-id="156:10877"
       className="w-full bg-bg pb-[80px] lg:pb-[174px]"
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-[64px] px-6 lg:flex-row lg:gap-[95px] lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-[64px] px-6 lg:flex-row lg:gap-[95px] lg:px-[40px]">
         {/* Left: photo + CEO quote card */}
         <div className="flex w-full flex-col gap-[50px] lg:w-[521px] lg:shrink-0">
           <div className="contact-aside relative h-[280px] w-full overflow-hidden lg:h-[396px]">

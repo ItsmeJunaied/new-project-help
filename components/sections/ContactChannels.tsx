@@ -69,7 +69,7 @@ export default function ContactChannels() {
   ];
 
   return (
-    <section ref={sectionRef} className="w-full bg-bg px-6 pb-[80px] lg:px-0 lg:pb-[140px]">
+    <section ref={sectionRef} className="w-full bg-bg px-6 pb-[80px] lg:px-[40px] lg:pb-[140px]">
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[48px]">
         <div className="grid w-full gap-[20px] lg:grid-cols-3">
           {channels.map((channel) => (

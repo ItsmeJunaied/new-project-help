@@ -51,7 +51,7 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
   );
 
   return (
-    <section ref={sectionRef} className="w-full bg-bg px-6 pb-[80px] lg:px-0 lg:pb-[120px]">
+    <section ref={sectionRef} className="w-full bg-bg px-6 pb-[80px] lg:px-[40px] lg:pb-[120px]">
       <div className="mx-auto w-full max-w-[1440px] lg:pl-[243px]">
         <div className="flex w-full flex-col gap-[30px] lg:max-w-[1197px]">
           <h2 className="related-head w-full font-display text-[32px] font-semibold leading-[46px] text-black">

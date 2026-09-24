@@ -127,7 +127,7 @@ function AboutTeamGrid() {
       data-node-id="156:8711"
       className="w-full overflow-hidden bg-black py-[80px] lg:pb-[160.5px] lg:pt-[160px]"
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-[40px]">
         <div className="flex w-full flex-col items-start gap-6 lg:flex-row lg:gap-[755px]">
           <p className="team-meta shrink-0 font-body text-[18px] font-medium leading-[18px] tracking-[-0.25px] text-ash-muted">
             [ Team ]

@@ -71,7 +71,7 @@ export default function CareerRoles() {
       data-node-id="156:11251"
       className="w-full bg-bg py-[80px] lg:py-[160px]"
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-[40px]">
         <div className="roles-meta flex w-full flex-col gap-[8px]">
           <div className="flex w-full items-center justify-between text-[18px] leading-[25.714px] text-black">
             {/* This label is the section's real heading, so it carries the

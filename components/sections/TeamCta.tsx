@@ -122,7 +122,7 @@ export default function TeamCta() {
         </div>
       </div>
 
-      <div className="cta-holder relative flex w-full flex-col items-start justify-end overflow-hidden px-6 py-[64px] lg:h-[874px] lg:px-0 lg:py-[100px]">
+      <div className="cta-holder relative flex w-full flex-col items-start justify-end overflow-hidden px-6 py-[64px] lg:h-[874px] lg:px-[40px] lg:py-[100px]">
         <div aria-hidden className="pointer-events-none absolute inset-0">
           <div className="absolute inset-0 bg-[#111]" />
           {/* The export is the uncropped portrait original, so anchoring it to

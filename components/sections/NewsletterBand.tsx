@@ -86,7 +86,7 @@ export default function NewsletterBand({ source }: NewsletterBandProps) {
   }
 
   return (
-    <section ref={sectionRef} className="w-full bg-bg px-6 pb-[80px] lg:px-0 lg:pb-[120px]">
+    <section ref={sectionRef} className="w-full bg-bg px-6 pb-[80px] lg:px-[40px] lg:pb-[120px]">
       <div className="mx-auto w-full max-w-[1440px]">
         <div className="newsletter-rule h-px w-full bg-[#e7e7e7]" />
 

@@ -71,7 +71,7 @@ export default function AboutHero() {
       data-node-id="156:8621"
       className="w-full bg-bg pb-[80px] pt-[40px] lg:pb-[160px] lg:pt-[57px]"
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[48px] px-6 lg:gap-[94px] lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[48px] px-6 lg:gap-[94px] lg:px-[40px]">
         <div className="flex w-full flex-col items-start gap-[40px] lg:flex-row lg:items-start lg:gap-[20px]">
           <h1 className="font-display text-[clamp(3.5rem,8.4vw,160px)] font-medium leading-[1] tracking-[-0.0625em] text-black lg:min-w-0 lg:max-w-[953px] lg:flex-1">
             <span className="block overflow-hidden">

@@ -24,7 +24,7 @@ export default function NotFound() {
     <>
       <Header />
       <main id="main">
-        <section className="w-full bg-bg px-6 pb-[100px] pt-[60px] lg:px-0 lg:pb-[160px] lg:pt-[100px]">
+        <section className="w-full bg-bg px-6 pb-[100px] pt-[60px] lg:px-[40px] lg:pb-[160px] lg:pt-[100px]">
           <div className="mx-auto w-full max-w-[1440px]">
             <p className="font-mono text-[14px] font-medium uppercase leading-[16px] tracking-[0.5px] text-primary-green">
               [ 404 ]

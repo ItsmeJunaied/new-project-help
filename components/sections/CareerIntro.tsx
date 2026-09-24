@@ -40,7 +40,7 @@ export default function CareerIntro() {
       data-node-id="156:11184"
       className="w-full bg-bg pb-[80px] pt-[64px] lg:pb-[197px] lg:pt-[80px]"
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-[48px] px-6 lg:flex-row lg:items-start lg:justify-end lg:gap-[100px] lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-[48px] px-6 lg:flex-row lg:items-start lg:justify-end lg:gap-[100px] lg:px-[40px]">
         <div className="career-intro-image relative h-[240px] w-full overflow-hidden sm:h-[295px] lg:w-[388px] lg:shrink-0">
           <Image
             src="/images/career-intro.jpg"

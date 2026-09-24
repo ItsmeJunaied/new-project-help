@@ -190,7 +190,7 @@ export default function FeaturedWork() {
 
   return (
     <section ref={sectionRef} id="work" className="w-full bg-bg py-24 lg:py-32">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-16 px-6 lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-16 px-6 lg:px-[40px]">
         <div className="flex flex-col gap-2">
           <h2
             ref={headingRef}

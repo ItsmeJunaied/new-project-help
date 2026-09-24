@@ -117,7 +117,7 @@ export default function Footer() {
       data-node-id="156:7719"
       className="flex w-full flex-col items-center gap-[60px] bg-[#0a0a0a] pb-[80px] pt-[100px]"
     >
-      <div className="flex w-full max-w-[1372px] flex-col items-start gap-[40px] px-6 lg:px-0">
+      <div className="flex w-full max-w-[1372px] flex-col items-start gap-[40px] px-6 lg:px-[40px]">
         {/* White ink on the near-black footer; the green comes from the token
             either way. The hover fade sits on the logo, not on the link: the
             link is a .footer-reveal, so GSAP owns its opacity, and a CSS

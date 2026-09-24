@@ -129,7 +129,7 @@ export default function CareerBenefits() {
       <div className="bg-[#f4f4f4] pb-[80px] pt-[40px] lg:pb-[160px] lg:pt-[68px]">
         <MarqueeRow trackRef={bottomRef} className="mb-[48px] lg:mb-[81px]" />
 
-        <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-0">
+        <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
           <div className="benefit-grid grid w-full grid-cols-1 gap-[19.5px] sm:grid-cols-2 lg:grid-cols-3">
             {BENEFITS.map((benefit) => (
               <article

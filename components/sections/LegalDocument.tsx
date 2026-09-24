@@ -41,7 +41,7 @@ export default function LegalDocument({ title, intro, lastUpdated, sections }: L
 
   return (
     <section ref={sectionRef} className="w-full bg-bg pb-[80px] pt-[40px] lg:pb-[140px] lg:pt-[80px]">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-[40px]">
         <h1 className="legal-title font-display text-[clamp(2.5rem,4.7vw,68px)] font-medium leading-[1.1] tracking-[-1.5px] text-black lg:max-w-[917px]">
           {title}
         </h1>

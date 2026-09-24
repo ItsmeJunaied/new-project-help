@@ -113,7 +113,7 @@ export default function BlogPostArticle({ post, url }: BlogPostArticleProps) {
 
   return (
     <section className="w-full bg-bg pb-[80px] pt-[40px] lg:pb-[159px] lg:pt-[90px]" ref={sectionRef}>
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-[40px]">
         <div className="flex w-full flex-col items-start gap-[40px] lg:flex-row lg:items-start lg:justify-between lg:gap-0">
           <h1 className="article-title font-display text-[clamp(2.5rem,4.7vw,68px)] font-medium leading-[1.1] tracking-[-1.5px] text-black lg:min-w-0 lg:max-w-[917px] lg:flex-1">
             {post.title}

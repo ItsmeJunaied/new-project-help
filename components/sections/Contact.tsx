@@ -113,7 +113,7 @@ export default function Contact() {
       ref={sectionRef}
       id="contact"
       data-node-id="156:7579"
-      className="w-full bg-black px-6 py-[80px] lg:px-0 lg:py-[120px]"
+      className="w-full bg-black px-6 py-[80px] lg:px-[40px] lg:py-[120px]"
     >
       <div className="mx-auto flex w-full max-w-[1372px] flex-col items-start justify-between gap-[64px] lg:flex-row lg:items-stretch lg:gap-0">
         <div className="flex w-full flex-col items-start justify-between gap-[64px] lg:w-[554px] lg:max-w-[554px]">

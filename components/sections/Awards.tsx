@@ -173,7 +173,7 @@ export default function Awards({
       data-node-id="156:7260"
       className={`w-full bg-bg ${spacingClassName}`}
     >
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[48px] px-6 lg:gap-[80px] lg:px-0">
+      <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[48px] px-6 lg:gap-[80px] lg:px-[40px]">
         <div className="flex w-full flex-col gap-[40px]">
           <div className="flex w-full flex-col items-start justify-between gap-6 lg:flex-row lg:items-start">
             <p className="awards-meta font-body text-[18px] font-medium leading-[18px] tracking-[-0.25px] text-[#111]">

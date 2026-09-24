@@ -161,7 +161,7 @@ export default function JobApplyForm({ jobSlug, jobTitle }: JobApplyFormProps) {
     <section
       id="apply"
       ref={sectionRef}
-      className="w-full scroll-mt-[100px] bg-[#f4f4f4] px-6 py-[80px] lg:px-0 lg:py-[120px]"
+      className="w-full scroll-mt-[100px] bg-[#f4f4f4] px-6 py-[80px] lg:px-[40px] lg:py-[120px]"
     >
       <div className="mx-auto w-full max-w-[1440px]">
         <div className="flex w-full flex-col items-start gap-[48px] lg:flex-row lg:gap-[100px]">

@@ -88,7 +88,7 @@ export default function ServiceDetailContent({ service }: { service: Service }) 
 
   return (
     <section data-node-id="156:8187" ref={sectionRef} className="w-full bg-bg pb-[80px] lg:pb-[146px]">
-      <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-0">
+      <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="flex w-full flex-col items-start lg:pl-[243px]">
           {/* Main copy column */}
           <div className="flex w-full flex-col gap-[48px] lg:max-w-[954px]">

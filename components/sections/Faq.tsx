@@ -84,7 +84,7 @@ export default function Faq() {
     <section
       ref={sectionRef}
       data-node-id="156:7339"
-      className="w-full bg-[#111] px-6 py-[80px] lg:px-0 lg:py-[100px]"
+      className="w-full bg-[#111] px-6 py-[80px] lg:px-[40px] lg:py-[100px]"
     >
       <div className="mx-auto flex w-full max-w-[1296px] flex-col gap-[48px] lg:gap-[80px]">
         <div className="flex w-full flex-col gap-[40px]">

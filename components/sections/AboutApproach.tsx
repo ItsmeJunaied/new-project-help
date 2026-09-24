@@ -65,7 +65,7 @@ export default function AboutApproach() {
       data-node-id="156:8689"
       className="w-full overflow-x-clip bg-bg py-[80px] lg:py-0"
     >
-      <div className="relative mx-auto w-full max-w-[1440px] px-6 lg:h-[1169px] lg:px-0">
+      <div className="relative mx-auto w-full max-w-[1440px] px-6 lg:h-[1169px] lg:px-[40px]">
         <div className="flex w-full flex-col gap-[40px] lg:absolute lg:inset-x-0 lg:top-[160px] lg:gap-0">
           <div className="flex w-full flex-col items-start gap-6 lg:flex-row lg:gap-[347px]">
             <p className="approach-meta shrink-0 font-body text-[18px] font-medium leading-[18px] tracking-[-0.25px] text-[#111]">
