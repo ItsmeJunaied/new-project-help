@@ -53,7 +53,12 @@ export default async function Home() {
         <Services />
         <Testimonials />
         <Awards />
-        <ImageShowcase />
+        <ImageShowcase
+          src="/images/client-onboarding-signing.webp"
+          alt="Two Project Help directors holding the signed certificates of incorporation at the studio table"
+          captionLabel="[ CLIENT ONBOARDING ]"
+          captionTitle="Signing day — where a new engagement becomes a partnership."
+        />
         <Faq />
         <Blog posts={posts.slice(0, 3)} totalPosts={posts.length} />
         <Contact />
