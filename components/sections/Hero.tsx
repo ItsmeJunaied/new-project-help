@@ -151,7 +151,7 @@ export default function Hero() {
         <div className="mt-10 lg:mt-[45px] lg:max-w-[860px]">
           <div className="flex flex-col gap-[40px]">
             <div className="hero-reveal flex items-center gap-[8px]">
-              <span className="font-display text-[28px] font-medium leading-[25.714px] text-primary-orange">
+              <span className="font-display text-[28px] font-medium leading-[25.714px] text-primary-green">
                 &copy;
               </span>
               <span className="font-display text-[28px] font-medium leading-[28px] tracking-[-0.75px] text-black">
@@ -178,7 +178,7 @@ export default function Hero() {
             <ul className="flex flex-wrap items-center gap-x-[28px] gap-y-[12px]">
               {PROOF_POINTS.map((point) => (
                 <li key={point} className="hero-brand flex items-center gap-[8px]">
-                  <span className="size-[8px] shrink-0 bg-primary-orange" aria-hidden />
+                  <span className="size-[8px] shrink-0 bg-primary-green" aria-hidden />
                   <span className="whitespace-nowrap font-display text-[16px] font-medium leading-[1.2] tracking-[-0.25px] text-black">
                     {point}
                   </span>

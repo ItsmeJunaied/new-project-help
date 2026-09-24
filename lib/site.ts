@@ -1,3 +1,5 @@
+import { BRAND_GREEN } from "@/lib/brand";
+
 export const siteConfig = {
   name: "Project Help",
   tagline: "Custom Software Development Company",
@@ -9,7 +11,7 @@ export const siteConfig = {
   whatsappHref: "https://wa.me/8801975005362",
   founded: "2021",
   /** 30-minute intro call. Same link the current live site books against. */
-  calendlyUrl: "https://calendly.com/hello-projecthelpbd/30min?primary_color=ff6d0c",
+  calendlyUrl: `https://calendly.com/hello-projecthelpbd/30min?primary_color=${BRAND_GREEN.replace("#", "").toLowerCase()}`,
   /**
    * Company showreel. The footer draws a play button over a video thumbnail;
    * with no URL here it renders as a still image instead of a control that

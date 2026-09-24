@@ -71,7 +71,7 @@ export default function LegalDocument({ title, intro, lastUpdated, sections }: L
               ))}
 
               {section.list && (
-                <ul className="flex w-full list-disc flex-col gap-[10px] pl-[26px] font-body text-[16px] leading-[26px] tracking-[-0.16px] text-ash-dark marker:text-primary-orange">
+                <ul className="flex w-full list-disc flex-col gap-[10px] pl-[26px] font-body text-[16px] leading-[26px] tracking-[-0.16px] text-ash-dark marker:text-primary-green">
                   {section.list.map((item) => (
                     <li key={item}>{item}</li>
                   ))}

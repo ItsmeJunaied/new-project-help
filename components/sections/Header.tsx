@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import Logo from "@/components/ui/Logo";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { magnetic, prefersReducedMotion } from "@/lib/anim";
@@ -110,18 +111,12 @@ export default function Header({ activeLabel = "HOME" }: HeaderProps) {
         ref={navRef}
         className="relative z-30 mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-6 pt-6 lg:px-0 lg:pt-[24px]"
       >
-        {/* The design is drawn on a 1440 canvas where the logo and the CTA sit far
-            apart. On a phone the two together are wider than the row, so both step
-            down a size below sm; from sm up the design's dimensions are exact. */}
-        <Link href="/" className="relative h-[26px] w-[150px] shrink-0 sm:h-[34px] sm:w-[194px]">
-          <Image
-            src="/icons/logo-projecthelp.svg"
-            alt="Project Help"
-            fill
-            sizes="194px"
-            className="object-contain object-left"
-            preload
-          />
+        {/* The lockup is stacked — mark over wordmark, about 1.8:1 — so it is
+            sized by height and left to find its own width. `text-black` is the
+            logo's ink; its green comes from the brand token. On a phone the
+            logo and the CTA together overflow the row, so both step down. */}
+        <Link href="/" aria-label="Project Help — home" className="shrink-0 text-black">
+          <Logo className="h-[46px] w-auto sm:h-[64px]" />
         </Link>
 
         <nav aria-label="Main" className="hidden items-center gap-[30px] lg:flex">
@@ -133,7 +128,7 @@ export default function Header({ activeLabel = "HOME" }: HeaderProps) {
               className={
                 link.label === activeLabel
                   ? "nav-link font-body text-[16px] leading-[24px] font-bold tracking-[-0.16px] text-black"
-                  : "nav-link font-body text-[16px] leading-[24px] tracking-[-0.16px] text-black transition-colors hover:text-primary-orange"
+                  : "nav-link font-body text-[16px] leading-[24px] tracking-[-0.16px] text-black transition-colors hover:text-primary-green"
               }
             >
               {link.label}
@@ -192,14 +187,13 @@ export default function Header({ activeLabel = "HOME" }: HeaderProps) {
         {/* The panel covers the page header, so it carries its own — otherwise
             the close control is underneath it and the only way out is Esc. */}
         <div className="mobile-nav-item flex w-full shrink-0 items-center justify-between gap-6">
-          <Link href="/" onClick={close} className="relative h-[26px] w-[150px] shrink-0">
-            <Image
-              src="/icons/logo-projecthelp.svg"
-              alt="Project Help"
-              fill
-              sizes="150px"
-              className="object-contain object-left"
-            />
+          <Link
+            href="/"
+            onClick={close}
+            aria-label="Project Help — home"
+            className="shrink-0 text-black"
+          >
+            <Logo className="h-[46px] w-auto" />
           </Link>
 
           <button
@@ -219,11 +213,11 @@ export default function Header({ activeLabel = "HOME" }: HeaderProps) {
               href={link.href}
               onClick={close}
               aria-current={link.label === activeLabel ? "page" : undefined}
-              className="mobile-nav-item border-b border-[#e7e7e7] py-[18px] font-display text-[28px] font-medium leading-[1.2] tracking-[-1px] text-black transition-colors hover:text-primary-orange"
+              className="mobile-nav-item border-b border-[#e7e7e7] py-[18px] font-display text-[28px] font-medium leading-[1.2] tracking-[-1px] text-black transition-colors hover:text-primary-green"
             >
               {link.label === activeLabel ? (
                 <span className="flex items-center gap-[12px]">
-                  <span className="size-[8px] shrink-0 bg-primary-orange" aria-hidden />
+                  <span className="size-[8px] shrink-0 bg-primary-green" aria-hidden />
                   {link.label}
                 </span>
               ) : (
@@ -239,7 +233,7 @@ export default function Header({ activeLabel = "HOME" }: HeaderProps) {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackScheduleClick("mobile_menu")}
-            className="flex w-full items-center justify-center rounded-[100px] bg-primary-orange px-[24px] py-[16px] font-body text-[16px] font-medium leading-[24px] tracking-[-0.25px] text-white"
+            className="flex w-full items-center justify-center rounded-[100px] bg-primary-green px-[24px] py-[16px] font-body text-[16px] font-medium leading-[24px] tracking-[-0.25px] text-white"
           >
             Book a free 30-minute call
           </a>

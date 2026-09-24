@@ -135,7 +135,7 @@ export default function ServiceDetailContent({ service }: { service: Service }) 
                   <li key={item} className="flex w-full flex-col gap-[14px]">
                     <span className="detail-rule block h-px w-full bg-[#e7e7e7]" aria-hidden />
                     <span className="flex items-center gap-[10px]">
-                      <span className="size-[11px] shrink-0 bg-primary-orange" aria-hidden />
+                      <span className="size-[11px] shrink-0 bg-primary-green" aria-hidden />
                       <span className="font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-black">
                         {item}
                       </span>
@@ -186,7 +186,7 @@ export default function ServiceDetailContent({ service }: { service: Service }) 
               <ul className="flex flex-wrap items-center gap-[18px]">
                 {service.tools.map((tool) => (
                   <li key={tool} className="flex items-center gap-[10px]">
-                    <span className="size-[11px] shrink-0 bg-primary-orange" aria-hidden />
+                    <span className="size-[11px] shrink-0 bg-primary-green" aria-hidden />
                     <span className="whitespace-nowrap font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-black">
                       {tool}
                     </span>

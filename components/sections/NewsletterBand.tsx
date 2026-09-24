@@ -92,7 +92,7 @@ export default function NewsletterBand({ source }: NewsletterBandProps) {
 
         <div className="flex w-full flex-col items-start justify-between gap-[32px] pt-[48px] lg:flex-row lg:items-end lg:gap-[80px]">
           <div className="newsletter-reveal flex max-w-[560px] flex-col gap-[12px]">
-            <p className="font-mono text-[14px] font-medium uppercase leading-[16px] tracking-[0.5px] text-primary-orange">
+            <p className="font-mono text-[14px] font-medium uppercase leading-[16px] tracking-[0.5px] text-primary-green">
               [ Newsletter ]
             </p>
             <h2 className="font-display text-[clamp(1.75rem,3vw,40px)] font-medium leading-[1.15] tracking-[-1px] text-black">
@@ -102,7 +102,7 @@ export default function NewsletterBand({ source }: NewsletterBandProps) {
               No drip sequence, no sales cadence.{" "}
               <Link
                 href="/unsubscribe"
-                className="text-black underline underline-offset-[3px] transition-colors hover:text-primary-orange"
+                className="text-black underline underline-offset-[3px] transition-colors hover:text-primary-green"
               >
                 Unsubscribe
               </Link>{" "}
@@ -148,7 +148,7 @@ export default function NewsletterBand({ source }: NewsletterBandProps) {
             <p
               aria-live="polite"
               className={`min-h-[20px] font-body text-[14px] leading-[20px] tracking-[-0.16px] ${
-                status === "error" ? "text-primary-orange" : "text-ash-dark"
+                status === "error" ? "text-primary-green" : "text-ash-dark"
               }`}
             >
               {status === "sent" && "You're on the list. Talk soon."}

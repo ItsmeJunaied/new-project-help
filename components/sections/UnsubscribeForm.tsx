@@ -73,7 +73,7 @@ export default function UnsubscribeForm() {
       className="w-full bg-bg px-6 pb-[120px] pt-[60px] lg:px-0 lg:pb-[180px] lg:pt-[100px]"
     >
       <div className="mx-auto w-full max-w-[1440px]">
-        <p className="unsub-reveal font-mono text-[14px] font-medium uppercase leading-[16px] tracking-[0.5px] text-primary-orange">
+        <p className="unsub-reveal font-mono text-[14px] font-medium uppercase leading-[16px] tracking-[0.5px] text-primary-green">
           [ Newsletter ]
         </p>
 
@@ -131,7 +131,7 @@ export default function UnsubscribeForm() {
 
               <p
                 aria-live="polite"
-                className="min-h-[20px] font-body text-[14px] leading-[20px] tracking-[-0.16px] text-primary-orange"
+                className="min-h-[20px] font-body text-[14px] leading-[20px] tracking-[-0.16px] text-primary-green"
               >
                 {status === "error" &&
                   "That didn't go through. Try again, or email hello@projecthelpbd.com and we'll remove you by hand."}

@@ -77,7 +77,7 @@ export default function FloatingActions() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackScheduleClick("floating_consult")}
-            className="flex items-center justify-center bg-primary-orange px-[20px] py-[13px] font-body text-[15px] font-medium leading-[22px] tracking-[-0.25px] text-white transition-opacity hover:opacity-90"
+            className="flex items-center justify-center bg-primary-green px-[20px] py-[13px] font-body text-[15px] font-medium leading-[22px] tracking-[-0.25px] text-white transition-opacity hover:opacity-90"
           >
             Pick a time
           </a>
@@ -133,7 +133,7 @@ export default function FloatingActions() {
             </span>
             <span
               aria-hidden
-              className={`text-[14px] leading-none text-primary-orange transition-transform duration-300 ${
+              className={`text-[14px] leading-none text-primary-green transition-transform duration-300 ${
                 expanded ? "rotate-45" : ""
               }`}
             >

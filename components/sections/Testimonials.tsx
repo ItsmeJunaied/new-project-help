@@ -1,5 +1,6 @@
 "use client";
 
+import { QuoteMark } from "@/components/ui/BrandIcons";
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
@@ -214,13 +215,7 @@ function TestimonialsCarousel() {
 
                   <div className="relative w-full pt-[44px]">
                     <span className="testimonial-quote-mark absolute left-0 top-[45px] block size-[28px] origin-center">
-                      <Image
-                        src="/icons/icon-quote.svg"
-                        alt=""
-                        width={28}
-                        height={28}
-                        className="size-[28px]"
-                      />
+                      <QuoteMark className="size-[28px] text-primary-green" />
                     </span>
                     <p className="w-full pb-[10px] indent-[36px] font-display text-[20px] leading-[26px] text-white">
                       {item.quote}

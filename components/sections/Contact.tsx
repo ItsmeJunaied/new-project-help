@@ -118,14 +118,14 @@ export default function Contact() {
       <div className="mx-auto flex w-full max-w-[1372px] flex-col items-start justify-between gap-[64px] lg:flex-row lg:items-stretch lg:gap-0">
         <div className="flex w-full flex-col items-start justify-between gap-[64px] lg:w-[554px] lg:max-w-[554px]">
           <div className="flex w-full flex-col items-start gap-[12px] lg:w-[699px]">
-            <p className="contact-reveal font-body text-[18px] font-medium leading-[18px] tracking-[-0.25px] text-primary-orange">
+            <p className="contact-reveal font-body text-[18px] font-medium leading-[18px] tracking-[-0.25px] text-primary-green">
               [ Project Brief ]
             </p>
 
             <h2 className="w-full font-display text-[clamp(2.25rem,4.4vw,64px)] font-medium leading-[1.1] tracking-[-1.5px] text-[#f7f7f7] lg:w-[681px] lg:pr-[17.52px]">
               <span className="block overflow-hidden">
                 <span className="contact-heading-inner block">
-                  Bring us the brief<span className="text-primary-orange">,</span> we
+                  Bring us the brief<span className="text-primary-green">,</span> we
                 </span>
               </span>
               <span className="block overflow-hidden">
@@ -143,7 +143,7 @@ export default function Contact() {
           </div>
 
           <div className="contact-reveal flex w-full flex-col items-start gap-[12px]">
-            <div className="flex w-[144px] max-w-[144px] flex-col items-start justify-center bg-primary-orange">
+            <div className="flex w-[144px] max-w-[144px] flex-col items-start justify-center bg-primary-green">
               <div className="contact-plate h-[144px] w-full" />
             </div>
             <div className="flex w-full flex-col items-start gap-[6px]">
@@ -155,7 +155,7 @@ export default function Contact() {
               </p>
             </div>
             <div className="flex w-full items-center gap-[8px]">
-              <span className="size-[8px] shrink-0 bg-primary-orange" />
+              <span className="size-[8px] shrink-0 bg-primary-green" />
               <span className="font-display text-[14px] font-medium leading-[1.2] tracking-[-0.18px] text-[#c8c8c8]">
                 REPLY WITHIN 4 BUSINESS HOURS
               </span>
@@ -308,7 +308,7 @@ export default function Contact() {
                 ref={submitRef}
                 type="submit"
                 disabled={status === "sending"}
-                className="contact-submit flex items-center justify-center gap-[8px] rounded-[1000px] bg-primary-orange px-[32px] py-[16px] transition-opacity hover:opacity-90 disabled:opacity-60"
+                className="contact-submit flex items-center justify-center gap-[8px] rounded-[1000px] bg-primary-green px-[32px] py-[16px] transition-opacity hover:opacity-90 disabled:opacity-60"
               >
                 <span className="font-body text-[18px] font-medium leading-[27px] tracking-[-0.25px] text-white">
                   {status === "sending" ? "Sending…" : "Send the brief"}

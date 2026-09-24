@@ -1,6 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
+import { BRAND_GREEN } from "@/lib/brand";
+
 /**
  * Shared pieces for the generated Open Graph cards.
  *
@@ -30,7 +32,7 @@ export const OG_COLORS = {
   background: "#151515",
   text: "#FFFDFB",
   muted: "#8A8A8A",
-  accent: "#FF6D0C",
+  accent: BRAND_GREEN,
 };
 
 /** Long article titles need a smaller face or they overflow the card. */

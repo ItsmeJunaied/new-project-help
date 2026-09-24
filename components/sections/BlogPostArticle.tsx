@@ -149,7 +149,7 @@ export default function BlogPostArticle({ post, url }: BlogPostArticleProps) {
 
             <div className="article-block flex w-full flex-col">
               <span className="block h-px w-full bg-[#e7e7e7]" aria-hidden />
-              <p className="flex h-[55px] items-center font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-primary-orange">
+              <p className="flex h-[55px] items-center font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-primary-green">
                 {post.tags[0] ?? "Insight"}
               </p>
               <span className="block h-px w-full bg-[#e7e7e7]" aria-hidden />
@@ -206,7 +206,7 @@ export default function BlogPostArticle({ post, url }: BlogPostArticleProps) {
               </p>
               <Link
                 href="/contact"
-                className="mt-[6px] flex items-center gap-[8px] rounded-[100px] bg-primary-orange px-[24px] py-[12px] font-body text-[16px] font-medium leading-[24px] tracking-[-0.25px] text-white transition-opacity hover:opacity-85"
+                className="mt-[6px] flex items-center gap-[8px] rounded-[100px] bg-primary-green px-[24px] py-[12px] font-body text-[16px] font-medium leading-[24px] tracking-[-0.25px] text-white transition-opacity hover:opacity-85"
               >
                 Start a conversation
               </Link>

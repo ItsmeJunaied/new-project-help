@@ -67,8 +67,8 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
                   className="related-row group flex w-full items-center justify-between gap-[16px] py-[6px]"
                 >
                   <span className="flex min-w-0 items-center gap-[10px]">
-                    <span className="size-[11px] shrink-0 bg-primary-orange" aria-hidden />
-                    <span className="truncate font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-black transition-colors group-hover:text-primary-orange">
+                    <span className="size-[11px] shrink-0 bg-primary-green" aria-hidden />
+                    <span className="truncate font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-black transition-colors group-hover:text-primary-green">
                       {service.title}
                     </span>
                   </span>

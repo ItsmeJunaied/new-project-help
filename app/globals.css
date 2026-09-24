@@ -8,7 +8,13 @@
   --color-ash-dark: #454545;
   --color-neutral-paragraph: #646464;
   --color-text-ash: #b6b6b6;
-  --color-primary-orange: #ff6d0c;
+  /* The brand green, and the single source for everything the browser renders:
+     Tailwind utilities (bg-primary-green, text-primary-green …), the inline
+     logo, and the audio waveform all resolve to this one declaration. The only
+     copy lives in lib/brand.ts, for the OG image and the Calendly URL, which
+     are generated where no stylesheet exists. `npm run check:brand` keeps the
+     two in step. */
+  --color-primary-green: #86d52a;
   --color-ink: #050505;
   --color-ash-muted: #aeaeae;
   --color-ash-deep: #343434;
@@ -22,7 +28,7 @@
   --color-ash-dark: var(--color-ash-dark);
   --color-neutral-paragraph: var(--color-neutral-paragraph);
   --color-text-ash: var(--color-text-ash);
-  --color-primary-orange: var(--color-primary-orange);
+  --color-primary-green: var(--color-primary-green);
   --color-ink: var(--color-ink);
   --color-ash-muted: var(--color-ash-muted);
   --color-ash-deep: var(--color-ash-deep);
@@ -122,7 +128,7 @@ body {
 }
 
 .prose-content a:hover {
-  color: var(--color-primary-orange);
+  color: var(--color-primary-green);
 }
 
 .prose-content ul,
@@ -143,11 +149,11 @@ body {
 }
 
 .prose-content li::marker {
-  color: var(--color-primary-orange);
+  color: var(--color-primary-green);
 }
 
 .prose-content blockquote {
-  border-left: 2px solid var(--color-primary-orange);
+  border-left: 2px solid var(--color-primary-green);
   padding-left: 20px;
   font-family: var(--font-display);
   font-size: 20px;

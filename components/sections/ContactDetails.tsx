@@ -185,7 +185,7 @@ export default function ContactDetails() {
                 type="text"
                 required
                 placeholder="Enter full name"
-                className={`${FIELD_BASE} border-primary-orange`}
+                className={`${FIELD_BASE} border-primary-green`}
               />
             </div>
 
@@ -198,7 +198,7 @@ export default function ContactDetails() {
                   type="email"
                   required
                   placeholder="Enter email address..."
-                  className={`${FIELD_BASE} border-black/10 focus:border-primary-orange`}
+                  className={`${FIELD_BASE} border-black/10 focus:border-primary-green`}
                 />
               </div>
               <div className="flex w-full flex-1 flex-col gap-[12px]">
@@ -208,7 +208,7 @@ export default function ContactDetails() {
                   name="phone"
                   type="tel"
                   placeholder="Enter phone number"
-                  className={`${FIELD_BASE} border-black/10 focus:border-primary-orange`}
+                  className={`${FIELD_BASE} border-black/10 focus:border-primary-green`}
                 />
               </div>
             </div>
@@ -221,7 +221,7 @@ export default function ContactDetails() {
                   name="service"
                   required
                   defaultValue=""
-                  className={`${FIELD_BASE} border-black/10 pl-[4px] pr-[16px] text-[#707070] focus:border-primary-orange`}
+                  className={`${FIELD_BASE} border-black/10 pl-[4px] pr-[16px] text-[#707070] focus:border-primary-green`}
                 >
                   <option value="" disabled>
                     Select Your Service
@@ -240,7 +240,7 @@ export default function ContactDetails() {
                   name="budget"
                   required
                   defaultValue=""
-                  className={`${FIELD_BASE} border-black/10 pl-[4px] pr-[16px] text-[#707070] focus:border-primary-orange`}
+                  className={`${FIELD_BASE} border-black/10 pl-[4px] pr-[16px] text-[#707070] focus:border-primary-green`}
                 >
                   <option value="" disabled>
                     Select Your Range
@@ -266,7 +266,7 @@ export default function ContactDetails() {
                 name="message"
                 required
                 placeholder="Example Text"
-                className="min-h-[132px] w-full resize-y border-b border-black/10 bg-transparent pt-[16px] font-display text-[14px] font-medium leading-[1.2] tracking-[-0.18px] text-black outline-none placeholder:text-[#707070] focus:border-primary-orange"
+                className="min-h-[132px] w-full resize-y border-b border-black/10 bg-transparent pt-[16px] font-display text-[14px] font-medium leading-[1.2] tracking-[-0.18px] text-black outline-none placeholder:text-[#707070] focus:border-primary-green"
               />
             </div>
           </div>

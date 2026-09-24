@@ -18,7 +18,7 @@ function Heading({ children }: { children: React.ReactNode }) {
 
 function BulletList({ items }: { items: string[] }) {
   return (
-    <ul className="flex w-full list-disc flex-col gap-[14px] pl-[26px] font-body text-[16px] leading-[24px] tracking-[-0.16px] text-ash-dark marker:text-primary-orange">
+    <ul className="flex w-full list-disc flex-col gap-[14px] pl-[26px] font-body text-[16px] leading-[24px] tracking-[-0.16px] text-ash-dark marker:text-primary-green">
       {items.map((item) => (
         <li key={item}>{item}</li>
       ))}
@@ -113,7 +113,7 @@ export default function JobDetail({ job }: { job: Job }) {
 
               <Link
                 href="#apply"
-                className="mt-[28px] flex w-full items-center justify-center rounded-[100px] bg-primary-orange px-[24px] py-[14px] font-body text-[16px] font-medium leading-[24px] tracking-[-0.25px] text-white transition-opacity hover:opacity-85 sm:w-auto sm:self-start"
+                className="mt-[28px] flex w-full items-center justify-center rounded-[100px] bg-primary-green px-[24px] py-[14px] font-body text-[16px] font-medium leading-[24px] tracking-[-0.25px] text-white transition-opacity hover:opacity-85 sm:w-auto sm:self-start"
               >
                 Apply for this role
               </Link>
@@ -122,7 +122,7 @@ export default function JobDetail({ job }: { job: Job }) {
                 Prefer email? Send your CV to{" "}
                 <a
                   href={`mailto:${job.applyEmail}?subject=${encodeURIComponent(`Application: ${job.title}`)}`}
-                  className="text-black underline underline-offset-[3px] transition-colors hover:text-primary-orange"
+                  className="text-black underline underline-offset-[3px] transition-colors hover:text-primary-green"
                 >
                   {job.applyEmail}
                 </a>

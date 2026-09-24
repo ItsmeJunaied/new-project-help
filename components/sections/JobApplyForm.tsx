@@ -166,7 +166,7 @@ export default function JobApplyForm({ jobSlug, jobTitle }: JobApplyFormProps) {
       <div className="mx-auto w-full max-w-[1440px]">
         <div className="flex w-full flex-col items-start gap-[48px] lg:flex-row lg:gap-[100px]">
           <div className="apply-reveal flex w-full flex-col gap-[16px] lg:w-[420px] lg:shrink-0">
-            <p className="font-mono text-[14px] font-medium uppercase leading-[16px] tracking-[0.5px] text-primary-orange">
+            <p className="font-mono text-[14px] font-medium uppercase leading-[16px] tracking-[0.5px] text-primary-green">
               [ Apply ]
             </p>
             <h2 className="font-display text-[clamp(2rem,3.4vw,48px)] font-medium leading-[1.1] tracking-[-1.5px] text-black">
@@ -269,7 +269,7 @@ export default function JobApplyForm({ jobSlug, jobTitle }: JobApplyFormProps) {
               <p
                 aria-live="polite"
                 className={`min-h-[20px] font-body text-[14px] leading-[20px] tracking-[-0.16px] ${
-                  status === "error" ? "text-primary-orange" : "text-ash-dark"
+                  status === "error" ? "text-primary-green" : "text-ash-dark"
                 }`}
               >
                 {status === "sent" && "Thanks — your application is in. We'll be in touch."}

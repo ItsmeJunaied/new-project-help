@@ -1,5 +1,6 @@
 "use client";
 
+import { LogoMark } from "@/components/ui/BrandIcons";
 import Image from "next/image";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
@@ -131,7 +132,7 @@ export default function AboutApproach() {
             </p>
             <div className="flex items-center gap-[15px]">
               <span className="relative size-[48px] shrink-0">
-                <Image src="/icons/logo-mark.svg" alt="" fill className="object-contain" />
+                <LogoMark className="size-[48px] text-primary-green" />
               </span>
               <p className="font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-black">
                 <span className="block whitespace-nowrap">CUSTOM SOFTWARE FOR</span>

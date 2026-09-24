@@ -156,7 +156,7 @@ export default function Faq() {
                       aria-controls={`faq-panel-${item.id}`}
                       className="group flex w-full items-center justify-between gap-6 text-left"
                     >
-                      <span className="font-display text-[22px] leading-[26.4px] tracking-[-0.25px] text-white transition-colors group-hover:text-primary-orange">
+                      <span className="font-display text-[22px] leading-[26.4px] tracking-[-0.25px] text-white transition-colors group-hover:text-primary-green">
                         {item.question}
                       </span>
                       <span

@@ -2,6 +2,8 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import Logo from "@/components/ui/Logo";
+import { FooterTickerStar } from "@/components/ui/BrandIcons";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
@@ -116,6 +118,18 @@ export default function Footer() {
       className="flex w-full flex-col items-center gap-[60px] bg-[#0a0a0a] pb-[80px] pt-[100px]"
     >
       <div className="flex w-full max-w-[1372px] flex-col items-start gap-[40px] px-6 lg:px-0">
+        {/* White ink on the near-black footer; the green comes from the token
+            either way. The hover fade sits on the logo, not on the link: the
+            link is a .footer-reveal, so GSAP owns its opacity, and a CSS
+            transition on the same property fights those per-frame writes. */}
+        <Link
+          href="/"
+          aria-label="Project Help — home"
+          className="footer-reveal group shrink-0 text-white"
+        >
+          <Logo className="h-[64px] w-auto transition-opacity duration-200 group-hover:opacity-70 lg:h-[80px]" />
+        </Link>
+
         <div className="flex w-full flex-col items-start gap-[32px]">
           <div className="footer-rule h-px w-full bg-[#3f3f46]" />
 
@@ -179,7 +193,7 @@ export default function Footer() {
               </p>
               <a
                 href="mailto:hello@projecthelpbd.com"
-                className="font-body text-[16px] leading-[24px] tracking-[-0.16px] text-[#f7f7f7] transition-colors hover:text-primary-orange"
+                className="font-body text-[16px] leading-[24px] tracking-[-0.16px] text-[#f7f7f7] transition-colors hover:text-primary-green"
               >
                 hello@projecthelpbd.com
               </a>
@@ -324,13 +338,7 @@ export default function Footer() {
             <div key={i} className="flex shrink-0 items-end gap-[63px]" aria-hidden={i > 0}>
               <span className="flex h-[160.824px] w-[160.822px] shrink-0 items-center justify-center">
                 <span className="block size-[135px] rotate-[102.39deg]">
-                  <Image
-                    src="/icons/footer-ticker-star.svg"
-                    alt=""
-                    width={135}
-                    height={135}
-                    className="size-[135px]"
-                  />
+                  <FooterTickerStar className="size-[135px] text-primary-green" />
                 </span>
               </span>
               <span className="whitespace-nowrap font-display text-[clamp(4rem,9.4vw,180px)] font-semibold uppercase leading-[1.1] tracking-[-8px] text-white">

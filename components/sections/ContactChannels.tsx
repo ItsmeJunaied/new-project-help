@@ -88,7 +88,7 @@ export default function ContactChannels() {
                 <a
                   href={channel.href}
                   {...(channel.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className="font-display text-[20px] font-medium leading-[1.3] tracking-[-0.25px] text-black transition-colors hover:text-primary-orange"
+                  className="font-display text-[20px] font-medium leading-[1.3] tracking-[-0.25px] text-black transition-colors hover:text-primary-green"
                 >
                   {channel.value}
                 </a>
@@ -117,7 +117,7 @@ export default function ContactChannels() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackScheduleClick("contact_page")}
-            className="flex shrink-0 items-center justify-center rounded-[100px] bg-primary-orange px-[28px] py-[15px] font-body text-[16px] font-medium leading-[24px] tracking-[-0.25px] text-white transition-opacity hover:opacity-90"
+            className="flex shrink-0 items-center justify-center rounded-[100px] bg-primary-green px-[28px] py-[15px] font-body text-[16px] font-medium leading-[24px] tracking-[-0.25px] text-white transition-opacity hover:opacity-90"
           >
             Book a free call
           </a>

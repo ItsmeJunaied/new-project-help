@@ -122,7 +122,7 @@ export default function BlogArticle() {
 
             <div className="article-block flex w-full flex-col">
               <span className="block h-px w-full bg-[#e7e7e7]" aria-hidden />
-              <p className="flex h-[55px] items-center font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-primary-orange">
+              <p className="flex h-[55px] items-center font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-primary-green">
                 Delivery
               </p>
               <span className="block h-px w-full bg-[#e7e7e7]" aria-hidden />

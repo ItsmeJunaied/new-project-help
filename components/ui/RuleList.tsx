@@ -32,7 +32,7 @@ export default function RuleList({
           <ul className="flex flex-col items-start gap-[16px]">
             {items.map((item) => (
               <li key={item} className="flex items-center gap-[10px]">
-                <span className="size-[11px] shrink-0 bg-primary-orange" aria-hidden />
+                <span className="size-[11px] shrink-0 bg-primary-green" aria-hidden />
                 <span className="font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-ash-dark lg:whitespace-nowrap">
                   {item}
                 </span>

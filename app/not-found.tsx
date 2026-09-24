@@ -26,7 +26,7 @@ export default function NotFound() {
       <main id="main">
         <section className="w-full bg-bg px-6 pb-[100px] pt-[60px] lg:px-0 lg:pb-[160px] lg:pt-[100px]">
           <div className="mx-auto w-full max-w-[1440px]">
-            <p className="font-mono text-[14px] font-medium uppercase leading-[16px] tracking-[0.5px] text-primary-orange">
+            <p className="font-mono text-[14px] font-medium uppercase leading-[16px] tracking-[0.5px] text-primary-green">
               [ 404 ]
             </p>
 
@@ -48,7 +48,7 @@ export default function NotFound() {
                     className="group flex w-full items-center justify-between gap-[16px] py-[22px]"
                   >
                     <span className="flex min-w-0 flex-col gap-[4px]">
-                      <span className="font-display text-[24px] font-medium leading-[1.2] tracking-[-0.5px] text-black transition-colors group-hover:text-primary-orange">
+                      <span className="font-display text-[24px] font-medium leading-[1.2] tracking-[-0.5px] text-black transition-colors group-hover:text-primary-green">
                         {item.label}
                       </span>
                       <span className="font-body text-[15px] leading-[22px] tracking-[-0.16px] text-[#707070]">
