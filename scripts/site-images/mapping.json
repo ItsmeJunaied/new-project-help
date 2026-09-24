@@ -1,0 +1,474 @@
+[
+  {
+    "n": 1,
+    "source": "Gemini_Generated_Image_9cgbci9cgbci9cgb.jpg",
+    "row": 4,
+    "page": "Every page (footer)",
+    "slot": "Footer \u2014 showreel thumbnail",
+    "w": 1920,
+    "h": 692,
+    "target": "images/footer-video-thumb.webp"
+  },
+  {
+    "n": 2,
+    "source": "Gemini_Generated_Image_bo517lbo517lbo51.jpg",
+    "row": 6,
+    "page": "Every page (Team CTA band)",
+    "slot": "Team CTA \u2014 background photograph",
+    "w": 2880,
+    "h": 2048,
+    "target": "images/cta-team-meeting.webp"
+  },
+  {
+    "n": 3,
+    "source": "Gemini_Generated_Image_t9gaeit9gaeit9ga.jpg",
+    "row": 15,
+    "page": "/",
+    "slot": "Hero \u2014 portrait beside the headline",
+    "w": 1300,
+    "h": 1250,
+    "target": "images/hero-portrait.webp"
+  },
+  {
+    "n": 4,
+    "source": "Gemini_Generated_Image_c4vwvec4vwvec4vw.jpg",
+    "row": 16,
+    "page": "/",
+    "slot": "Hero \u2014 pill image inside the headline",
+    "w": 1176,
+    "h": 400,
+    "target": "images/hero-tech-pill.webp"
+  },
+  {
+    "n": 5,
+    "source": "Gemini_Generated_Image_lbkdsilbkdsilbkd.jpg",
+    "row": 17,
+    "page": "/",
+    "slot": "About \u2014 avatar cluster inside the statement",
+    "w": 128,
+    "h": 128,
+    "targets": [
+      "images/about-avatar-1.png",
+      "images/about-avatar-2.png",
+      "images/about-avatar-3.png"
+    ],
+    "crops": [
+      [
+        520,
+        755,
+        460
+      ],
+      [
+        825,
+        785,
+        350
+      ],
+      [
+        1088,
+        728,
+        345
+      ]
+    ],
+    "note": "three 128x128 head crops from one group photograph"
+  },
+  {
+    "n": 6,
+    "source": "Gemini_Generated_Image_89sjlb89sjlb89sj.jpg",
+    "row": 18,
+    "page": "/",
+    "slot": "About \u2014 working photograph beside the statement",
+    "w": 800,
+    "h": 600,
+    "target": "images/about-photo-working.webp"
+  },
+  {
+    "n": 7,
+    "source": "Gemini_Generated_Image_axncw7axncw7axnc.jpg",
+    "row": 19,
+    "page": "/",
+    "slot": "Featured Work \u2014 primary card (Signature Bangla)",
+    "w": 1536,
+    "h": 1240,
+    "target": "images/work-card-sottozero.webp"
+  },
+  {
+    "n": 8,
+    "source": "Gemini_Generated_Image_761wva761wva761w.jpg",
+    "row": 20,
+    "page": "/",
+    "slot": "Featured Work \u2014 secondary card (Clinic Management)",
+    "w": 1536,
+    "h": 836,
+    "target": "images/work-card-blenz-dashboard.png"
+  },
+  {
+    "n": 9,
+    "source": "Gemini_Generated_Image_96z44u96z44u96z4.jpg",
+    "row": 21,
+    "page": "/",
+    "slot": "Featured Work \u2014 full-bleed card (Restaurant POS)",
+    "w": 2880,
+    "h": 1400,
+    "target": "images/work-card-leafy-plant.webp"
+  },
+  {
+    "n": 10,
+    "source": "Gemini_Generated_Image_wcupkqwcupkqwcup.jpg",
+    "row": 22,
+    "page": "/ and /services",
+    "slot": "Services \u2014 card image (SaaS Platform Development)",
+    "w": 1400,
+    "h": 1340,
+    "target": "images/service-01-uiux.webp"
+  },
+  {
+    "n": 11,
+    "source": "Gemini_Generated_Image_cd8m0scd8m0scd8m.jpg",
+    "row": 23,
+    "page": "/ and /services",
+    "slot": "Services \u2014 card image (eCommerce & Digital Commerce)",
+    "w": 1400,
+    "h": 1340,
+    "target": "images/service-02-webflow.webp"
+  },
+  {
+    "n": 12,
+    "source": "Gemini_Generated_Image_a0amoda0amoda0am.jpg",
+    "row": 24,
+    "page": "/ and /services",
+    "slot": "Services \u2014 card image (DevOps & Cloud Infrastructure)",
+    "w": 1400,
+    "h": 1340,
+    "target": "images/service-03-uiux.webp"
+  },
+  {
+    "n": 13,
+    "source": "Gemini_Generated_Image_dadq7edadq7edadq.jpg",
+    "row": 25,
+    "page": "/ and /services",
+    "slot": "Services \u2014 card image (AI/ML & Data Analytics)",
+    "w": 1400,
+    "h": 1340,
+    "target": "images/service-04-brand.webp"
+  },
+  {
+    "n": 14,
+    "source": "Gemini_Generated_Image_kwfligkwfligkwfl.jpg",
+    "row": 30,
+    "page": "/ and /about",
+    "slot": "Industries We Serve \u2014 row image (E-Commerce & Retail)",
+    "w": 424,
+    "h": 360,
+    "target": "images/award-webflow-showcase.png"
+  },
+  {
+    "n": 15,
+    "source": "Gemini_Generated_Image_yza6wtyza6wtyza6.jpg",
+    "row": 31,
+    "page": "/ and /about",
+    "slot": "Industries We Serve \u2014 row image (SaaS & B2B Platforms)",
+    "w": 424,
+    "h": 360,
+    "target": "images/award-pixelcraft-design.png"
+  },
+  {
+    "n": 16,
+    "source": "Gemini_Generated_Image_nj9il4nj9il4nj9i.jpg",
+    "row": 32,
+    "page": "/ and /about",
+    "slot": "Industries We Serve \u2014 row image (Health Tech)",
+    "w": 424,
+    "h": 360,
+    "target": "images/award-webhonors.png"
+  },
+  {
+    "n": 17,
+    "source": "Gemini_Generated_Image_wodv9dwodv9dwodv.jpg",
+    "row": 33,
+    "page": "/ and /about",
+    "slot": "Industries We Serve \u2014 row image (Fintech & Payments)",
+    "w": 424,
+    "h": 360,
+    "target": "images/award-creatix-portfolio.png"
+  },
+  {
+    "n": 18,
+    "source": "Gemini_Generated_Image_1v5cr81v5cr81v5c.jpg",
+    "row": 34,
+    "page": "/ and /about",
+    "slot": "Industries We Serve \u2014 row image (Logistics & Supply Chain)",
+    "w": 424,
+    "h": 360,
+    "target": "images/award-agencyrank.png"
+  },
+  {
+    "n": 19,
+    "source": "Gemini_Generated_Image_ph1nlrph1nlrph1n.jpg",
+    "row": 35,
+    "page": "/ and /blog",
+    "slot": "Blog \u2014 article card (How We Scope a SaaS MVP\u2026)",
+    "w": 1176,
+    "h": 1482,
+    "target": "images/blog-webflow-agency-templates.webp"
+  },
+  {
+    "n": 20,
+    "source": "Gemini_Generated_Image_3zm3lm3zm3lm3zm3.jpg",
+    "row": 36,
+    "page": "/ and /blog",
+    "slot": "Blog \u2014 article card (Multi-Tenancy Patterns\u2026)",
+    "w": 1176,
+    "h": 1482,
+    "target": "images/blog-webflow-saas-templates.webp"
+  },
+  {
+    "n": 21,
+    "source": "Gemini_Generated_Image_hsoei6hsoei6hsoe.jpg",
+    "row": 37,
+    "page": "/ and /blog",
+    "slot": "Blog \u2014 article card (What a Real DevOps Handover\u2026)",
+    "w": 1664,
+    "h": 1120,
+    "target": "images/blog-webflow-quality-rating.webp"
+  },
+  {
+    "n": 22,
+    "source": "Gemini_Generated_Image_nl39exnl39exnl39.jpg",
+    "row": 48,
+    "page": "/ and /services and case study pages",
+    "slot": "Image showcase \u2014 full-bleed band",
+    "w": 2400,
+    "h": 2140,
+    "target": "images/showcase-collaboration.webp"
+  },
+  {
+    "n": 23,
+    "source": "Gemini_Generated_Image_7mbxq67mbxq67mbx.jpg",
+    "row": 49,
+    "page": "/about",
+    "slot": "About hero \u2014 gallery tile 1 of 4",
+    "w": 800,
+    "h": 950,
+    "target": "images/about-gallery-1.jpg"
+  },
+  {
+    "n": 24,
+    "source": "Gemini_Generated_Image_flalpbflalpbflal.jpg",
+    "row": 50,
+    "page": "/about",
+    "slot": "About hero \u2014 gallery tile 2 of 4",
+    "w": 800,
+    "h": 714,
+    "target": "images/about-gallery-2.jpg"
+  },
+  {
+    "n": 25,
+    "source": "Gemini_Generated_Image_uxhmkyuxhmkyuxhm.jpg",
+    "row": 51,
+    "page": "/about",
+    "slot": "About hero \u2014 gallery tile 3 of 4",
+    "w": 800,
+    "h": 950,
+    "target": "images/about-gallery-3.jpg"
+  },
+  {
+    "n": 26,
+    "source": "Gemini_Generated_Image_ermtlfermtlfermt.jpg",
+    "row": 52,
+    "page": "/about",
+    "slot": "About hero \u2014 gallery tile 4 of 4",
+    "w": 800,
+    "h": 714,
+    "target": "images/about-gallery-4.jpg"
+  },
+  {
+    "n": 27,
+    "source": "Gemini_Generated_Image_3p0ijr3p0ijr3p0i.jpg",
+    "row": 53,
+    "page": "/about",
+    "slot": "Mission block \u2014 inline photograph",
+    "w": 800,
+    "h": 780,
+    "target": "images/about-mission.jpg"
+  },
+  {
+    "n": 28,
+    "source": "Gemini_Generated_Image_7wlnhq7wlnhq7wln.jpg",
+    "row": 54,
+    "page": "/about",
+    "slot": "Vision block \u2014 inline photograph",
+    "w": 1200,
+    "h": 1050,
+    "target": "images/about-vision.jpg"
+  },
+  {
+    "n": 29,
+    "source": "Gemini_Generated_Image_6ejqy36ejqy36ejq.jpg",
+    "row": 55,
+    "page": "/about",
+    "slot": "About showcase \u2014 full-bleed band",
+    "w": 2400,
+    "h": 2100,
+    "target": "images/about-showcase.jpg"
+  },
+  {
+    "n": 30,
+    "source": "Gemini_Generated_Image_2ajiol2ajiol2aji.jpg",
+    "row": 62,
+    "page": "/services/saas-platform-development",
+    "slot": "Service hero \u2014 full-bleed banner",
+    "w": 2880,
+    "h": 2016,
+    "target": "images/service-detail-hero.webp"
+  },
+  {
+    "n": 31,
+    "source": "Gemini_Generated_Image_98bsh798bsh798bs.jpg",
+    "row": 63,
+    "page": "/services/saas-platform-development",
+    "slot": "Process block \u2014 inline image",
+    "w": 1920,
+    "h": 1150,
+    "target": "images/service-detail-process.webp"
+  },
+  {
+    "n": 32,
+    "source": "Gemini_Generated_Image_bwgrblbwgrblbwgr.jpg",
+    "row": 64,
+    "page": "/services/saas-platform-development",
+    "slot": "Handover block \u2014 left square image",
+    "w": 1000,
+    "h": 1000,
+    "target": "images/service-detail-story-1.webp"
+  },
+  {
+    "n": 33,
+    "source": "Gemini_Generated_Image_vx3w1tvx3w1tvx3w.jpg",
+    "row": 65,
+    "page": "/services/saas-platform-development",
+    "slot": "Handover block \u2014 right square image",
+    "w": 1000,
+    "h": 1000,
+    "target": "images/service-detail-story-2.webp"
+  },
+  {
+    "n": 34,
+    "source": "Gemini_Generated_Image_ec4ewmec4ewmec4e.jpg",
+    "row": 66,
+    "page": "/services/saas-platform-development",
+    "slot": "Tools & tech \u2014 inline image",
+    "w": 1000,
+    "h": 862,
+    "target": "images/service-detail-tools.webp"
+  },
+  {
+    "n": 35,
+    "source": "Gemini_Generated_Image_wm8rwrwm8rwrwm8r.jpg",
+    "row": 67,
+    "page": "/blog",
+    "slot": "Blog list \u2014 featured wide card",
+    "w": 1664,
+    "h": 1120,
+    "target": "images/blog-list-wide.jpg"
+  },
+  {
+    "n": 36,
+    "source": "Gemini_Generated_Image_txnma1txnma1txnm.jpg",
+    "row": 68,
+    "page": "/blog/saas-mvp-scope",
+    "slot": "Article hero \u2014 full-bleed banner",
+    "w": 2880,
+    "h": 1592,
+    "target": "images/blog-detail-hero.jpg"
+  },
+  {
+    "n": 37,
+    "source": "Gemini_Generated_Image_3zrse3zrse3zrse3.jpg",
+    "row": 69,
+    "page": "/blog/saas-mvp-scope",
+    "slot": "Article body \u2014 inline image",
+    "w": 1664,
+    "h": 974,
+    "target": "images/blog-detail-inline.jpg"
+  },
+  {
+    "n": 38,
+    "source": "Gemini_Generated_Image_52v6ui52v6ui52v6.jpg",
+    "row": 71,
+    "page": "/career",
+    "slot": "Career intro \u2014 photograph",
+    "w": 800,
+    "h": 600,
+    "target": "images/career-intro.jpg"
+  },
+  {
+    "n": 39,
+    "source": "Gemini_Generated_Image_1xtmzv1xtmzv1xtm.jpg",
+    "row": 72,
+    "page": "/career",
+    "slot": "Culture strip \u2014 tile 1 of 6",
+    "w": 760,
+    "h": 772,
+    "target": "images/career-strip-1.jpg"
+  },
+  {
+    "n": 40,
+    "source": "Gemini_Generated_Image_foxef4foxef4foxe.jpg",
+    "row": 73,
+    "page": "/career",
+    "slot": "Culture strip \u2014 tile 2 of 6",
+    "w": 760,
+    "h": 940,
+    "target": "images/career-strip-2.jpg"
+  },
+  {
+    "n": 41,
+    "source": "Gemini_Generated_Image_ia2m47ia2m47ia2m.jpg",
+    "row": 74,
+    "page": "/career",
+    "slot": "Culture strip \u2014 tile 3 of 6",
+    "w": 760,
+    "h": 772,
+    "target": "images/career-strip-3.jpg"
+  },
+  {
+    "n": 42,
+    "source": "Gemini_Generated_Image_vohlopvohlopvohl.jpg",
+    "row": 75,
+    "page": "/career",
+    "slot": "Culture strip \u2014 tile 4 of 6",
+    "w": 760,
+    "h": 940,
+    "target": "images/career-strip-4.jpg"
+  },
+  {
+    "n": 43,
+    "source": "Gemini_Generated_Image_adq6uuadq6uuadq6.jpg",
+    "row": 76,
+    "page": "/career",
+    "slot": "Culture strip \u2014 tile 5 of 6",
+    "w": 760,
+    "h": 772,
+    "target": "images/career-strip-5.jpg"
+  },
+  {
+    "n": 44,
+    "source": "Gemini_Generated_Image_9h4jjm9h4jjm9h4j.jpg",
+    "row": 77,
+    "page": "/career",
+    "slot": "Culture strip \u2014 tile 6 of 6",
+    "w": 760,
+    "h": 940,
+    "target": "images/career-strip-6.jpg"
+  },
+  {
+    "n": 45,
+    "source": "Gemini_Generated_Image_rev0s9rev0s9rev0.jpg",
+    "row": 78,
+    "page": "/contact",
+    "slot": "Contact aside \u2014 desk photograph",
+    "w": 1100,
+    "h": 836,
+    "target": "images/contact-desk.jpg"
+  }
+]

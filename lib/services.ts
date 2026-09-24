@@ -130,7 +130,7 @@ export const SERVICES: Service[] = [
     images: {
       hero: "/images/service-detail-hero.webp",
       process: "/images/service-detail-process.webp",
-      story: ["/images/service-01-uiux.webp", "/images/work-card-blenz-dashboard.png"],
+      story: ["/images/service-detail-story-1.webp", "/images/service-detail-story-2.webp"],
       tools: "/images/service-detail-tools.webp",
     },
     stats: SHARED_STATS,

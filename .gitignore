@@ -61,6 +61,8 @@ next-env.d.ts
 # ignored directory, so a plain directory rule cannot be re-opened selectively.
 /assets/*
 !/assets/case-study-sources/
+!/assets/site-image-sources/
+!/assets/client-logo-sources/
 !/assets/brand/
 /assets/brand/*
 !/assets/brand/logo-source-vector.svg
