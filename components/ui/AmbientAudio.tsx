@@ -23,11 +23,17 @@ import { prefersReducedMotion } from "@/lib/anim";
 const STORAGE_KEY = "ph:ambient-audio";
 
 /**
- * The files are normalised to about -28 LUFS, so the level lives in the audio
- * rather than in this constant — 1 means "as encoded". Re-encode to change how
- * loud the site is; this is here for the fades to ramp towards.
+ * The files are normalised to about -28 LUFS, so 1 would play them exactly as
+ * encoded. That sat louder than the rest of the page wants, so the bus is
+ * trimmed here rather than by re-encoding: 0.6 is roughly -4.4 dB, enough to
+ * drop the tune under the reading without losing it.
+ *
+ * WAVEFORM_GAIN compensates the visualiser for that trim. The analyser sits
+ * after this gain node, so lowering the level would otherwise flatten the
+ * trace; dividing by MASTER_LEVEL keeps the drawn amplitude where it was.
  */
-const MASTER_LEVEL = 1;
+const MASTER_LEVEL = 0.6;
+const WAVEFORM_GAIN = 2 / MASTER_LEVEL;
 const FADE_SECONDS = 1.4;
 
 /**
@@ -318,7 +324,7 @@ export default function AmbientAudio() {
         // The bus peaks near 0.22, so this gain puts a loud moment just inside
         // the canvas instead of flattening against the top and bottom edges.
         const v = (data[Math.floor(x * step)] - 128) / 128;
-        const y = cssHeight / 2 - v * cssHeight * 2;
+        const y = cssHeight / 2 - v * cssHeight * WAVEFORM_GAIN;
         const clamped = Math.max(1, Math.min(cssHeight - 1, y));
         if (x === 0) ctx2d.moveTo(x, clamped);
         else ctx2d.lineTo(x, clamped);
