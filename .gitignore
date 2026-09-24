@@ -48,12 +48,19 @@ next-env.d.ts
 # The two files below are the exceptions: a few hundred KB each, and neither can
 # be recreated from anything else in the repo. Losing them would cost far more
 # than they weigh, so they are kept.
+# Source material lives in /assets. The originals the case-study images are
+# exported from are kept in the repo so a fresh clone can regenerate them —
+# about 200 MB, which is worth it against having them on one machine only.
+#
+# What stays out is only what is redundant or dead: the zip is byte-for-byte the
+# same 106 files as the folder beside it, the backup folder holds the
+# placeholders these images replaced, and the vtracer file is a bad auto-trace
+# of the logo that the supplied vector superseded.
+#
 # Note the trailing /* rather than a bare /assets/: git will not descend into an
-# ignored directory, so a plain directory rule cannot be re-opened for one file.
+# ignored directory, so a plain directory rule cannot be re-opened selectively.
 /assets/*
+!/assets/case-study-sources/
 !/assets/brand/
 /assets/brand/*
 !/assets/brand/logo-source-vector.svg
-!/assets/case-study-sources/
-/assets/case-study-sources/*
-!/assets/case-study-sources/PH Images.xlsx
