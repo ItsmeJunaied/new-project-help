@@ -6,12 +6,18 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/anim";
 
-// Claims we can stand behind, in place of a row of borrowed logos.
-const PROOF_POINTS = [
-  "Since 2021",
-  "95% client satisfaction",
-  "6–12 months post-launch support",
-  "You own the code and the cloud accounts",
+/**
+ * Real client marks, supplied by the clients themselves.
+ *
+ * `height` is per logo on purpose: a row matches on cap height, not box height,
+ * so the two square marks stand taller than the Rongobuy wordmark. Rongobuy is
+ * also kept at its native 161x36 rather than upscaled, so its height is set by
+ * what the source actually has.
+ */
+const CLIENTS = [
+  { name: "Signature Bangla", src: "/images/clients/signature-bangla.png", width: 120, height: 120, className: "h-[30px]" },
+  { name: "Textalyz AI", src: "/images/clients/textalyz-ai.png", width: 120, height: 120, className: "h-[30px]" },
+  { name: "Rongobuy", src: "/images/clients/rongobuy.png", width: 161, height: 36, className: "h-[18px]" },
 ];
 
 export default function Hero() {
@@ -97,14 +103,19 @@ export default function Hero() {
     <section
       ref={sectionRef}
       data-node-id="156:6893"
-      className="relative w-full overflow-hidden bg-bg pt-[48px] lg:pt-[65px]"
+      // The vertical rhythm is tied to svh so the whole banner clears the fold
+      // on a short laptop as well as a 900px window. The clamp floors are the
+      // point where the spacing stops reading as deliberate, not zero.
+      className="relative w-full overflow-hidden bg-bg pt-[48px] lg:pt-[clamp(24px,4.5svh,65px)] lg:pb-[clamp(16px,3svh,48px)]"
     >
-      <div className="relative mx-auto w-full max-w-[1440px] px-6 lg:px-0">
+      <div className="relative mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         {/* Same two-line lockup as the design — word, pill, word / word. The
             clamp maximum is the only tuned value: "CUSTOM SOFTWARE" sets far
             wider than the two words this was drawn with, so the ceiling is the
-            largest size that keeps line one on the 1440 canvas. */}
-        <h1 className="hero-headline font-display text-[clamp(2.75rem,8.5vw,124px)] font-medium uppercase leading-[1.2125] tracking-[-0.0625em] text-black lg:-ml-[6px] lg:-mt-[0.10625em]">
+            largest size that keeps line one on one line. It came down from
+            8.5vw/124px when the 40px side gutters went in — the line now has
+            1360px to sit on at 1440, not the full canvas. */}
+        <h1 className="hero-headline font-display text-[clamp(2.75rem,8vw,115px)] font-medium uppercase leading-[1.2125] tracking-[-0.0625em] text-black lg:-ml-[6px] lg:-mt-[0.10625em]">
           <span className="block overflow-hidden">
             {/* Wraps below lg, where the words genuinely do not fit. From lg up
                 it is one line by design — and it must be pinned that way,
@@ -133,7 +144,14 @@ export default function Hero() {
           </span>
         </h1>
 
-        <div className="hero-portrait relative mt-10 h-[320px] w-full sm:h-[440px] lg:absolute lg:right-[-8px] lg:top-[194px] lg:mt-0 lg:h-[566px] lg:w-[588px]">
+        {/* Pinned top AND bottom from lg up, with no height of its own: the
+            portrait then ends exactly where the text column ends and can never
+            outgrow the section. It used to be a fixed 566px hung off a 194px
+            offset, which ran 111px past the section's own overflow-hidden and
+            got its lower third cut off at 1440x900. Narrower than before (540
+            against 588) so it clears the body paragraph now that both sides
+            have moved inward by the gutter. */}
+        <div className="hero-portrait relative mt-10 h-[320px] w-full sm:h-[440px] lg:absolute lg:bottom-0 lg:right-[40px] lg:top-[clamp(120px,19svh,175px)] lg:mt-0 lg:h-auto lg:w-[540px]">
           <Image
             src="/images/hero-portrait.webp"
             alt="Engineer at work lit by red laser tracing lines"
@@ -148,8 +166,11 @@ export default function Hero() {
           />
         </div>
 
-        <div className="mt-10 lg:mt-[45px] lg:max-w-[860px]">
-          <div className="flex flex-col gap-[40px]">
+        {/* Bumped from clamp(20px,4svh,45px): the headline's 1.2125 line-height
+            eats most of a small margin, so "BUILDERS" and the [21-26] row read
+            as one block until there is real air between them. */}
+        <div className="mt-10 lg:mt-[clamp(30px,6svh,72px)] lg:max-w-[860px]">
+          <div className="flex flex-col gap-[clamp(16px,3svh,40px)]">
             <div className="hero-reveal flex items-center gap-[8px]">
               <span className="font-display text-[28px] font-medium leading-[25.714px] text-primary-green">
                 &copy;
@@ -165,23 +186,32 @@ export default function Hero() {
             </p>
           </div>
 
-          <p className="hero-reveal mt-[24px] max-w-[825px] font-body text-[clamp(1.125rem,1.7vw,24px)] leading-[27px] tracking-[-0.25px] text-ash-dark">
+          {/* 720 rather than 825: the portrait's left edge is at 860 once the
+              gutter is in, and this paragraph is the only thing wide enough to
+              reach it. */}
+          <p className="hero-reveal mt-[24px] max-w-[825px] font-body text-[clamp(1.125rem,1.7vw,24px)] leading-[27px] tracking-[-0.25px] text-ash-dark lg:mt-[clamp(14px,2.4svh,24px)] lg:max-w-[720px]">
             We build SaaS platforms, eCommerce systems, cloud infrastructure and
             AI/ML applications &mdash; engineered to scale, secure by default, and
             shipped on time.
           </p>
 
-          <div className="mt-[48px] flex flex-wrap items-center gap-x-[12px] gap-y-6 lg:mt-[84px]">
+          <div className="mt-[32px] flex flex-wrap items-center gap-x-[24px] gap-y-4 lg:mt-[clamp(16px,3.4svh,44px)]">
             <p className="hero-brand font-body text-[16px] leading-[1.6] tracking-[-0.48px] text-black">
               Trusted by 28+ teams worldwide :
             </p>
             <ul className="flex flex-wrap items-center gap-x-[28px] gap-y-[12px]">
-              {PROOF_POINTS.map((point) => (
-                <li key={point} className="hero-brand flex items-center gap-[8px]">
-                  <span className="size-[8px] shrink-0 bg-primary-green" aria-hidden />
-                  <span className="whitespace-nowrap font-display text-[16px] font-medium leading-[1.2] tracking-[-0.25px] text-black">
-                    {point}
-                  </span>
+              {CLIENTS.map((client) => (
+                <li key={client.name} className="hero-brand flex items-center">
+                  <Image
+                    src={client.src}
+                    alt={client.name}
+                    width={client.width}
+                    height={client.height}
+                    // Above the fold now that the banner fits one screen, so
+                    // these must not lazy-load and pop in after paint.
+                    loading="eager"
+                    className={`${client.className} w-auto object-contain`}
+                  />
                 </li>
               ))}
             </ul>
