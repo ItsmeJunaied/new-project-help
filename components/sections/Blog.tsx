@@ -35,7 +35,7 @@ export default function Blog({
   showIntro = true,
   ctaLabel = "Explore more",
   ctaHref = "/blog",
-  sectionClassName = "bg-bg px-6 py-[80px] lg:px-0 lg:py-[100px]",
+  sectionClassName = "bg-bg px-6 py-[80px] lg:px-[40px] lg:py-[100px]",
   containerClassName = "max-w-[1296px] gap-[48px] lg:gap-[80px]",
   groupClassName = "gap-[48px] lg:gap-[80px]",
   cardClassName = "sm:w-[418.66px]",
@@ -122,7 +122,11 @@ export default function Blog({
         opacity: 0,
         duration: 0.7,
         ease: "power2.out",
-        scrollTrigger: reveal(document.querySelector(".blog-cta"), { start: "top 95%" }),
+        // Scoped to this section. A bare document.querySelector here bound the
+        // related-posts instance's tween to the first .blog-cta on the page.
+        scrollTrigger: reveal(sectionRef.current?.querySelector(".blog-cta") ?? null, {
+          start: "top 95%",
+        }),
       });
     },
     { scope: sectionRef },
@@ -183,13 +187,23 @@ export default function Blog({
                   href={postHref(post)}
                   className={`blog-card-frame relative w-full overflow-clip ${imageClassName}`}
                 >
-                  <Image
-                    src={coverImage(post)}
-                    alt={post.title}
-                    fill
-                    sizes="(max-width: 639px) 100vw, 419px"
-                    className="blog-card-image scale-[1.08] object-cover transition-transform duration-700 group-hover:scale-[1.14]"
-                  />
+                  {/* Two layers on purpose. The parallax below scrubs a
+                      transform on .blog-card-image every frame, and this used
+                      to be the same element that carries the hover scale — so
+                      `transition-transform` re-tweened each of those writes
+                      over 700ms, leaving the artwork permanently chasing the
+                      scroll and resampling as it went. The wrapper takes the
+                      scrubbed transform with no transition; the image keeps the
+                      hover scale. */}
+                  <div className="blog-card-image absolute inset-0">
+                    <Image
+                      src={coverImage(post)}
+                      alt={post.title}
+                      fill
+                      sizes="(max-width: 639px) 100vw, 419px"
+                      className="scale-[1.08] object-cover transition-transform duration-700 group-hover:scale-[1.14]"
+                    />
+                  </div>
                 </Link>
 
                 <div className="blog-card-body flex w-full flex-col items-start gap-[16px]">
