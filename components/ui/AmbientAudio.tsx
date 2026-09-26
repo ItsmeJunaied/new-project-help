@@ -1,12 +1,6 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { prefersReducedMotion } from "@/lib/anim";
 import { isHushed, onHushChange } from "@/lib/hush";
 
@@ -22,10 +16,15 @@ import { isHushed, onHushChange } from "@/lib/hush";
  * because the first gesture is the earliest a browser will let the tune begin
  * and it should not then wait on a download to start.
  *
+ * Nothing about it is remembered. There is no stored preference and no storage
+ * key: every load starts wanting to play and tries immediately, and a pause
+ * lasts only as long as the page does. Reloading brings the tune back.
+ *
  * Browsers block audio until the visitor has interacted with the page, so
- * "default on" cannot mean "plays on arrival". The stored preference defaults
- * to on, and playback starts on the first click, key press or touch. The button
- * always shows what is actually happening, never the intent.
+ * "on by default" still cannot mean "sounding on arrival" — the first attempt
+ * runs at load and, when the browser refuses it, the first click, key press or
+ * touch starts it instead. The button always shows what is actually happening,
+ * never the intent.
  *
  * Once it is going it stays going: nothing but the visitor's own press stops
  * it. A hidden tab is the one exception, and that resumes by itself when they
@@ -33,29 +32,9 @@ import { isHushed, onHushChange } from "@/lib/hush";
  */
 
 /**
- * Deliberately not the key this preference used to live under.
- *
- * For a stretch, pressing the button stored the opposite of what it did: a
- * press meaning "play" was read against a stale `playing` and written down as
- * "off". Anyone who pressed it in that window is carrying an "off" they never
- * chose, and because the restore below bails on "off" without even listening
- * for a gesture, the tune is silent for them on every visit, for good. They
- * cannot report it as a bug — the site simply never makes a sound.
- *
- * A new key abandons every one of those, at the price of also forgetting the
- * visitors who really did want it off. They get one press to say so again,
- * which is the cheaper mistake: the alternative leaves people permanently
- * silenced by a bug they had no part in.
- */
-const STORAGE_KEY = "ph:ambient-audio:v2";
-/** The key above replaces this one; cleared on sight so it stops lingering. */
-const LEGACY_STORAGE_KEY = "ph:ambient-audio";
-const VOLUME_KEY = "ph:ambient-volume";
-
-/**
  * The files are normalised to about -28 LUFS, so 1 would play them exactly as
- * encoded. This is only the starting point — the slider owns the level from the
- * first time it is touched.
+ * encoded. Every visit starts here; the slider owns the level from the first
+ * time it is touched, for as long as the page is open.
  */
 const DEFAULT_VOLUME = 0.75;
 
@@ -63,10 +42,9 @@ const DEFAULT_VOLUME = 0.75;
  * How loud the slider's own scale is. The slider reports 0–1; this is what that
  * 1 is worth on the bus.
  *
- * It sits here rather than in DEFAULT_VOLUME because a returning visitor
- * already has a level in localStorage, and raising a default would never reach
- * them — every stored preference would stay exactly as quiet as it was. Lifting
- * the scale moves everyone by the same amount and keeps what they chose.
+ * It sits here rather than in DEFAULT_VOLUME so the slider's own 0-1 scale
+ * stays the thing the visitor is moving, and how loud that scale is worth on
+ * the bus stays a separate decision from where the slider starts.
  *
  * 1.3 is about +2.3 dB. The source peaks near 0.37 (-8.6 dBFS), so the trimmed
  * bus peaks near 0.48 — still well short of clipping.
@@ -161,58 +139,6 @@ function fade(engine: Engine, to: number, seconds: number) {
   master.gain.linearRampToValueAtTime(to, now + seconds);
 }
 
-/**
- * The stored level, behind the smallest possible store.
- *
- * The server has no localStorage, so this is the one value whose first client
- * render legitimately differs from the markup. useSyncExternalStore is how that
- * is declared: the server snapshot is the default, the client snapshot is what
- * is stored, and React re-renders past the mismatch instead of warning about
- * it. Reading it in an effect and calling setState would do the same job a
- * frame later and with a flash of the wrong value.
- */
-const volumeListeners = new Set<() => void>();
-let volumeSnapshot: number | null = null;
-
-function readStoredVolume(): number {
-  try {
-    const raw = localStorage.getItem(VOLUME_KEY);
-    if (raw === null) return DEFAULT_VOLUME;
-    const value = Number.parseFloat(raw);
-    if (!Number.isFinite(value)) return DEFAULT_VOLUME;
-    return Math.min(1, Math.max(0, value));
-  } catch {
-    return DEFAULT_VOLUME;
-  }
-}
-
-function subscribeVolume(listener: () => void) {
-  volumeListeners.add(listener);
-  return () => {
-    volumeListeners.delete(listener);
-  };
-}
-
-/** Cached, because getSnapshot has to return the same value until it changes. */
-function getVolume(): number {
-  if (volumeSnapshot === null) volumeSnapshot = readStoredVolume();
-  return volumeSnapshot;
-}
-
-function getServerVolume(): number {
-  return DEFAULT_VOLUME;
-}
-
-function writeVolume(next: number) {
-  volumeSnapshot = next;
-  try {
-    localStorage.setItem(VOLUME_KEY, next.toFixed(2));
-  } catch {
-    /* Private mode or blocked storage — the session still works. */
-  }
-  volumeListeners.forEach((listener) => listener());
-}
-
 export default function AmbientAudio() {
   const engineRef = useRef<Engine | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -225,11 +151,10 @@ export default function AmbientAudio() {
   // first paint on both the server and the client — no hydration guard needed.
   const [playing, setPlaying] = useState(false);
 
-  const volume = useSyncExternalStore(
-    subscribeVolume,
-    getVolume,
-    getServerVolume,
-  );
+  const [volume, setVolume] = useState(DEFAULT_VOLUME);
+  // start() runs outside render and needs the live level, not the one captured
+  // when it was last created.
+  const volumeRef = useRef(DEFAULT_VOLUME);
 
   const [sliderOpen, setSliderOpen] = useState(false);
 
@@ -285,7 +210,7 @@ export default function AmbientAudio() {
 
     fade(
       engine,
-      busGain(getVolume()),
+      busGain(volumeRef.current),
       hasSoundedRef.current ? FADE_SECONDS : FIRST_FADE_SECONDS,
     );
     hasSoundedRef.current = true;
@@ -334,16 +259,12 @@ export default function AmbientAudio() {
     wantsOnRef.current = next;
     if (next) void start();
     else stop();
-    try {
-      localStorage.setItem(STORAGE_KEY, next ? "on" : "off");
-    } catch {
-      /* Private mode or blocked storage — the session still works. */
-    }
   }, [start, stop]);
 
   const changeVolume = useCallback((next: number) => {
     const clamped = Math.min(1, Math.max(0, next));
-    writeVolume(clamped);
+    volumeRef.current = clamped;
+    setVolume(clamped);
 
     const engine = engineRef.current;
     if (engine && engine.ctx.state === "running" && !engine.el.paused) {
@@ -356,20 +277,9 @@ export default function AmbientAudio() {
     }
   }, []);
 
-  // Restore the preference. Default is on, so a first-time visitor gets the
-  // tune as soon as they interact with the page.
+  // Every load wants the tune. There is nothing stored to consult and nothing
+  // to restore: a pause lasts as long as the page and no longer.
   useEffect(() => {
-    let stored: string | null = null;
-    try {
-      // Drop the old key rather than read it: it may hold an "off" written by
-      // the press-inversion bug, and there is no telling those apart from the
-      // ones a visitor meant.
-      localStorage.removeItem(LEGACY_STORAGE_KEY);
-      stored = localStorage.getItem(STORAGE_KEY);
-    } catch {
-      /* ignored */
-    }
-    if (stored === "off") return;
     wantsOnRef.current = true;
 
     let cancelled = false;
