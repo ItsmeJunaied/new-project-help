@@ -5,7 +5,7 @@ export const siteConfig = {
   tagline: "Custom Software Development Company",
   description:
     "Project Help is a custom software development company building SaaS platforms, eCommerce systems, cloud infrastructure and AI/ML applications for clients worldwide.",
-  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://projecthelpbd.com",
+  url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.projecthelpbd.com",
   email: "hello@projecthelpbd.com",
   phone: "+8801975005362",
   /** The same number, grouped for reading. Never use this one in a tel: href. */

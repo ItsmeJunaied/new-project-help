@@ -25,19 +25,17 @@ type Redirect = {
 
 export function legacyRedirects(): Redirect[] {
   return [
-    // Host canonicalisation first: these match on host regardless of path, so a
-    // www request lands on the apex origin before any path rule rewrites it to
-    // a relative (host-preserving) destination.
-    {
-      source: "/:path*",
-      has: [{ type: "host", value: "www.projecthelpbd.com" }],
-      destination: "https://projecthelpbd.com/:path*",
-      permanent: true,
-    },
+    // Host canonicalisation first: this matches on host regardless of path, so
+    // the preview origin lands on the canonical www host before any path rule
+    // rewrites it to a relative (host-preserving) destination.
+    //
+    // There is deliberately no www -> apex rule here. Vercel already 308s the
+    // apex to www, so an app-level rule pointing the other way bounced the two
+    // against each other forever (ERR_TOO_MANY_REDIRECTS).
     {
       source: "/:path*",
       has: [{ type: "host", value: "projecthelpsolutions.vercel.app" }],
-      destination: "https://projecthelpbd.com/:path*",
+      destination: "https://www.projecthelpbd.com/:path*",
       permanent: true,
     },
 
