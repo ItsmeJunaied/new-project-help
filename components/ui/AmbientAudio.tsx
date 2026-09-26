@@ -374,13 +374,19 @@ export default function AmbientAudio() {
    *
    * An AudioContext keeps running in a background tab — that is the whole point
    * of the audio thread — so without this the tune follows you to whatever you
-   * switched to. `visibilitychange` covers another tab, another window and a
-   * minimised browser. `pagehide` covers navigating away and closing the tab,
+   * switched to. `pagehide` covers navigating away and closing the tab,
    * including the back/forward cache, where the page is frozen rather than
    * destroyed and React's unmount cleanup never runs.
    *
-   * The stored preference is untouched by any of this: it records what the
-   * visitor asked for, so returning to the tab picks the tune back up.
+   * Two signals are needed, because neither covers the other. `visibilitychange`
+   * fires for another tab and a minimised window, but not when the visitor
+   * alt-tabs to a different application: the page stays "visible" by the spec
+   * and the tune plays on behind whatever they are now looking at. `blur`
+   * catches exactly that, and nothing else does.
+   *
+   * Nothing here is written down. Going quiet on the way out and coming back on
+   * the way in is not a preference, it is just the tune following attention, so
+   * a pause taken this way is handed straight back.
    */
   useEffect(() => {
     const onVisibility = () => {
@@ -395,6 +401,17 @@ export default function AmbientAudio() {
       if (engineRef.current) stop(true);
     };
 
+    // Leaving the browser for another window or application. Chrome does not
+    // call that hidden, so visibilitychange never fires and this is the only
+    // way to hear about it.
+    const onBlur = () => {
+      if (engineRef.current) stop(true);
+    };
+
+    const onFocus = () => {
+      if (wantsOnRef.current && !document.hidden) void start();
+    };
+
     // A bfcache restore fires pageshow, not visibilitychange, so it needs its
     // own way back.
     const onPageShow = () => {
@@ -404,10 +421,14 @@ export default function AmbientAudio() {
     document.addEventListener("visibilitychange", onVisibility);
     window.addEventListener("pagehide", onPageHide);
     window.addEventListener("pageshow", onPageShow);
+    window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
     return () => {
       document.removeEventListener("visibilitychange", onVisibility);
       window.removeEventListener("pagehide", onPageHide);
       window.removeEventListener("pageshow", onPageShow);
+      window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
     };
   }, [start, stop]);
 
