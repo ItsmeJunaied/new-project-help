@@ -38,6 +38,24 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
+        // The tune is the largest thing the page fetches and it never changes,
+        // yet it was going out under the default `max-age=0, must-revalidate`
+        // — re-checked on every single visit. On a slow connection that is the
+        // difference between the tune arriving and the visitor giving up on it.
+        //
+        // `immutable` is a promise about this exact path, and the filename
+        // carries no content hash to break that promise for us: replacing the
+        // audio means giving it a NEW filename, or year-old copies will keep
+        // playing in browsers that already have one.
+        source: "/audio/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },
