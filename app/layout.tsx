@@ -5,6 +5,7 @@ import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import Analytics from "@/components/analytics/Analytics";
 import JsonLd from "@/components/JsonLd";
 import AmbientAudio from "@/components/ui/AmbientAudio";
+import EnterGate from "@/components/ui/EnterGate";
 import FloatingActions from "@/components/ui/FloatingActions";
 import MediaGuard from "@/components/ui/MediaGuard";
 import ScrollProgress from "@/components/ui/ScrollProgress";
@@ -118,6 +119,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <FloatingActions />
         <AmbientAudio />
         <MediaGuard />
+        <EnterGate />
 
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <Analytics />
