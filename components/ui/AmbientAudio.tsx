@@ -193,6 +193,7 @@ export default function AmbientAudio() {
   const engineRef = useRef<Engine | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number | null>(null);
+  const toggleButtonRef = useRef<HTMLButtonElement>(null);
 
   // Playback can only ever begin after a gesture, so "paused" is the correct
   // first paint on both the server and the client — no hydration guard needed.
@@ -243,6 +244,15 @@ export default function AmbientAudio() {
       return false;
     }
 
+    // play() resolves a beat after it is called, and the visitor can press
+    // pause inside that window. Their press has to win: without this the tune
+    // comes back up underneath a deliberate pause, and the stored preference
+    // ends up the opposite of what is audible.
+    if (!wantsOnRef.current) {
+      engine.el.pause();
+      return false;
+    }
+
     fade(engine, busGain(getVolume()), FADE_SECONDS);
     setPlaying(true);
     return true;
@@ -276,7 +286,15 @@ export default function AmbientAudio() {
   }, []);
 
   const toggle = useCallback(() => {
-    const next = !playing;
+    // The engine, not `playing`: a start() from page load can resolve between
+    // the paint the visitor is looking at and the click they just made, so the
+    // render state is a frame stale exactly when it matters. One press then
+    // read as "pause" against a button still showing "play", storing "off" on
+    // a click that meant "on" — and a stored "off" keeps the tune from ever
+    // starting again on later visits.
+    const engine = engineRef.current;
+    const sounding = engine !== null && !engine.el.paused && engine.ctx.state === "running";
+    const next = !sounding;
     wantsOnRef.current = next;
     if (next) void start();
     else stop();
@@ -285,7 +303,7 @@ export default function AmbientAudio() {
     } catch {
       /* Private mode or blocked storage — the session still works. */
     }
-  }, [playing, start, stop]);
+  }, [start, stop]);
 
   const changeVolume = useCallback((next: number) => {
     const clamped = Math.min(1, Math.max(0, next));
@@ -317,10 +335,26 @@ export default function AmbientAudio() {
     let cancelled = false;
     const events: Array<keyof WindowEventMap> = ["pointerdown", "keydown", "touchstart"];
 
-    const onGesture = () => {
+    const onGesture = (event: Event) => {
       if (cancelled) return;
-      void start();
-      events.forEach((e) => window.removeEventListener(e, onGesture));
+
+      // Not the play button: that already starts the tune through toggle(), and
+      // firing here as well raced it. This listener runs on pointerdown and set
+      // playing to true; toggle() then ran on the click that followed, read
+      // that true, and took the press for "pause" — storing "off" on a click
+      // that meant "on". One press disabled the tune for every later visit,
+      // because the restore above bails on a stored "off".
+      const target = event.target as Node | null;
+      if (target && toggleButtonRef.current?.contains(target)) return;
+
+      // Only stand down once a start has actually taken. A gesture landing
+      // while a showreel holds a hush, or while the tab is hidden, returns
+      // false — dropping the listeners there left no way back for the rest of
+      // the visit.
+      void start().then((ok) => {
+        if (cancelled || !ok) return;
+        events.forEach((e) => window.removeEventListener(e, onGesture));
+      });
     };
 
     // Deferred past the first paint: it cannot succeed before a gesture anyway,
@@ -580,6 +614,7 @@ export default function AmbientAudio() {
         onMouseLeave={() => setSliderOpen(false)}
       >
         <button
+          ref={toggleButtonRef}
           type="button"
           onClick={toggle}
           aria-pressed={playing}
