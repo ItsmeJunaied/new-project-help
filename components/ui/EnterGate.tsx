@@ -107,10 +107,6 @@ export default function EnterGate() {
       >
         Enter
       </button>
-
-      <p className="font-mono text-[12px] uppercase tracking-[0.18em] text-neutral-paragraph">
-        Best with sound on
-      </p>
     </div>
   );
 }
