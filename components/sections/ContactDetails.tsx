@@ -4,15 +4,40 @@ import Image from "next/image";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
-import { prefersReducedMotion, reveal } from "@/lib/anim";
+import { reveal } from "@/lib/anim";
+import { trackScheduleClick } from "@/lib/analytics";
 import { useLeadForm } from "@/components/forms/useLeadForm";
 import LeadFormExtras from "@/components/forms/LeadFormExtras";
+import WhatsAppMark from "@/components/ui/WhatsAppMark";
 import { SERVICES as ALL_SERVICES } from "@/lib/services";
 import { siteConfig } from "@/lib/site";
 
 const SOCIALS = [
   { src: "/icons/contact-social-2.svg", label: "LinkedIn", href: siteConfig.social.linkedin },
   { src: "/icons/contact-social-4.svg", label: "Facebook", href: siteConfig.social.facebook },
+];
+
+/**
+ * What the form actually buys you. A brief is a real piece of work to write, so
+ * the column beside it says what happens to one rather than showing a stock
+ * photograph of somebody else's desk.
+ */
+const AFTER_SEND = [
+  {
+    number: "01",
+    title: "A person opens it",
+    body: "Not a queue and not a bot. The engineer who would run the build is the one who reads the brief.",
+  },
+  {
+    number: "02",
+    title: "A scope comes back",
+    body: "Written scope, fixed estimate, a timeline — and the two projects in our work closest to yours.",
+  },
+  {
+    number: "03",
+    title: "An honest answer",
+    body: "Including “not us” when that is the answer, with a pointer to who would be a better fit.",
+  },
 ];
 
 const SERVICES = [...ALL_SERVICES.map((service) => service.title), "Something else"];
@@ -69,24 +94,17 @@ export default function ContactDetails() {
         scrollTrigger: reveal(fields, { start: "top 90%" }),
       });
 
-      if (prefersReducedMotion()) return;
-
-      // Slow zoom-out on the desk photo while the section is on screen.
-      gsap.fromTo(
-        ".contact-aside img",
-        { scale: 1.14 },
-        {
-          scale: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: sectionRef.current,
-            start: "top bottom",
-            end: "bottom top",
-            scrub: true,
-            invalidateOnRefresh: true,
-          },
-        },
-      );
+      // The three steps draw in one after another, so the column reads as a
+      // sequence rather than a block of three paragraphs.
+      gsap.from(".contact-step", {
+        x: -16,
+        opacity: 0,
+        duration: 0.6,
+        ease: "power2.out",
+        stagger: 0.12,
+        delay: 0.2,
+        scrollTrigger: trigger,
+      });
     },
     { scope: sectionRef },
   );
@@ -99,57 +117,109 @@ export default function ContactDetails() {
       className="w-full bg-bg pb-[80px] lg:pb-[174px]"
     >
       <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-[64px] px-6 lg:flex-row lg:gap-[95px] lg:px-[40px]">
-        {/* Left: photo + CEO quote card */}
-        <div className="flex w-full flex-col gap-[50px] lg:w-[521px] lg:shrink-0">
-          <div className="contact-aside relative h-[280px] w-full overflow-hidden lg:h-[396px]">
-            <Image
-              src="/images/contact-desk.jpg"
-              alt="Woman sitting at a desk looking at a laptop with a notebook nearby"
-              fill
-              sizes="(max-width: 1023px) 100vw, 521px"
-              className="object-cover"
-            />
+        {/* Left: what the brief buys you, then the two ways round the form */}
+        <div className="flex w-full flex-col gap-[24px] lg:w-[521px] lg:shrink-0">
+          <div className="contact-aside flex w-full flex-col gap-[28px] border-[1.265px] border-[#e6e9dd] bg-white p-[28px]">
+            <div className="flex w-full flex-col gap-[10px]">
+              <p className="font-body text-[14px] font-medium uppercase leading-[1.2] tracking-[0.5px] text-primary-green">
+                [ After you hit send ]
+              </p>
+              <p className="font-display text-[28px] font-medium leading-[1.15] tracking-[-0.75px] text-[#111]">
+                Three steps, four business hours
+              </p>
+            </div>
+
+            <ol className="flex w-full flex-col">
+              {AFTER_SEND.map((step, index) => (
+                <li
+                  key={step.number}
+                  className={`contact-step flex w-full gap-[18px] py-[20px] ${
+                    index === 0 ? "pt-0" : "border-t border-[#e6e9dd]"
+                  } ${index === AFTER_SEND.length - 1 ? "pb-0" : ""}`}
+                >
+                  <span className="mt-[2px] font-mono text-[13px] font-medium leading-[1.2] tracking-[0.5px] text-primary-green">
+                    {step.number}
+                  </span>
+                  <div className="flex flex-col gap-[6px]">
+                    <p className="font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-[#111]">
+                      {step.title}
+                    </p>
+                    <p className="font-body text-[15px] leading-[23px] tracking-[-0.16px] text-[#646464]">
+                      {step.body}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ol>
           </div>
 
-          <div className="contact-aside flex w-full flex-col items-center gap-[30.35px] border-[1.265px] border-[#e6e9dd] p-[20.233px]">
-            <p className="w-full font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-[#111]">
-              <span className="block">&ldquo;Send us the problem, not a feature list.</span>
-              <span className="block">You get a written scope, a fixed estimate</span>
-              <span className="block">and an honest yes or no.&rdquo;</span>
+          <div className="contact-aside flex w-full flex-col gap-[16px] border-[1.265px] border-[#e6e9dd] p-[28px]">
+            <p className="font-body text-[14px] font-medium uppercase leading-[1.2] tracking-[0.5px] text-[#707070]">
+              Rather talk it through first?
             </p>
 
-            <span className="h-[1.265px] w-full bg-[#e6e9dd]" aria-hidden />
-
-            <div className="flex w-full items-center gap-[20.233px]">
-              <span className="flex size-[75.874px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-[#151515]">
-                <span className="font-display text-[26px] font-medium leading-none text-white">JH</span>
+            <a
+              href={siteConfig.whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex w-full items-center gap-[12px] border-b border-[#e6e9dd] pb-[16px] transition-colors hover:border-primary-green"
+            >
+              <WhatsAppMark className="size-[22px] shrink-0 text-[#111] transition-colors group-hover:text-primary-green" />
+              <span className="font-display text-[20px] font-medium leading-[1.3] tracking-[-0.25px] text-[#111] transition-colors group-hover:text-primary-green">
+                {siteConfig.phoneDisplay}
               </span>
-              <div className="flex flex-col items-start justify-center gap-[10.117px]">
-                <p className="font-display text-[32px] font-semibold leading-[46px] text-[#111]">
-                  Junaied Hossain
-                </p>
-                <p className="font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-[#707070]">
-                  CEO of Project Help
-                </p>
-              </div>
-            </div>
+              <span className="ml-auto font-body text-[13px] leading-[1.2] text-[#707070]">
+                WhatsApp
+              </span>
+            </a>
 
-            <div className="flex w-full items-start gap-[10.117px]">
-              {SOCIALS.map((social) => (
-                <a
-                  key={social.label}
-                  href={social.href}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={social.label}
-                  className="flex size-[50.583px] shrink-0 items-center justify-center border-[1.265px] border-[#e6e9dd] transition-colors hover:border-black"
-                >
-                  <span className="relative size-[24.027px]">
-                    <Image src={social.src} alt="" fill className="object-contain" />
-                  </span>
-                </a>
-              ))}
-            </div>
+            <a
+              href={siteConfig.calendlyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackScheduleClick("contact_aside")}
+              className="group flex w-full items-center gap-[12px]"
+            >
+              <span className="font-display text-[20px] font-medium leading-[1.3] tracking-[-0.25px] text-[#111] transition-colors group-hover:text-primary-green">
+                Book a call directly
+              </span>
+              <span className="ml-auto font-body text-[13px] leading-[1.2] text-[#707070]">
+                30 min
+              </span>
+              <svg
+                width="15"
+                height="15"
+                viewBox="0 0 15 15"
+                fill="none"
+                aria-hidden="true"
+                className="shrink-0 text-[#111] transition-transform duration-300 group-hover:translate-x-[3px] group-hover:text-primary-green"
+              >
+                <path
+                  d="M3 12 12 3M4.6 3H12v7.4"
+                  stroke="currentColor"
+                  strokeWidth="1.6"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </a>
+          </div>
+
+          <div className="contact-aside flex w-full items-start gap-[10px]">
+            {SOCIALS.map((social) => (
+              <a
+                key={social.label}
+                href={social.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={social.label}
+                className="flex size-[50.583px] shrink-0 items-center justify-center border-[1.265px] border-[#e6e9dd] transition-colors hover:border-black"
+              >
+                <span className="relative size-[24.027px]">
+                  <Image src={social.src} alt="" fill className="object-contain" />
+                </span>
+              </a>
+            ))}
           </div>
         </div>
 

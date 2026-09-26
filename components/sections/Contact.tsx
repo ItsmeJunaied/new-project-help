@@ -5,8 +5,11 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { magnetic, reveal } from "@/lib/anim";
+import { trackScheduleClick } from "@/lib/analytics";
 import { useLeadForm } from "@/components/forms/useLeadForm";
 import LeadFormExtras from "@/components/forms/LeadFormExtras";
+import WhatsAppMark from "@/components/ui/WhatsAppMark";
+import { siteConfig } from "@/lib/site";
 
 /** Same service list the contact page offers. */
 const SERVICES = [
@@ -20,10 +23,10 @@ const SERVICES = [
 const BUDGETS = ["Under $5K", "$5K–$10K", "$10K–$20K", "$20K–$50K", "$50K+"];
 
 const DETAIL_LINES = [
-  "Skip the call. Drop a one-pager — what the system has to do, the",
-  "metric you'd move, the deadline. Within 4 business hours we send",
-  "back a written scope, a fixed estimate, and the two projects",
-  "closest to the problem you're describing.",
+  "Tell us what the system has to do, the metric you'd move, and",
+  "the deadline. Within 4 business hours we send back a written",
+  "scope, a fixed estimate, and the two projects closest to the",
+  "problem you're describing.",
 ];
 
 const LABEL =
@@ -35,6 +38,7 @@ const FIELD =
 export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
+  const whatsappRef = useRef<HTMLAnchorElement>(null);
   const { status, error, submit, files, addFiles, removeFile, setCaptchaToken, turnstileRef } =
     useLeadForm();
 
@@ -92,18 +96,31 @@ export default function Contact() {
         scrollTrigger: cardTrigger,
       });
 
-      // The orange plate keeps a slow breathing scale, so the left column has
-      // something moving even once its text has settled.
-      gsap.to(".contact-plate", {
-        scaleY: 1.06,
-        transformOrigin: "top center",
-        duration: 2.8,
-        ease: "sine.inOut",
-        repeat: -1,
-        yoyo: true,
+      // The direct line moves, but it never fades.
+      //
+      // A phone number that only exists once a tween has finished is a phone
+      // number nobody can call: a trigger that never fires — a refresh landing
+      // past it, a script failing earlier on the page — would leave the one
+      // piece of contact information on this side of the section invisible.
+      // Everything else here can afford an opacity reveal. This cannot.
+      gsap.from(".contact-direct-block", {
+        y: 24,
+        duration: 0.8,
+        ease: "power3.out",
+        scrollTrigger: trigger,
       });
 
-      return magnetic(submitRef.current, 0.22);
+      gsap.from(".contact-direct", {
+        y: 14,
+        duration: 0.6,
+        ease: "power2.out",
+        stagger: 0.1,
+        delay: 0.25,
+        scrollTrigger: trigger,
+      });
+
+      const releases = [magnetic(submitRef.current, 0.22), magnetic(whatsappRef.current, 0.16)];
+      return () => releases.forEach((release) => release());
     },
     { scope: sectionRef },
   );
@@ -142,18 +159,64 @@ export default function Contact() {
             </p>
           </div>
 
-          <div className="contact-reveal flex w-full flex-col items-start gap-[12px]">
-            <div className="flex w-[144px] max-w-[144px] flex-col items-start justify-center bg-primary-green">
-              <div className="contact-plate h-[144px] w-full" />
-            </div>
-            <div className="flex w-full flex-col items-start gap-[6px]">
-              <p className="w-full font-body text-[24px] font-medium leading-[24px] tracking-[0.24px] text-[#f7f7f7]">
-                Junaied Hossain
+          {/* The two ways past the form, for anyone who would rather talk than
+              write one. */}
+          <div className="contact-direct-block flex w-full flex-col items-start gap-[24px]">
+            <div className="flex w-full flex-col gap-[10px]">
+              <p className="font-display text-[24px] font-medium leading-[1.2] tracking-[-0.5px] text-[#f7f7f7]">
+                Rather say it than type it?
               </p>
-              <p className="w-full font-body text-[16px] font-medium leading-[24px] tracking-[-0.64px] text-[#c4c4c4]">
-                CEO &amp; Founder
+              <p className="max-w-[460px] font-body text-[16px] leading-[24px] tracking-[-0.16px] text-[#a8a29e]">
+                Both of these reach the engineers who would do the work — no account
+                manager in between, no discovery deck before the first question.
               </p>
             </div>
+
+            <div className="flex w-full flex-col items-stretch gap-[12px] sm:flex-row sm:items-center">
+              <a
+                ref={whatsappRef}
+                href={siteConfig.whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="contact-direct flex items-center justify-center gap-[10px] rounded-[100px] bg-primary-green px-[26px] py-[15px] transition-colors hover:bg-[#95e534]"
+              >
+                {/* Black on the brand green, not white: white measures 1.8:1
+                    against it, which is below anything readable. Black is 10:1. */}
+                <WhatsAppMark className="size-[22px] shrink-0 text-black" />
+                <span className="font-body text-[17px] font-semibold leading-[24px] tracking-[-0.25px] text-black">
+                  {siteConfig.phoneDisplay}
+                </span>
+              </a>
+
+              <a
+                href={siteConfig.calendlyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackScheduleClick("home_contact")}
+                className="contact-direct group flex items-center justify-center gap-[10px] rounded-[100px] border border-white/25 px-[24px] py-[14px] transition-colors hover:border-primary-green"
+              >
+                <span className="font-body text-[16px] font-medium leading-[24px] tracking-[-0.25px] text-[#f7f7f7] transition-colors group-hover:text-primary-green">
+                  Book a call directly
+                </span>
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 15 15"
+                  fill="none"
+                  aria-hidden="true"
+                  className="shrink-0 text-[#f7f7f7] transition-transform duration-300 group-hover:translate-x-[3px] group-hover:text-primary-green"
+                >
+                  <path
+                    d="M3 12 12 3M4.6 3H12v7.4"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </a>
+            </div>
+
             <div className="flex w-full items-center gap-[8px]">
               <span className="size-[8px] shrink-0 bg-primary-green" />
               <span className="font-display text-[14px] font-medium leading-[1.2] tracking-[-0.18px] text-[#c8c8c8]">
