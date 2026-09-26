@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useGSAP } from "@gsap/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
@@ -20,16 +20,50 @@ import { prefersReducedMotion } from "@/lib/anim";
 export default function RouteTransition({ children }: { children: ReactNode }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const firstRender = useRef(true);
+
+  /**
+   * The page these effects have already handled.
+   *
+   * Not a `firstRender` flag: Strict Mode runs an effect twice on mount, and a
+   * flag flipped inside the first pass is already spent by the second — which
+   * fades the whole document in from opacity 0 on every load in development,
+   * and leaves it there if anything stops the tween. Comparing the path is
+   * idempotent, so running twice is the same as running once.
+   */
+  const handledPath = useRef(pathname);
+  const scrolledPath = useRef(pathname);
+
+  /**
+   * Put a new page at its top.
+   *
+   * Next does this itself by walking the incoming page for an element to bring
+   * into view, and on these pages it settles on one near the bottom: following
+   * a link to /contact landed the reader in the footer, several thousand pixels
+   * past the form they had clicked towards. This is the plain version of what
+   * that was trying to do.
+   *
+   * `behavior: "auto"` in the options object rather than a bare scrollTo —
+   * globals.css sets `scroll-behavior: smooth` on the root, which would
+   * otherwise animate this over the length of the page.
+   *
+   * Skipped on the page this mounted with, where the browser's own restoration
+   * is right: a reload or a step back through history should return to where it
+   * was, not to the top. An address ending in a fragment belongs to that
+   * fragment.
+   */
+  useEffect(() => {
+    if (scrolledPath.current === pathname) return;
+    scrolledPath.current = pathname;
+    if (window.location.hash) return;
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [pathname]);
 
   useGSAP(
     () => {
       // The first paint is the server-rendered page; fading that in would just
       // delay the LCP element for no benefit.
-      if (firstRender.current) {
-        firstRender.current = false;
-        return;
-      }
+      if (handledPath.current === pathname) return;
+      handledPath.current = pathname;
 
       if (prefersReducedMotion()) return;
 
