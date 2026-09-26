@@ -1,6 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { prefersReducedMotion } from "@/lib/anim";
 import { isHushed, onHushChange } from "@/lib/hush";
 
@@ -26,7 +32,24 @@ import { isHushed, onHushChange } from "@/lib/hush";
  * come back, so it never strands them on a silent page they did not ask for.
  */
 
-const STORAGE_KEY = "ph:ambient-audio";
+/**
+ * Deliberately not the key this preference used to live under.
+ *
+ * For a stretch, pressing the button stored the opposite of what it did: a
+ * press meaning "play" was read against a stale `playing` and written down as
+ * "off". Anyone who pressed it in that window is carrying an "off" they never
+ * chose, and because the restore below bails on "off" without even listening
+ * for a gesture, the tune is silent for them on every visit, for good. They
+ * cannot report it as a bug — the site simply never makes a sound.
+ *
+ * A new key abandons every one of those, at the price of also forgetting the
+ * visitors who really did want it off. They get one press to say so again,
+ * which is the cheaper mistake: the alternative leaves people permanently
+ * silenced by a bug they had no part in.
+ */
+const STORAGE_KEY = "ph:ambient-audio:v2";
+/** The key above replaces this one; cleared on sight so it stops lingering. */
+const LEGACY_STORAGE_KEY = "ph:ambient-audio";
 const VOLUME_KEY = "ph:ambient-volume";
 
 /**
@@ -99,7 +122,8 @@ type Engine = {
 function createEngine(): Engine {
   const Ctor: typeof AudioContext =
     window.AudioContext ??
-    (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    (window as unknown as { webkitAudioContext: typeof AudioContext })
+      .webkitAudioContext;
   const ctx = new Ctor();
 
   const el = new Audio();
@@ -201,7 +225,11 @@ export default function AmbientAudio() {
   // first paint on both the server and the client — no hydration guard needed.
   const [playing, setPlaying] = useState(false);
 
-  const volume = useSyncExternalStore(subscribeVolume, getVolume, getServerVolume);
+  const volume = useSyncExternalStore(
+    subscribeVolume,
+    getVolume,
+    getServerVolume,
+  );
 
   const [sliderOpen, setSliderOpen] = useState(false);
 
@@ -255,7 +283,11 @@ export default function AmbientAudio() {
       return false;
     }
 
-    fade(engine, busGain(getVolume()), hasSoundedRef.current ? FADE_SECONDS : FIRST_FADE_SECONDS);
+    fade(
+      engine,
+      busGain(getVolume()),
+      hasSoundedRef.current ? FADE_SECONDS : FIRST_FADE_SECONDS,
+    );
     hasSoundedRef.current = true;
     setPlaying(true);
     return true;
@@ -296,7 +328,8 @@ export default function AmbientAudio() {
     // a click that meant "on" — and a stored "off" keeps the tune from ever
     // starting again on later visits.
     const engine = engineRef.current;
-    const sounding = engine !== null && !engine.el.paused && engine.ctx.state === "running";
+    const sounding =
+      engine !== null && !engine.el.paused && engine.ctx.state === "running";
     const next = !sounding;
     wantsOnRef.current = next;
     if (next) void start();
@@ -328,6 +361,10 @@ export default function AmbientAudio() {
   useEffect(() => {
     let stored: string | null = null;
     try {
+      // Drop the old key rather than read it: it may hold an "off" written by
+      // the press-inversion bug, and there is no telling those apart from the
+      // ones a visitor meant.
+      localStorage.removeItem(LEGACY_STORAGE_KEY);
       stored = localStorage.getItem(STORAGE_KEY);
     } catch {
       /* ignored */
@@ -387,7 +424,9 @@ export default function AmbientAudio() {
     const attempt = window.setTimeout(() => {
       void start().then((ok) => {
         if (cancelled || ok) return;
-        events.forEach((e) => window.addEventListener(e, onGesture, { passive: true }));
+        events.forEach((e) =>
+          window.addEventListener(e, onGesture, { passive: true }),
+        );
       });
     }, 0);
 
@@ -534,7 +573,10 @@ export default function AmbientAudio() {
           // waveform tends to zero and would draw a flat line however loud the
           // tune is.
           const from = Math.floor((i * data.length) / WAVE_POINTS);
-          const to = Math.max(from + 1, Math.floor(((i + 1) * data.length) / WAVE_POINTS));
+          const to = Math.max(
+            from + 1,
+            Math.floor(((i + 1) * data.length) / WAVE_POINTS),
+          );
           let peak = 0;
           for (let j = from; j < to; j += 1) {
             const v = data[j] - 128;
@@ -568,12 +610,14 @@ export default function AmbientAudio() {
       ctx2d.stroke();
 
       // Stop once the trace has settled, so a paused widget costs nothing.
-      frameRef.current = sounding || moving ? window.requestAnimationFrame(draw) : null;
+      frameRef.current =
+        sounding || moving ? window.requestAnimationFrame(draw) : null;
     };
 
     frameRef.current = window.requestAnimationFrame(draw);
     return () => {
-      if (frameRef.current !== null) window.cancelAnimationFrame(frameRef.current);
+      if (frameRef.current !== null)
+        window.cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
     };
   }, [playing]);
@@ -596,8 +640,22 @@ export default function AmbientAudio() {
         >
           {playing ? (
             <svg width="13" height="14" viewBox="0 0 13 14" aria-hidden="true">
-              <rect x="0.5" y="0" width="4" height="14" rx="1.2" fill="currentColor" />
-              <rect x="8.5" y="0" width="4" height="14" rx="1.2" fill="currentColor" />
+              <rect
+                x="0.5"
+                y="0"
+                width="4"
+                height="14"
+                rx="1.2"
+                fill="currentColor"
+              />
+              <rect
+                x="8.5"
+                y="0"
+                width="4"
+                height="14"
+                rx="1.2"
+                fill="currentColor"
+              />
             </svg>
           ) : (
             <svg width="13" height="14" viewBox="0 0 13 14" aria-hidden="true">
@@ -609,7 +667,11 @@ export default function AmbientAudio() {
           )}
         </button>
 
-        <canvas ref={canvasRef} aria-hidden="true" className="h-[28px] w-[88px]" />
+        <canvas
+          ref={canvasRef}
+          aria-hidden="true"
+          className="h-[28px] w-[88px]"
+        />
 
         <button
           type="button"
@@ -618,7 +680,13 @@ export default function AmbientAudio() {
           aria-label={sliderOpen ? "Hide volume" : "Change volume"}
           className="flex size-[24px] shrink-0 items-center justify-center rounded-full text-black/55 transition-colors hover:text-black"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true" fill="none">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            aria-hidden="true"
+            fill="none"
+          >
             <path
               d="M3.2 6.1h2.1L8.4 3.4a.5.5 0 0 1 .83.38v8.44a.5.5 0 0 1-.83.38L5.3 9.9H3.2a.7.7 0 0 1-.7-.7V6.8a.7.7 0 0 1 .7-.7z"
               fill="currentColor"
