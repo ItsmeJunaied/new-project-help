@@ -343,14 +343,27 @@ export default function AmbientAudio() {
       });
     };
 
+    // Listen from the outset, rather than waiting to see whether the load-time
+    // attempt below fails first.
+    //
+    // That attempt calls ctx.resume(), and on a context the browser has not
+    // cleared yet the returned promise does not reject — it sits pending until
+    // a gesture arrives. Registering these only in its .then() meant nothing
+    // was listening when the visitor first clicked: that click went into
+    // unlocking the pending resume, the attempt finally settled, the listeners
+    // went on, and only a SECOND click started the tune. One click is the whole
+    // budget; it has to be the one that works.
+    events.forEach((e) =>
+      window.addEventListener(e, onGesture, { passive: true }),
+    );
+
     // Deferred past the first paint: it cannot succeed before a gesture anyway,
     // and building an AudioContext during mount competes with the page drawing.
     const attempt = window.setTimeout(() => {
       void start().then((ok) => {
-        if (cancelled || ok) return;
-        events.forEach((e) =>
-          window.addEventListener(e, onGesture, { passive: true }),
-        );
+        // Only stand the listeners down if this actually got sound out.
+        if (cancelled || !ok) return;
+        events.forEach((e) => window.removeEventListener(e, onGesture));
       });
     }, 0);
 
