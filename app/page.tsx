@@ -4,9 +4,11 @@ import JsonLd from "@/components/JsonLd";
 import Header from "@/components/sections/Header";
 import Hero from "@/components/sections/Hero";
 import About from "@/components/sections/About";
+import VideoShowcase from "@/components/sections/VideoShowcase";
 import FeaturedWork from "@/components/sections/FeaturedWork";
 import ServicesIntro from "@/components/sections/ServicesIntro";
 import Services from "@/components/sections/Services";
+import TechStack from "@/components/sections/TechStack";
 import Testimonials from "@/components/sections/Testimonials";
 import Awards from "@/components/sections/Awards";
 import ImageShowcase from "@/components/sections/ImageShowcase";
@@ -48,9 +50,18 @@ export default async function Home() {
       <main id="main">
         <Hero />
         <About />
+        {/* Runs itself, muted, as it comes into view; pressing it opens the
+            same film full screen with sound. */}
+        <VideoShowcase
+          src="/videos/showreel-v8.mp4"
+          poster="/images/showreel-v8-poster.webp"
+          title="the Project Help showreel"
+        />
         <FeaturedWork />
         <ServicesIntro />
         <Services />
+        {/* What we build, then what we build it with. */}
+        <TechStack />
         <Testimonials />
         <Awards />
         <ImageShowcase
