@@ -6,6 +6,7 @@ import Analytics from "@/components/analytics/Analytics";
 import JsonLd from "@/components/JsonLd";
 import AmbientAudio from "@/components/ui/AmbientAudio";
 import FloatingActions from "@/components/ui/FloatingActions";
+import MediaGuard from "@/components/ui/MediaGuard";
 import ScrollProgress from "@/components/ui/ScrollProgress";
 import RouteTransition from "@/components/ui/RouteTransition";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
@@ -116,6 +117,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <RouteTransition>{children}</RouteTransition>
         <FloatingActions />
         <AmbientAudio />
+        <MediaGuard />
 
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <Analytics />

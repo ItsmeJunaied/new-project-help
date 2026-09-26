@@ -210,3 +210,19 @@ body {
   border: 0;
   border-top: 1px solid #e7e7e7;
 }
+
+/*
+ * Media is not draggable or selectable, which closes the two gestures that copy
+ * a picture without opening anything: dragging it to the desktop, and
+ * select-all then copy. See components/ui/MediaGuard.tsx for what this can and
+ * cannot do — the file has already been delivered either way.
+ *
+ * Scoped to media on purpose. `user-select: none` across the page would also
+ * stop a visitor copying the office address or the email in the footer.
+ */
+img,
+video {
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
