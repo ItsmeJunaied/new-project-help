@@ -20,9 +20,9 @@ import { isHushed, onHushChange } from "@/lib/hush";
  * to on, and playback starts on the first click, key press or touch. The button
  * always shows what is actually happening, never the intent.
  *
- * It also only sounds while the page is actually being used: a hidden tab, or a
- * stretch with no pointer, key or scroll, silences it, and coming back picks it
- * up again. See IDLE_MS.
+ * Once it is going it stays going: nothing but the visitor's own press stops
+ * it. A hidden tab is the one exception, and that resumes by itself when they
+ * come back, so it never strands them on a silent page they did not ask for.
  */
 
 const STORAGE_KEY = "ph:ambient-audio";
@@ -51,18 +51,6 @@ const BUS_TRIM = 1.3;
 const busGain = (level: number) => level * BUS_TRIM;
 
 const FADE_SECONDS = 1.4;
-
-/**
- * Silence the tune after this long with no pointer, key, wheel or scroll. The
- * preference is deliberately not touched, so the next movement brings it back:
- * this is about not playing to an empty chair, not about turning it off.
- *
- * A minute is long enough to read a screen of an article without the tune
- * dropping out underneath you.
- */
-const IDLE_MS = 60_000;
-/** Cheap guard so a pointermove does not rebuild the timer on every pixel. */
-const IDLE_RESET_THROTTLE_MS = 1_000;
 
 /**
  * The analyser taps the source *ahead* of the volume control, so the trace is
@@ -333,10 +321,29 @@ export default function AmbientAudio() {
     wantsOnRef.current = true;
 
     let cancelled = false;
-    const events: Array<keyof WindowEventMap> = ["pointerdown", "keydown", "touchstart"];
+    let starting = false;
+
+    /**
+     * Every input the spec counts as activation-triggering, not just the three
+     * most obvious ones. A visitor who arrives and presses a key, or taps and
+     * lifts without a pointerdown reaching us, has given the browser what it
+     * wants — waiting for a tidier gesture just leaves the page silent. Scroll
+     * and wheel are deliberately absent: they never grant activation, so
+     * listening for them would only burn the attempt.
+     */
+    const events: Array<keyof WindowEventMap> = [
+      "pointerdown",
+      "pointerup",
+      "mousedown",
+      "touchstart",
+      "touchend",
+      "keydown",
+      "keyup",
+      "click",
+    ];
 
     const onGesture = (event: Event) => {
-      if (cancelled) return;
+      if (cancelled || starting) return;
 
       // Not the play button: that already starts the tune through toggle(), and
       // firing here as well raced it. This listener runs on pointerdown and set
@@ -347,11 +354,14 @@ export default function AmbientAudio() {
       const target = event.target as Node | null;
       if (target && toggleButtonRef.current?.contains(target)) return;
 
-      // Only stand down once a start has actually taken. A gesture landing
-      // while a showreel holds a hush, or while the tab is hidden, returns
-      // false — dropping the listeners there left no way back for the rest of
-      // the visit.
+      // One attempt at a time, and only stand down once it has actually taken.
+      // A single tap delivers several of these events, which would otherwise
+      // each fire their own start(); and a gesture landing while a showreel
+      // holds a hush, or while the tab is hidden, returns false — dropping the
+      // listeners there left no way back for the rest of the visit.
+      starting = true;
       void start().then((ok) => {
+        starting = false;
         if (cancelled || !ok) return;
         events.forEach((e) => window.removeEventListener(e, onGesture));
       });
@@ -372,58 +382,6 @@ export default function AmbientAudio() {
       events.forEach((e) => window.removeEventListener(e, onGesture));
     };
   }, [start]);
-
-  /**
-   * Only sound while the page is being used.
-   *
-   * Going quiet after a minute of stillness is the difference between a tune
-   * that accompanies a visit and one that plays to an empty room for an hour.
-   * Any movement undoes it, and `idled` is what keeps that from reviving a tune
-   * the visitor paused on purpose.
-   */
-  useEffect(() => {
-    let timer: number | null = null;
-    let lastReset = 0;
-    let idled = false;
-
-    const arm = () => {
-      if (timer !== null) window.clearTimeout(timer);
-      timer = window.setTimeout(() => {
-        timer = null;
-        const engine = engineRef.current;
-        if (!wantsOnRef.current || !engine || engine.el.paused) return;
-        idled = true;
-        stop();
-      }, IDLE_MS);
-    };
-
-    const onActivity = () => {
-      if (idled) {
-        idled = false;
-        if (wantsOnRef.current && !document.hidden) void start();
-      }
-      const now = Date.now();
-      if (now - lastReset < IDLE_RESET_THROTTLE_MS) return;
-      lastReset = now;
-      arm();
-    };
-
-    const events: Array<keyof WindowEventMap> = [
-      "pointerdown",
-      "pointermove",
-      "keydown",
-      "wheel",
-      "touchstart",
-      "scroll",
-    ];
-    events.forEach((e) => window.addEventListener(e, onActivity, { passive: true }));
-    arm();
-
-    return () => {
-      if (timer !== null) window.clearTimeout(timer);
-      events.forEach((e) => window.removeEventListener(e, onActivity));
-    };
-  }, [start, stop]);
 
   /**
    * A showreel lightbox holds a hush for as long as it is open, because a tune
