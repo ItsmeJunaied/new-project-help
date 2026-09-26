@@ -20,10 +20,28 @@ import { prefersReducedMotion } from "@/lib/anim";
  *
  * It shows on every full page load, because user activation does not survive
  * one. Client navigations keep the layout mounted and never see it again.
+ *
+ * Somebody who has switched the sound off is the exception: asking them for a
+ * gesture that buys them nothing is pure toll. An inline script in the document
+ * head flags that case before first paint and a rule in globals.css hides the
+ * panel, because this component cannot read localStorage until hydration — by
+ * which point it would already have been on screen. The markup stays identical
+ * either way, so hydration has nothing to disagree about — the flag is read
+ * only by the effects, which stand down so they do not lock a scroll nobody is
+ * being held back from. display:none keeps the panel out of the accessibility
+ * tree too, so leaving it in the document costs a skipped visitor nothing.
  */
 
 /** Long enough to read as a door opening, short enough not to be a toll. */
 const EXIT_MS = 520;
+
+/** Set before first paint by the inline script in app/layout.tsx. */
+function gateSkipped() {
+  return (
+    typeof document !== "undefined" &&
+    document.documentElement.dataset.phSkipGate === "1"
+  );
+}
 
 export default function EnterGate() {
   const [open, setOpen] = useState(true);
@@ -42,7 +60,7 @@ export default function EnterGate() {
   // Hold the page still underneath, so a scroll aimed at the site does not run
   // the document along behind the panel.
   useEffect(() => {
-    if (!open) return;
+    if (!open || gateSkipped()) return;
     const html = document.documentElement;
     const previous = html.style.overflow;
     html.style.overflow = "hidden";
@@ -54,7 +72,7 @@ export default function EnterGate() {
   // The panel covers everything, so the keyboard belongs to it: focus the one
   // control, and keep Tab from walking into the page behind it.
   useEffect(() => {
-    if (!open) return;
+    if (!open || gateSkipped()) return;
     buttonRef.current?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -71,6 +89,7 @@ export default function EnterGate() {
 
   return (
     <div
+      data-ph-gate=""
       role="dialog"
       aria-modal="true"
       aria-label="Enter Project Help"
