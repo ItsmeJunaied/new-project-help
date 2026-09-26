@@ -12,8 +12,9 @@ import { isHushed, onHushChange } from "@/lib/hush";
  * the waveform reads the real signal off an AnalyserNode rather than animating
  * a decorative loop, and the fades are sample-accurate rather than CSS.
  *
- * The element is only constructed on the first attempt to play, and carries no
- * preload, so a visitor who never starts it never downloads the audio.
+ * The element is built and preloading before the visitor has done anything,
+ * because the first gesture is the earliest a browser will let the tune begin
+ * and it should not then wait on a download to start.
  *
  * Browsers block audio until the visitor has interacted with the page, so
  * "default on" cannot mean "plays on arrival". The stored preference defaults
@@ -51,6 +52,17 @@ const BUS_TRIM = 1.3;
 const busGain = (level: number) => level * BUS_TRIM;
 
 const FADE_SECONDS = 1.4;
+/**
+ * The first fade is much shorter than the rest.
+ *
+ * A visitor's first gesture is the earliest any browser will let the tune
+ * begin — autoplay is refused outright to a site it has no history with. So
+ * that gesture is the whole of the site's chance to be heard, and spending
+ * another second and a half ramping up from silence reads as nothing having
+ * happened. Every later fade keeps the long curve, where the tune is already
+ * established and an unhurried hand-off is the point.
+ */
+const FIRST_FADE_SECONDS = 0.3;
 
 /**
  * The analyser taps the source *ahead* of the volume control, so the trace is
@@ -182,6 +194,8 @@ export default function AmbientAudio() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number | null>(null);
   const toggleButtonRef = useRef<HTMLButtonElement>(null);
+  /** False until the tune has actually been heard once on this page. */
+  const hasSoundedRef = useRef(false);
 
   // Playback can only ever begin after a gesture, so "paused" is the correct
   // first paint on both the server and the client — no hydration guard needed.
@@ -241,7 +255,8 @@ export default function AmbientAudio() {
       return false;
     }
 
-    fade(engine, busGain(getVolume()), FADE_SECONDS);
+    fade(engine, busGain(getVolume()), hasSoundedRef.current ? FADE_SECONDS : FIRST_FADE_SECONDS);
+    hasSoundedRef.current = true;
     setPlaying(true);
     return true;
   }, []);
