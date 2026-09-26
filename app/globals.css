@@ -63,18 +63,6 @@ body {
   color: var(--color-black);
 }
 
-/* The entrance panel exists to buy the one gesture browsers demand before they
-   will play audio. Somebody who has turned the sound off is being asked for a
-   gesture that buys them nothing, so they skip it.
-
-   The flag is set by an inline script in the document head, ahead of first
-   paint, because React can only reach localStorage after hydration and by then
-   the panel would already have been on screen. Hiding it here costs nothing and
-   the component unmounts it straight after. */
-html[data-ph-skip-gate="1"] [data-ph-gate] {
-  display: none;
-}
-
 /* Rich-text blocks authored in the admin's editor arrive as raw HTML, so the
    article page has no class names to hang styling on. These rules give that
    HTML the same type scale the hand-built article uses, and nothing else on the

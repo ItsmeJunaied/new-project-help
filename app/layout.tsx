@@ -5,7 +5,6 @@ import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import Analytics from "@/components/analytics/Analytics";
 import JsonLd from "@/components/JsonLd";
 import AmbientAudio from "@/components/ui/AmbientAudio";
-import EnterGate from "@/components/ui/EnterGate";
 import FloatingActions from "@/components/ui/FloatingActions";
 import MediaGuard from "@/components/ui/MediaGuard";
 import ScrollProgress from "@/components/ui/ScrollProgress";
@@ -59,11 +58,7 @@ export const metadata: Metadata = {
   ],
   alternates: {
     canonical: "/",
-    types: {
-      "application/rss+xml": [
-        { url: "/blog/feed.xml", title: "Project Help — Blog" },
-      ],
-    },
+    types: { "application/rss+xml": [{ url: "/blog/feed.xml", title: "Project Help — Blog" }] },
   },
   robots: {
     index: true,
@@ -106,26 +101,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      // The head script below writes data-ph-skip-gate here before React
-      // hydrates, which React would otherwise report as a mismatch it will not
-      // patch up. The warning is suppressed for this element's attributes only;
-      // nothing about the tree inside it is exempted.
-      suppressHydrationWarning
       className={`${GeistSans.variable} ${interDisplay.variable} ${jetBrainsMono.variable} ${plusJakartaSans.variable} antialiased`}
     >
-      <head>
-        {/* Runs before first paint, which is the whole point: the entrance
-            panel is server-rendered, and a visitor who has switched the sound
-            off should never see it flash past. Reading localStorage is the
-            only way to know, and React cannot do that until after hydration.
-            Paired with the rule in globals.css. */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html:
-              'try{if(localStorage.getItem("ph:ambient-audio")==="off")document.documentElement.dataset.phSkipGate="1"}catch(e){}',
-          }}
-        />
-      </head>
       <body className="bg-bg text-black font-body">
         {/* Skip link: the header's nav is the fourth stop on every page, and
             these pages are long. Visible only once focused. */}
@@ -141,7 +118,6 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <FloatingActions />
         <AmbientAudio />
         <MediaGuard />
-        <EnterGate />
 
         <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <Analytics />
