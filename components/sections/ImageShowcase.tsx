@@ -3,7 +3,7 @@
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
-import { reveal } from "@/lib/anim";
+import { prefersReducedMotion, reveal } from "@/lib/anim";
 import ParallaxImage from "@/components/ui/ParallaxImage";
 
 type ImageShowcaseProps = {
@@ -32,17 +32,36 @@ export default function ImageShowcase({
 
   useGSAP(
     () => {
-      gsap.fromTo(
-        revealRef.current,
-        { scale: 1.15, clipPath: "inset(6% round 0px)" },
-        {
-          scale: 1,
-          clipPath: "inset(0% round 0px)",
-          duration: 1.2,
-          ease: "power3.out",
-          scrollTrigger: reveal(sectionRef.current, { start: "top 88%" }),
-        },
-      );
+      // The frame opens as the section is scrolled, not on a timer once it
+      // arrives: the picture is tied to the scroll position, so it widens under
+      // the reader's own hand and holds wherever they stop.
+      //
+      // `fromTo` rather than `from`, which is what makes `invalidateOnRefresh`
+      // safe here — both ends are stated outright, so re-measuring on a refresh
+      // cannot mistake the hidden start state for the destination.
+      if (prefersReducedMotion()) {
+        gsap.set(revealRef.current, { scale: 1, clipPath: "inset(0% round 0px)" });
+      } else {
+        gsap.fromTo(
+          revealRef.current,
+          { scale: 1.14, clipPath: "inset(10% 16% 10% 16% round 0px)" },
+          {
+            scale: 1,
+            clipPath: "inset(0% 0% 0% 0% round 0px)",
+            ease: "none",
+            scrollTrigger: {
+              trigger: sectionRef.current,
+              start: "top bottom",
+              // Fully open by the time the frame's top is a third of the way up
+              // the window, so it finishes while there is still picture to look
+              // at rather than as it leaves.
+              end: "top 30%",
+              scrub: 0.6,
+              invalidateOnRefresh: true,
+            },
+          },
+        );
+      }
 
       if (!hasCaption) return;
 

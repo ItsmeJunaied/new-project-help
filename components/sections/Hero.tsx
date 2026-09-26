@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/anim";
+import AutoVideo from "@/components/ui/AutoVideo";
 
 /**
  * Real client marks, supplied by the clients themselves.
@@ -125,66 +126,87 @@ export default function Hero() {
             <span className="hero-line-inner flex flex-wrap items-center gap-x-[0.11em] lg:flex-nowrap">
               <span className="hero-word">Custom</span>
               <span className="hero-pill relative inline-block h-[0.85em] w-[2.45em] shrink-0 overflow-hidden rounded-[100px]">
-                <Image
-                  src="/images/hero-tech-pill.webp"
-                  alt=""
-                  fill
-                  sizes="392px"
-                  loading="eager"
-                  className="object-cover"
+                {/* The pill keeps its shape and its place in the line — only
+                    what is inside it moves now. Decorative: the headline reads
+                    "Custom Software Builders" with or without it. */}
+                <AutoVideo
+                  src="/videos/hero-pill.mp4"
+                  poster="/images/hero-pill-poster.webp"
+                  eager
+                  decorative
+                  className="absolute inset-0 size-full object-cover"
                 />
               </span>
               <span className="hero-word">Software</span>
             </span>
           </span>
-          <span className="block overflow-hidden">
-            <span className="hero-line-inner block">
-              <span className="hero-word">Builders</span>
+          {/* Line two carries the [21-26] stamp on its own baseline instead of
+              giving it a row below. The mask stays wrapped around the word
+              alone: the stamp arrives on the .hero-reveal stagger, not the
+              line rise, so it must not be clipped by a reveal it is not part
+              of. */}
+          <span className="block">
+            {/* The cap keeps the row clear of the portrait, whose left edge is
+                540px in from the content edge. Below roughly 1180px the stamp
+                no longer fits beside the word, and wrapping it under BUILDERS
+                is what it used to do anyway — better than sliding it behind a
+                photograph. shrink-0 on the mask because `overflow: hidden`
+                resolves min-width to 0, so without it the flex row would
+                squeeze the word and clip its own letters rather than wrap. */}
+            <span className="flex flex-wrap items-end gap-x-[20px] gap-y-[8px] lg:max-w-[calc(100%-560px)] lg:gap-x-[32px]">
+              <span className="block shrink-0 overflow-hidden">
+                <span className="hero-line-inner block">
+                  <span className="hero-word">Builders</span>
+                </span>
+              </span>
+
+              {/* The padding is em of the H1, not of the 28px text inside it,
+                  so the stamp keeps sitting on BUILDERS' baseline as the
+                  headline clamp resizes. */}
+              <span className="hero-reveal flex shrink-0 items-center gap-[8px] tracking-normal lg:pb-[0.3em]">
+                <span className="font-display text-[28px] font-medium leading-[25.714px] text-primary-green">
+                  &copy;
+                </span>
+                <span className="font-display text-[28px] font-medium leading-[28px] tracking-[-0.75px] text-black">
+                  [21-26]
+                </span>
+              </span>
             </span>
           </span>
         </h1>
 
-        {/* Pinned top AND bottom from lg up, with no height of its own: the
-            portrait then ends exactly where the text column ends and can never
-            outgrow the section. It used to be a fixed 566px hung off a 194px
-            offset, which ran 111px past the section's own overflow-hidden and
-            got its lower third cut off at 1440x900. Narrower than before (540
-            against 588) so it clears the body paragraph now that both sides
-            have moved inward by the gutter. */}
-        <div className="hero-portrait relative mt-10 h-[320px] w-full sm:h-[440px] lg:absolute lg:bottom-0 lg:right-[40px] lg:top-[clamp(120px,19svh,175px)] lg:mt-0 lg:h-auto lg:w-[540px]">
-          <Image
-            src="/images/hero-portrait.webp"
-            alt="Engineer at work lit by red laser tracing lines"
-            fill
-            sizes="(max-width: 1023px) 100vw, 588px"
-            // This is the LCP element. next/image docs say to use fetchPriority
-            // rather than `preload` — the two are not meant to be combined, and
-            // the priority hint is what the browser actually schedules on.
-            loading="eager"
-            fetchPriority="high"
-            className="object-cover"
+        {/* 16:9, which is the ratio the showreel was shot at. The frame used to
+            be pinned top and bottom and took whatever height was left — about
+            540x400 — and a 16:9 film can only fill a frame that shape by being
+            cropped to 76% of its width. This showreel is wall-to-wall centred
+            type, so that crop reads "IGITAL PRODUC". Matching the frame to the
+            film is the only arrangement with neither a crop nor bars.
+
+            Still anchored to the bottom, so its lower edge keeps landing on the
+            same line as the text column beside it. */}
+        <div className="hero-portrait relative mt-10 aspect-video w-full lg:absolute lg:bottom-0 lg:right-[40px] lg:mt-0 lg:w-[540px]">
+          {/* The same silent cut the footer plays, so the footer's copy comes
+              out of cache. The poster carries the LCP: it is a frame of this
+              film, so the still and the first frame of video are the same
+              picture and there is nothing to see at the handover. */}
+          <AutoVideo
+            src="/videos/showreel-40s-loop.mp4"
+            poster="/images/showreel-40s-poster.webp"
+            eager
+            label="Project Help showreel"
+            className="absolute inset-0 size-full object-cover"
           />
         </div>
 
-        {/* Bumped from clamp(20px,4svh,45px): the headline's 1.2125 line-height
-            eats most of a small margin, so "BUILDERS" and the [21-26] row read
-            as one block until there is real air between them. */}
-        <div className="mt-10 lg:mt-[clamp(30px,6svh,72px)] lg:max-w-[860px]">
-          <div className="flex flex-col gap-[clamp(16px,3svh,40px)]">
-            <div className="hero-reveal flex items-center gap-[8px]">
-              <span className="font-display text-[28px] font-medium leading-[25.714px] text-primary-green">
-                &copy;
-              </span>
-              <span className="font-display text-[28px] font-medium leading-[28px] tracking-[-0.75px] text-black">
-                [21-26]
-              </span>
-            </div>
-
-            <p className="hero-reveal max-w-[480px] font-display text-[clamp(1.75rem,3vw,40px)] font-medium leading-[1.1] tracking-[-0.05em] text-black">
-              We turn product ideas into{" "}
-              <span className="text-ash-dark">software that scales</span>
-            </p>
-          </div>
+        {/* The [21-26] stamp used to open this block, so it needed real air
+            above it to separate from the headline. It now sits on the
+            headline's own last line, and the tagline reads as a new thought at
+            a tighter offset. */}
+        <div className="mt-10 lg:mt-[clamp(24px,4.6svh,56px)] lg:max-w-[860px]">
+          <p className="hero-reveal max-w-[480px] font-display text-[clamp(1.75rem,3vw,40px)] font-medium leading-[1.1] tracking-[-0.05em] text-black">
+            We turn product ideas into{" "}
+            <span className="text-ash-dark">software that scales</span>
+          </p>
 
           {/* 720 rather than 825: the portrait's left edge is at 860 once the
               gutter is in, and this paragraph is the only thing wide enough to
