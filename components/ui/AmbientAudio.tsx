@@ -82,12 +82,26 @@ const WAVE_POINTS = 34;
 const WAVE_EASE = 0.22;
 
 /**
- * Opus in a WebM container for everything current, MP3 for older Safari. Opus
- * is 2.0MB against the MP3's 3.6MB, from a 9.7MB source.
+ * Opus in a WebM container for everything current, MP3 for older Safari.
+ *
+ * Two minutes, not the five and a half it used to be. The element sits in a
+ * suspended AudioContext until the visitor's first gesture, so the browser
+ * buffers a probe at load and fetches the rest only once playback starts —
+ * after the click, when someone is waiting. At 2.1MB that wait ran past half a
+ * minute on a slow connection, which is long enough to conclude the site is
+ * simply silent. 763KB does not.
+ *
+ * The length costs nothing, because it loops: the old file faded to near
+ * silence at its end and snapped back to full at its start, so every lap had a
+ * hole in it. This one has its tail crossfaded back over its head — the last
+ * second and the first now sit within 0.2 dB of each other.
+ *
+ * Renamed rather than replaced in place: /audio is served immutable for a
+ * year, so a new cut needs a new name to reach anyone holding the old one.
  */
 const SOURCES = [
-  { src: "/audio/ambient.webm", type: 'audio/webm; codecs="opus"' },
-  { src: "/audio/ambient.mp3", type: "audio/mpeg" },
+  { src: "/audio/ambient-loop.webm", type: 'audio/webm; codecs="opus"' },
+  { src: "/audio/ambient-loop.mp3", type: "audio/mpeg" },
 ];
 
 type Engine = {
