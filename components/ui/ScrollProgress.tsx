@@ -43,7 +43,7 @@ export default function ScrollProgress() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[2px] bg-transparent"
+      className="print-hide pointer-events-none fixed inset-x-0 top-0 z-50 h-[2px] bg-transparent"
     >
       <div
         ref={barRef}

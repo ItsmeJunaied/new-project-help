@@ -55,3 +55,36 @@ export const PILLARS: Pillar[] = [
     delivers: ["CI/CD pipeline", "Monitoring & alerts", "Runbook & handover"],
   },
 ];
+
+/**
+ * The mark to draw beside a technology named in a case study.
+ *
+ * Case studies name their stack in prose ("Next.js", "Socket.IO"), and the
+ * deck draws that stack as a grid of cells. Anything with a mark gets it;
+ * anything without is set as a wordmark instead, which is what the cell would
+ * have fallen back to anyway. Deliberately not a `Record<string, TechName>`
+ * covering every possible string — a stack entry the site invents tomorrow
+ * should quietly become a wordmark, not a type error.
+ */
+const TECH_MARKS: Record<string, TechName> = {
+  "next.js": "nextjs",
+  "node.js": "nodejs",
+  postgresql: "postgres",
+  aws: "aws",
+  redis: "redis",
+  react: "react",
+  typescript: "typescript",
+  docker: "docker",
+  elasticsearch: "elasticsearch",
+  mongodb: "mongodb",
+  python: "python",
+  flutter: "flutter",
+  graphql: "graphql",
+  kubernetes: "kubernetes",
+  terraform: "terraform",
+  tailwind: "tailwind",
+};
+
+export function techMarkFor(label: string): TechName | null {
+  return TECH_MARKS[label.trim().toLowerCase()] ?? null;
+}

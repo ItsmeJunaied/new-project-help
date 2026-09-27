@@ -59,7 +59,7 @@ export default function FloatingActions() {
   return (
     <div
       ref={rootRef}
-      className="pointer-events-none fixed bottom-[20px] right-[16px] z-40 flex flex-col items-end gap-[12px] opacity-0 sm:bottom-[28px] sm:right-[28px]"
+      className="print-hide pointer-events-none fixed bottom-[20px] right-[16px] z-40 flex flex-col items-end gap-[12px] opacity-0 sm:bottom-[28px] sm:right-[28px]"
     >
       {expanded && !dismissed && (
         <div className="pointer-events-auto relative w-[min(300px,calc(100vw-32px))] overflow-hidden rounded-[16px] bg-[#151515] shadow-[0_18px_50px_-12px_rgba(0,0,0,0.45)]">

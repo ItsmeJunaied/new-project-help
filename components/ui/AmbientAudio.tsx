@@ -583,7 +583,7 @@ export default function AmbientAudio() {
   const percent = Math.round(volume * 100);
 
   return (
-    <div className="pointer-events-none fixed bottom-[20px] left-[16px] z-40 sm:bottom-[28px] sm:left-[28px]">
+    <div className="print-hide pointer-events-none fixed bottom-[20px] left-[16px] z-40 sm:bottom-[28px] sm:left-[28px]">
       <div
         className="pointer-events-auto flex items-center gap-[10px] rounded-full border border-black/15 bg-bg/90 py-[8px] pl-[8px] pr-[14px] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.3)] backdrop-blur-sm"
         onMouseLeave={() => setSliderOpen(false)}

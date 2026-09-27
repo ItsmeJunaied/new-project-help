@@ -170,14 +170,31 @@ export const PROFILE_WORK = PUBLISHED_CASE_STUDIES.map((study) => ({
   slug: study.slug,
   image: study.card,
   title: study.cardTitle,
+  /** The grey line under the project name: what kind of thing it is. */
+  descriptor: study.categories.join(" · "),
   categories: study.categories,
   summary: study.summary,
   challenge: { heading: study.intro.heading, body: study.problem.paragraphs[0] },
   solution: { heading: study.solution.lead, body: study.solution.paragraphs[0] },
+  /** The three constraints the build had to solve, already written as
+   *  "Heading: sentence" on the case study page — which is exactly the shape
+   *  the deck's bulleted list wants. */
+  issues: study.problem.issues.map(splitLead),
   stack: study.stack,
   outcomes: study.outcomes,
   facts: study.facts,
 }));
+
+/**
+ * Splits "Live Operations View: staff could not see..." into its bold lead and
+ * the rest. Falls back to the whole string as the body if a line has no colon,
+ * so a case study that stops following the convention still renders.
+ */
+function splitLead(line: string): { lead: string; rest: string } {
+  const at = line.indexOf(": ");
+  if (at === -1) return { lead: "", rest: line };
+  return { lead: line.slice(0, at), rest: line.slice(at + 2) };
+}
 
 /**
  * Photographs the deck uses, all of them already published elsewhere on the
@@ -216,3 +233,17 @@ export const PROFILE_SLIDE_COUNT = PROFILE_SLIDES.length;
 export function slidePosition(id: string) {
   return PROFILE_SLIDES.findIndex((slide) => slide.id === id) + 1;
 }
+
+/**
+ * The closing slide, which is the only page a reader is expected to act on.
+ * Everything here is the same detail the site footer carries.
+ */
+export const PROFILE_CONTACT = [
+  { label: "Website", value: siteConfig.url.replace(/^https?:\/\//, "") },
+  { label: "Email", value: siteConfig.email },
+  { label: "Phone", value: siteConfig.phoneDisplay },
+  {
+    label: "Studio",
+    value: `${siteConfig.address.street}, ${siteConfig.address.locality} ${siteConfig.address.postalCode}, ${siteConfig.address.countryName}`,
+  },
+] as const;

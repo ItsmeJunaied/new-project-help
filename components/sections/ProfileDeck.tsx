@@ -1,19 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { useRef, type CSSProperties, type ReactNode } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/anim";
 import Logo from "@/components/ui/Logo";
 import { BrandMark } from "@/components/ui/BrandIcons";
-import TechMark, { techLabel } from "@/components/ui/TechMarks";
-import WhatsAppMark from "@/components/ui/WhatsAppMark";
-import { PILLARS } from "@/lib/stack";
+import TechMark, { techLabel, type TechName } from "@/components/ui/TechMarks";
+import { PILLARS, techMarkFor } from "@/lib/stack";
 import { CLIENTS } from "@/lib/clients";
 import { siteConfig } from "@/lib/site";
 import {
+  PROFILE_CONTACT,
   PROFILE_EDITION,
   PROFILE_FIGURES,
   PROFILE_HANDOVER,
@@ -42,71 +41,99 @@ import {
  * content fades in, because a `from` tween on opacity leaves the page blank if
  * its trigger never fires, and this document has to be readable in a print
  * preview and with JavaScript halfway through loading.
+ *
+ * Three rules hold the design together, and every slide below obeys them:
+ *
+ *   1. One paper colour. White, all the way through. Alternating dark and
+ *      brand-coloured pages is how a website reads section by section, and it
+ *      is what made an earlier draft of this deck look like screenshots.
+ *   2. The furniture never moves. Pill top-left, rule and page number at the
+ *      foot, in the same place on all fifteen pages.
+ *   3. Photographs illustrate the company, never the work. The case study
+ *      slides carry type, hairline grids and figures and nothing else — which
+ *      is what the reference deck does, and it keeps placeholder renders out
+ *      of a document that goes to prospects.
  */
 
 const two = (n: number) => String(n).padStart(2, "0");
 
-type Tone = "light" | "ink" | "green";
-
-const FRAME_TONE: Record<Tone, string> = {
-  light: "",
-  ink: " deck-frame--ink",
-  green: " deck-frame--green",
-};
-
-const SLIDE_TONE: Record<Tone, string> = {
-  light: "",
-  ink: " deck-slide--ink",
-  green: " deck-slide--green",
-};
-
 /**
- * Content that runs to the edge of the slide, ignoring its padding.
+ * The soft shapes bleeding off the corners.
  *
- * An absolutely positioned child is placed against its containing block's
- * PADDING box, and the slide is inset 0 inside the frame — so `inset-0` is
- * already the frame edge and pulling back by the padding would overshoot it on
- * every side. Below lg the slide is in flow and the bleed becomes an ordinary
- * block at the top of it.
+ * Four arrangements, picked by the slide's position so the deck varies without
+ * anyone choosing per slide — the reference does the same thing, and the point
+ * of it is that no two consecutive pages carry weight in the same corner.
+ * Sizes are design pixels applied as inline custom-property arithmetic rather
+ * than class names: Tailwind generates CSS by scanning source text for whole
+ * class strings, so a size composed at runtime would produce no rule at all.
  */
-function Bleed({
-  children,
-  className = "",
-}: {
-  children: ReactNode;
-  className?: string;
-}) {
+type Blob = {
+  tint: 1 | 2 | 3 | 4;
+  size: number;
+  x: ["left" | "right", number];
+  y: ["top" | "bottom", number];
+};
+
+const DECOR: Blob[][] = [
+  [
+    { tint: 1, size: 300, x: ["right", -120], y: ["top", -130] },
+    { tint: 3, size: 190, x: ["left", -90], y: ["bottom", -70] },
+    { tint: 2, size: 120, x: ["right", 150], y: ["bottom", -50] },
+  ],
+  [
+    { tint: 2, size: 340, x: ["right", -150], y: ["bottom", -140] },
+    { tint: 1, size: 130, x: ["right", 210], y: ["top", -60] },
+    { tint: 4, size: 220, x: ["left", -110], y: ["top", 120] },
+  ],
+  [
+    { tint: 3, size: 260, x: ["right", -110], y: ["bottom", 40] },
+    { tint: 1, size: 150, x: ["left", -70], y: ["bottom", -60] },
+    { tint: 2, size: 190, x: ["right", 120], y: ["top", -110] },
+  ],
+  [
+    { tint: 1, size: 220, x: ["right", -90], y: ["top", 160] },
+    { tint: 2, size: 280, x: ["left", -140], y: ["bottom", -120] },
+    { tint: 4, size: 150, x: ["right", 240], y: ["bottom", -60] },
+  ],
+];
+
+const TINT: Record<Blob["tint"], string> = {
+  1: "deck-tint--1",
+  2: "deck-tint--2",
+  3: "deck-tint--3",
+  4: "deck-tint--4",
+};
+
+function Decor({ index }: { index: number }) {
+  const blobs = DECOR[index % DECOR.length];
+
   return (
-    <div className={`absolute inset-0 overflow-hidden ${className}`}>
-      {children}
+    <div aria-hidden className="absolute inset-0 overflow-hidden">
+      {blobs.map((blob, i) => (
+        <span
+          key={i}
+          className={`deck-blob ${TINT[blob.tint]}`}
+          style={
+            {
+              width: `calc(${blob.size} * var(--k))`,
+              height: `calc(${blob.size} * var(--k))`,
+              [blob.x[0]]: `calc(${blob.x[1]} * var(--k))`,
+              [blob.y[0]]: `calc(${blob.y[1]} * var(--k))`,
+            } as CSSProperties
+          }
+        />
+      ))}
     </div>
   );
 }
 
-/*
- * The picture column on a case-study slide is 420 design pixels wide and the
- * copy leaves 402 beside it. 402 rather than 420 because the margin starts at
- * the slide's content box, which is already 58 in from the frame edge — so the
- * gap between picture and copy is 58 + 402 - 420 = 40.
- *
- * Written out as literal class names below, not composed from constants:
- * Tailwind generates CSS by scanning the source for whole class strings, and a
- * name assembled at runtime produces no rule at all.
- */
-
 function Slide({
   id,
-  tone = "light",
-  bleed,
-  contentClassName = "",
-  furniture = true,
+  chrome = true,
   children,
 }: {
   id: string;
-  tone?: Tone;
-  bleed?: ReactNode;
-  contentClassName?: string;
-  furniture?: boolean;
+  chrome?: boolean;
   children: ReactNode;
 }) {
   const slide = PROFILE_SLIDES.find((entry) => entry.id === id);
@@ -114,31 +141,25 @@ function Slide({
 
   return (
     <div className="deck-stack-item" style={{ zIndex: position } as CSSProperties}>
-      <section
-        id={id}
-        aria-label={slide?.title}
-        className={`profile-slide deck-frame${FRAME_TONE[tone]}`}
-      >
-        <div className={`deck-slide${SLIDE_TONE[tone]}`}>
-          {bleed}
+      <section id={id} aria-label={slide?.title} className="profile-slide deck-frame">
+        <div className="deck-slide">
+          <Decor index={position - 1} />
 
-          <div
-            className={`relative z-[1] flex min-h-0 flex-1 flex-col ${contentClassName}`}
-          >
-            {furniture ? (
-              <div className="flex shrink-0 flex-col gap-[var(--sp-2)] max-lg:gap-2">
-                <div className="flex items-baseline justify-between gap-[var(--sp-3)]">
-                  <p className="deck-eyebrow">{slide?.eyebrow}</p>
-                  <p className="deck-eyebrow">
-                    {two(position)}
-                    <span className="opacity-45"> / {two(PROFILE_SLIDE_COUNT)}</span>
-                  </p>
-                </div>
-                <div className="deck-rule" />
-              </div>
-            ) : null}
+          <div className="relative z-[1] flex min-h-0 flex-1 flex-col">
+            {chrome ? <p className="deck-pill">{slide?.eyebrow}</p> : null}
 
             {children}
+
+            {chrome ? (
+              <div className="deck-footer">
+                <span className="deck-micro">
+                  {siteConfig.name} &middot; Company Profile {PROFILE_EDITION}
+                </span>
+                <span className="deck-micro">
+                  {two(position)} / {two(PROFILE_SLIDE_COUNT)}
+                </span>
+              </div>
+            ) : null}
           </div>
         </div>
 
@@ -148,7 +169,25 @@ function Slide({
   );
 }
 
-/** Everything below the hairline, filling what is left of the canvas. */
+/** Heading and its grey descriptor, in the one place they ever appear. */
+function Head({
+  title,
+  note,
+}: {
+  title: ReactNode;
+  note?: string;
+}) {
+  return (
+    <div className="mt-[calc(20*var(--k))] max-lg:mt-4">
+      <h2 className="deck-h2">{title}</h2>
+      {note ? (
+        <p className="deck-note mt-[calc(10*var(--k))] max-lg:mt-2">{note}</p>
+      ) : null}
+    </div>
+  );
+}
+
+/** Everything under the heading, filling what is left of the canvas. */
 function Body({
   children,
   className = "",
@@ -158,46 +197,76 @@ function Body({
 }) {
   return (
     <div
-      className={`mt-[calc(26*var(--k))] flex min-h-0 flex-1 flex-col max-lg:mt-6 ${className}`}
+      className={`mt-[calc(24*var(--k))] flex min-h-0 flex-1 flex-col max-lg:mt-6 ${className}`}
     >
       {children}
     </div>
   );
 }
 
-function Statement({
-  heading,
-  lead,
-  className = "",
+/** A caption over a block — "Technology used", "What made it hard". */
+function Cap({ children }: { children: ReactNode }) {
+  return <p className="deck-cap mb-[calc(11*var(--k))] max-lg:mb-3">{children}</p>;
+}
+
+/** The tinted figure callout: the one place a statistic is allowed to shout. */
+function Stat({
+  figure,
+  label,
+  sub,
 }: {
-  heading: ReactNode;
-  lead?: string;
-  className?: string;
+  figure: string;
+  label: string;
+  sub?: string;
 }) {
   return (
-    <div className={className}>
-      <h2 className="deck-h2">{heading}</h2>
-      {lead ? (
-        <p className="deck-lead mt-[var(--sp-3)] max-lg:mt-3">{lead}</p>
-      ) : null}
+    <div className="deck-stat">
+      <span className="deck-figure shrink-0">{figure}</span>
+      <span className="min-w-0">
+        <span className="deck-h4 block">{label}</span>
+        {sub ? (
+          <span className="deck-note mt-[calc(4*var(--k))] block">{sub}</span>
+        ) : null}
+      </span>
     </div>
   );
 }
 
-/** A numbered marker — the deck's counter for cards and steps. */
-function Marker({ n, tone = "solid" }: { n: string; tone?: "solid" | "hollow" }) {
+/**
+ * One cell of a hairline grid: the mark where we have one, the name where we
+ * do not — which is how the reference deck's own grids behave.
+ */
+function TechCell({ name }: { name: string }) {
+  const mark = techMarkFor(name);
+
   return (
-    <span
-      className={`flex size-[calc(30*var(--k))] shrink-0 items-center justify-center rounded-full font-mono text-[calc(11*var(--k))] font-medium max-lg:size-[30px] max-lg:text-[11px] ${
-        tone === "solid"
-          ? "bg-primary-green text-black"
-          : "border border-[var(--rule)]"
-      }`}
-    >
-      {n}
+    <span>
+      {mark ? (
+        <TechMark
+          name={mark}
+          className="size-[calc(16*var(--k))] shrink-0 max-lg:size-[18px]"
+        />
+      ) : null}
+      <span className="min-w-0 truncate">{name}</span>
     </span>
   );
 }
+
+/** The four pillars' tools, de-duplicated, in pillar order. */
+const STACK_TOOLS: TechName[] = Array.from(
+  new Set(PILLARS.flatMap((pillar) => pillar.tools)),
+);
+
+/**
+ * Blank cells to finish the last row of the four-across tool grid. A grid
+ * shows its own background through the cells it has no children for, and the
+ * background here is the hairline colour — so a short final row prints as a
+ * solid grey block rather than as two tools.
+ */
+const PAD_STACK = Array.from(
+  { length: (4 - (STACK_TOOLS.length % 4)) % 4 },
+  (_, i) => i,
+);
 
 export default function ProfileDeck() {
   const deckRef = useRef<HTMLDivElement>(null);
@@ -234,7 +303,7 @@ export default function ProfileDeck() {
           scrollTrigger: trigger,
         });
 
-        gsap.to(veil, { opacity: 0.5, ease: "none", scrollTrigger: trigger });
+        gsap.to(veil, { opacity: 0.45, ease: "none", scrollTrigger: trigger });
       });
     },
     { scope: deckRef },
@@ -243,163 +312,176 @@ export default function ProfileDeck() {
   return (
     <div ref={deckRef} className="deck-stack">
       {/* ---------------------------------------------------------------- 01 */}
-      <Slide
-        id="cover"
-        tone="ink"
-        furniture={false}
-        bleed={
-          <Bleed>
+      <Slide id="cover" chrome={false}>
+        <div className="flex items-center justify-between gap-[calc(24*var(--k))]">
+          <div className="flex items-center gap-[calc(11*var(--k))]">
+            <BrandMark className="size-[calc(30*var(--k))] rounded-[calc(7*var(--k))] max-lg:size-[30px] max-lg:rounded-[7px]" />
+            <Logo className="h-[calc(27*var(--k))] w-auto text-black max-lg:h-[26px]" />
+          </div>
+          <p className="deck-pill">Company Profile {PROFILE_EDITION}</p>
+        </div>
+
+        <div className="mt-[calc(48*var(--k))] max-w-[calc(900*var(--k))] max-lg:mt-8 max-lg:max-w-none">
+          <h1 className="deck-h1">
+            We build the software.
+            <br />
+            You <span className="deck-mark">own</span> every commit.
+          </h1>
+          <p className="deck-lead mt-[calc(20*var(--k))] max-w-[calc(640*var(--k))] max-lg:mt-4 max-lg:max-w-none">
+            {siteConfig.tagline} in {siteConfig.address.locality}, working with
+            product teams worldwide.
+          </p>
+        </div>
+
+        {/* The cover band: three photographs and two figures, cut to the same
+            rhythm as the reference cover's mosaic. */}
+        <div className="mt-auto grid grid-cols-5 gap-[calc(12*var(--k))] pt-[calc(28*var(--k))] max-lg:mt-8 max-lg:grid-cols-2 max-lg:gap-3 max-lg:pt-0">
+          <div className="deck-photo col-span-2 h-[calc(178*var(--k))] max-lg:col-span-2 max-lg:h-[180px]">
             <Image
               src={PROFILE_IMAGERY.cover}
-              alt=""
-              aria-hidden
+              alt="The Project Help studio at work"
               fill
+              sizes="(max-width: 1023px) 100vw, 40vw"
+              className="object-cover"
               priority
-              sizes="100vw"
-              className="object-cover opacity-40"
             />
-            {/* Type sits on the lower half, so the picture is darkened from the
-                bottom up rather than flattened everywhere. */}
-            <div className="absolute inset-0 bg-[linear-gradient(to_top,#0a0a0a_18%,rgba(10,10,10,0.72)_54%,rgba(10,10,10,0.35)_100%)]" />
-          </Bleed>
-        }
-      >
-        <div className="flex min-h-0 flex-1 flex-col justify-between">
-          <div className="flex items-start justify-between gap-[var(--sp-4)]">
-            <Logo className="h-[calc(44*var(--k))] w-auto text-white max-lg:h-[32px]" />
-            <div className="text-right">
-              <p className="deck-eyebrow">Company Profile</p>
-              <p className="deck-eyebrow mt-[calc(7*var(--k))] text-primary-green max-lg:mt-1.5">
-                {PROFILE_EDITION}
-              </p>
+          </div>
+
+          <div className="flex flex-col gap-[calc(12*var(--k))] max-lg:gap-3">
+            <div className="deck-card--tint flex flex-1 flex-col justify-center rounded-[calc(12*var(--k))] px-[calc(16*var(--k))] py-[calc(12*var(--k))] max-lg:rounded-[12px] max-lg:p-4">
+              <span className="deck-figure">{PROFILE_FIGURES[1].figure}</span>
+              <span className="deck-note mt-[calc(6*var(--k))]">
+                {PROFILE_FIGURES[1].label}
+              </span>
+            </div>
+            <div className="deck-card flex flex-1 flex-col justify-center rounded-[calc(12*var(--k))] px-[calc(16*var(--k))] py-[calc(12*var(--k))] max-lg:rounded-[12px] max-lg:p-4">
+              <span className="deck-figure">{PROFILE_FIGURES[2].figure}</span>
+              <span className="deck-note mt-[calc(6*var(--k))]">
+                {PROFILE_FIGURES[2].label}
+              </span>
             </div>
           </div>
 
-          <div className="max-lg:mt-12">
-            <p className="deck-eyebrow">{siteConfig.tagline}</p>
-            <h1 className="deck-cover-title mt-[var(--sp-3)] max-w-[calc(900*var(--k))] max-lg:mt-3 max-lg:max-w-none">
-              We turn product ideas into{" "}
-              <span className="text-primary-green">software that scales</span>
-            </h1>
+          <div className="deck-photo h-[calc(178*var(--k))] max-lg:h-[150px]">
+            <Image
+              src={PROFILE_IMAGERY.process}
+              alt="A planning session in progress"
+              fill
+              sizes="(max-width: 1023px) 50vw, 20vw"
+              className="object-cover"
+            />
           </div>
 
-          <div className="max-lg:mt-12">
-            <div className="deck-rule" />
-            <div className="mt-[var(--sp-3)] grid grid-cols-4 gap-[var(--sp-3)] max-lg:mt-5 max-lg:grid-cols-2 max-lg:gap-5">
-              {PROFILE_FIGURES.map((item) => (
-                <div key={item.label}>
-                  <p className="deck-figure">{item.figure}</p>
-                  <p className="deck-body mt-[calc(6*var(--k))] max-lg:mt-1.5">
-                    {item.label}
-                  </p>
-                </div>
-              ))}
-            </div>
+          <div className="deck-photo h-[calc(178*var(--k))] max-lg:h-[150px]">
+            <Image
+              src={PROFILE_IMAGERY.capabilities}
+              alt="Engineering tools on screen"
+              fill
+              sizes="(max-width: 1023px) 50vw, 20vw"
+              className="object-cover"
+            />
           </div>
         </div>
       </Slide>
 
       {/* ---------------------------------------------------------------- 02 */}
       <Slide id="at-a-glance">
-        <Body className="gap-[var(--sp-4)] max-lg:gap-7">
-          <div className="grid min-h-0 flex-1 grid-cols-12 gap-[var(--sp-5)] max-lg:grid-cols-1 max-lg:gap-7">
-            <Statement
-              className="col-span-6 flex flex-col justify-center"
-              heading={
-                <>
-                  A software company,
-                  <br />
-                  not a staffing desk.
-                </>
-              }
-              lead="Project Help is hired to deliver a working system — scoped in writing, built in two-week slices, handed over with the keys — rather than to supply hours against someone else's plan."
-            />
+        <Head
+          title={
+            <>
+              A small studio that <span className="deck-mark">ships</span>, not a
+              body shop that bills.
+            </>
+          }
+          note={`Founded ${siteConfig.founded} in ${siteConfig.address.locality}, ${siteConfig.address.countryName}.`}
+        />
 
-            <div className="col-span-6 grid grid-cols-2 gap-[var(--sp-3)] max-lg:gap-4">
-              {PROFILE_FIGURES.map((item) => (
-                <div
-                  key={item.label}
-                  className="deck-tile flex flex-col justify-between p-[var(--sp-3)] max-lg:p-5"
-                >
-                  <span className="h-[2px] w-[calc(40*var(--k))] bg-primary-green max-lg:w-[40px]" />
-                  <div className="mt-[var(--sp-4)] max-lg:mt-8">
-                    <p className="deck-figure">{item.figure}</p>
-                    <p className="deck-body mt-[calc(6*var(--k))] max-lg:mt-1.5">
-                      {item.label}
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <dl className="grid shrink-0 grid-cols-6 gap-[var(--sp-3)] border-t border-[var(--rule)] pt-[var(--sp-3)] max-lg:grid-cols-2 max-lg:gap-4 max-lg:pt-5">
-            {[
-              { term: "Founded", detail: siteConfig.founded },
-              {
-                term: "Base",
-                detail: `${siteConfig.address.locality}, ${siteConfig.address.countryName}`,
-              },
-              { term: "Team", detail: "25 specialists" },
-              { term: "Practices", detail: `${two(PROFILE_SERVICES.length)} in house` },
-              { term: "Cadence", detail: "Two-week sprints" },
-              { term: "Post-launch", detail: "6–12 months" },
-            ].map((row) => (
-              <div key={row.term}>
-                <dt className="deck-eyebrow">{row.term}</dt>
-                <dd className="deck-h3 mt-[calc(7*var(--k))] max-lg:mt-1.5">
-                  {row.detail}
-                </dd>
+        <Body className="gap-[calc(20*var(--k))] max-lg:gap-6">
+          <div className="grid grid-cols-4 gap-[calc(12*var(--k))] max-lg:grid-cols-2 max-lg:gap-3">
+            {PROFILE_FIGURES.map((entry, index) => (
+              <div
+                key={entry.label}
+                className={`${index === 0 ? "deck-card--tint" : "deck-card"} rounded-[calc(12*var(--k))] px-[calc(18*var(--k))] py-[calc(14*var(--k))] max-lg:rounded-[12px] max-lg:p-4`}
+              >
+                <span className="deck-figure">{entry.figure}</span>
+                <span className="deck-note mt-[calc(8*var(--k))] block">
+                  {entry.label}
+                </span>
               </div>
             ))}
-          </dl>
+          </div>
+
+          <div className="grid min-h-0 flex-1 grid-cols-[1fr_calc(420*var(--k))] gap-[calc(28*var(--k))] max-lg:grid-cols-1 max-lg:gap-5">
+            <div className="flex flex-col justify-center gap-[calc(13*var(--k))] max-lg:gap-3">
+              <p className="deck-body">
+                We are a product studio, not an agency with a sales floor. The
+                engineers who scope your build are the engineers who write it,
+                which is the whole reason a fixed price and a fixed date can
+                survive contact with the work.
+              </p>
+              <p className="deck-body">
+                Everything in this document is drawn from the same records the
+                website publishes — the same projects, the same stack, the same
+                numbers. If one changes, both change.
+              </p>
+            </div>
+
+            <div className="deck-photo max-lg:h-[200px]">
+              <Image
+                src={PROFILE_IMAGERY.sectors}
+                alt="The team working together at a desk"
+                fill
+                sizes="(max-width: 1023px) 100vw, 34vw"
+                className="object-cover"
+              />
+            </div>
+          </div>
         </Body>
       </Slide>
 
       {/* ---------------------------------------------------------------- 03 */}
       <Slide id="what-we-build">
-        <Body>
-          <Statement
-            heading="Seven practices, one delivery team"
-            lead="Most builds draw on three or four at once, which is the reason they sit under one roof."
-            className="max-w-[calc(720*var(--k))] max-lg:max-w-none"
-          />
+        <Head
+          title="Seven things we build, and what we build them with."
+          note="Every service below is one we have shipped and still support."
+        />
 
-          <div className="mt-[var(--sp-4)] grid min-h-0 flex-1 grid-cols-4 gap-[var(--sp-3)] max-lg:mt-7 max-lg:grid-cols-1 max-lg:gap-4">
-            {PROFILE_SERVICES.map((service, index) => (
+        <Body className="grid grid-cols-[1fr_calc(380*var(--k))] gap-[calc(32*var(--k))] max-lg:grid-cols-1 max-lg:gap-6">
+          <div className="grid grid-cols-2 content-start gap-x-[calc(24*var(--k))] gap-y-[calc(15*var(--k))] max-lg:gap-x-4 max-lg:gap-y-4">
+            {PROFILE_SERVICES.map((service) => (
               <div
                 key={service.slug}
-                className="deck-tile flex flex-col p-[calc(18*var(--k))] max-lg:p-5"
+                className="flex gap-[calc(11*var(--k))] max-lg:gap-3"
               >
-                <div className="flex items-center gap-[calc(10*var(--k))] max-lg:gap-3">
-                  <Marker n={two(index + 1)} />
-                  <h3 className="deck-h3">{service.shortTitle}</h3>
-                </div>
-                <ul className="mt-[var(--sp-2)] flex flex-col gap-[calc(4*var(--k))] max-lg:mt-3 max-lg:gap-1">
-                  {service.included.map((item) => (
-                    <li key={item} className="deck-body">
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+                <span
+                  aria-hidden
+                  className="deck-tint--1 mt-[calc(4*var(--k))] size-[calc(13*var(--k))] shrink-0 rounded-[calc(4*var(--k))] max-lg:size-[13px]"
+                />
+                <span className="min-w-0">
+                  <span className="deck-h4 block">{service.shortTitle}</span>
+                  <span className="deck-note mt-[calc(4*var(--k))] block">
+                    {service.included[0]}
+                  </span>
+                </span>
               </div>
             ))}
+          </div>
 
-            {/* The eighth cell is the picture rather than another list, so the
-                grid ends on something other than more words. */}
-            <div className="relative overflow-hidden rounded-[calc(12*var(--k))] max-lg:h-[200px] max-lg:rounded-[12px]">
-              <Image
-                src={PROFILE_IMAGERY.capabilities}
-                alt=""
-                aria-hidden
-                fill
-                sizes="(max-width: 1023px) 100vw, 25vw"
-                className="object-cover"
-              />
-              <div className="absolute inset-0 bg-[linear-gradient(to_top,rgba(10,10,10,0.88),rgba(10,10,10,0.15))]" />
-              <p className="absolute inset-x-[var(--sp-3)] bottom-[var(--sp-3)] font-display text-[calc(19*var(--k))] font-medium leading-[1.25] tracking-[-0.02em] text-white max-lg:inset-x-5 max-lg:bottom-5 max-lg:text-[19px]">
-                One contract, one team accountable for the result.
-              </p>
+          <div className="flex flex-col">
+            <Cap>Technology we use</Cap>
+            <div className="deck-grid grid-cols-4">
+              {STACK_TOOLS.map((tool) => (
+                <span key={tool}>
+                  <TechMark
+                    name={tool}
+                    className="size-[calc(20*var(--k))] max-lg:size-[22px]"
+                  />
+                  <span className="sr-only">{techLabel(tool)}</span>
+                </span>
+              ))}
+              {PAD_STACK.map((n) => (
+                <span key={`pad-${n}`} />
+              ))}
             </div>
           </div>
         </Body>
@@ -407,263 +489,233 @@ export default function ProfileDeck() {
 
       {/* ---------------------------------------------------------------- 04 */}
       <Slide id="industries">
-        <Body>
-          <div className="grid min-h-0 flex-1 grid-cols-12 gap-[var(--sp-5)] max-lg:grid-cols-1 max-lg:gap-7">
-            <div className="col-span-8 flex flex-col">
-              <Statement
-                heading="Where the work has shipped"
-                lead="Twenty-eight delivered projects, grouped by the sector that paid for them. Engagements, not logos."
-              />
+        <Head
+          title="Where the work has actually shipped."
+          note="Delivered projects by sector, across the whole portfolio."
+        />
 
-              <ul className="mt-[var(--sp-4)] flex flex-1 flex-col justify-center gap-[calc(16*var(--k))] max-lg:mt-7 max-lg:gap-5">
-                {PROFILE_INDUSTRIES.map((industry) => {
-                  const count = Number(industry.count);
-                  // Scaled against the largest sector, so the bars compare with
-                  // each other rather than against an arbitrary axis.
-                  const width = `${(count / 9) * 100}%`;
-                  return (
-                    <li key={industry.name}>
-                      <div className="flex items-baseline justify-between gap-[var(--sp-3)]">
-                        <p className="deck-h3">{industry.name}</p>
-                        <p className="deck-body">{industry.note}</p>
-                      </div>
-                      <div className="mt-[calc(9*var(--k))] flex items-center gap-[var(--sp-3)] max-lg:mt-2 max-lg:gap-4">
-                        <span className="relative h-[calc(28*var(--k))] flex-1 overflow-hidden rounded-[100px] bg-[var(--tint)] max-lg:h-[26px]">
-                          <span
-                            className="deck-bar absolute inset-y-0 left-0"
-                            style={{ width }}
-                          />
-                        </span>
-                        <span className="w-[calc(58*var(--k))] shrink-0 text-right font-display text-[calc(26*var(--k))] font-medium leading-none tracking-[-0.04em] tabular-nums max-lg:w-[52px] max-lg:text-[24px]">
-                          {industry.count}
-                          <span className="text-primary-green">&times;</span>
-                        </span>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
+        <Body className="grid grid-cols-[1fr_calc(340*var(--k))] gap-[calc(34*var(--k))] max-lg:grid-cols-1 max-lg:gap-6">
+          <div className="flex min-h-0 flex-col">
+            <div className="deck-chart min-h-0 flex-1 max-lg:h-[220px]">
+              {PROFILE_INDUSTRIES.map((industry, index) => {
+                // Nine is the tallest column in the set; every other column is
+                // drawn as a fraction of it, so the chart is the data.
+                const height = `${(Number(industry.count) / 9) * 100}%`;
+
+                return (
+                  <span key={industry.name} className="deck-chart-col">
+                    <span className="deck-h4">{industry.count}</span>
+                    <span className="deck-chart-track">
+                      <span
+                        className={`deck-chart-bar${index % 2 === 1 ? " deck-chart-bar--quiet" : ""}`}
+                        style={{ height }}
+                      />
+                    </span>
+                  </span>
+                );
+              })}
             </div>
 
-            <div className="relative col-span-4 overflow-hidden rounded-[calc(12*var(--k))] max-lg:h-[220px] max-lg:rounded-[12px]">
+            <div className="deck-rule mt-[calc(10*var(--k))]" />
+
+            <div className="deck-chart mt-[calc(10*var(--k))] items-start">
+              {PROFILE_INDUSTRIES.map((industry) => (
+                <span key={industry.name} className="deck-chart-col">
+                  <span className="deck-h4 text-center">{industry.name}</span>
+                  <span className="deck-note text-center">{industry.note}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-[calc(14*var(--k))] max-lg:gap-4">
+            <div className="deck-photo min-h-0 flex-1 max-lg:h-[200px]">
               <Image
                 src={PROFILE_IMAGERY.sectors}
-                alt=""
-                aria-hidden
+                alt="The team reviewing work in progress"
                 fill
-                sizes="(max-width: 1023px) 100vw, 33vw"
+                sizes="(max-width: 1023px) 100vw, 28vw"
                 className="object-cover"
               />
             </div>
+            <p className="deck-body">
+              Different sectors, one pattern: a catalogue or a caseload, a set
+              of rules nobody has written down, and an operations team finding
+              out too late. That is the problem we are usually hired to fix.
+            </p>
           </div>
         </Body>
       </Slide>
 
       {/* ---------------------------------------------------------------- 05 */}
-      <Slide id="stack" tone="ink">
-        <Body>
-          <Statement
-            heading="One stack, all the way down"
-            lead="The screen, the logic behind it, the data under that, and the platform the whole thing runs on — named tool by tool, with what each layer hands over."
-            className="max-w-[calc(860*var(--k))] max-lg:max-w-none"
-          />
+      <Slide id="stack">
+        <Head
+          title="One stack, all the way down."
+          note="The screen, the logic behind it, the data under that, and the platform it runs on."
+        />
 
-          <div className="mt-[var(--sp-4)] grid min-h-0 flex-1 grid-cols-4 gap-[var(--sp-3)] max-lg:mt-7 max-lg:grid-cols-1 max-lg:gap-5">
-            {PILLARS.map((pillar) => (
-              <div
-                key={pillar.id}
-                className="deck-tile flex flex-col p-[calc(18*var(--k))] max-lg:p-5"
-              >
-                <div className="flex items-center gap-[calc(10*var(--k))] max-lg:gap-3">
-                  <Marker n={pillar.number} />
-                  <h3 className="deck-h3">{pillar.name}</h3>
-                </div>
+        <Body className="grid grid-cols-4 gap-[calc(16*var(--k))] max-lg:grid-cols-1 max-lg:gap-4">
+          {PILLARS.map((pillar) => (
+            <div
+              key={pillar.id}
+              className="deck-card--line flex flex-col rounded-[calc(12*var(--k))] p-[calc(17*var(--k))] max-lg:rounded-[12px] max-lg:p-4"
+            >
+              <span className="deck-micro">{pillar.number}</span>
+              <span className="deck-h4 mt-[calc(9*var(--k))] block">
+                {pillar.name}
+              </span>
+              <span className="deck-note mt-[calc(6*var(--k))] block">
+                {pillar.purpose}
+              </span>
 
-                <p className="deck-body mt-[var(--sp-2)] max-lg:mt-3">
-                  {pillar.purpose}
-                </p>
-
-                {/* White tiles even on ink: several of these marks are drawn in
-                    black and would disappear on a dark ground. */}
-                <ul className="mt-[var(--sp-3)] flex flex-wrap gap-[calc(7*var(--k))] max-lg:mt-4 max-lg:gap-2">
-                  {pillar.tools.map((tool) => (
-                    <li
-                      key={tool}
-                      title={techLabel(tool)}
-                      className="flex size-[calc(38*var(--k))] items-center justify-center rounded-[calc(10*var(--k))] bg-white max-lg:size-[40px] max-lg:rounded-[10px]"
-                    >
-                      <TechMark
-                        name={tool}
-                        className="size-[calc(21*var(--k))] max-lg:size-[22px]"
-                      />
-                    </li>
-                  ))}
-                </ul>
-
-                <ul className="mt-auto flex flex-col gap-[calc(5*var(--k))] pt-[var(--sp-3)] max-lg:mt-5 max-lg:gap-1.5 max-lg:pt-0">
-                  {pillar.delivers.map((item) => (
-                    <li
-                      key={item}
-                      className="deck-body flex items-baseline gap-[calc(8*var(--k))] max-lg:gap-2"
-                    >
-                      <span className="text-primary-green">&rarr;</span>
-                      {item}
-                    </li>
-                  ))}
-                </ul>
+              <div className="mt-[calc(14*var(--k))] flex flex-wrap gap-[calc(7*var(--k))] max-lg:mt-4">
+                {pillar.tools.map((tool) => (
+                  <span
+                    key={tool}
+                    className="deck-tint--3 flex size-[calc(28*var(--k))] items-center justify-center rounded-[calc(8*var(--k))] max-lg:size-[34px] max-lg:rounded-[8px]"
+                  >
+                    <TechMark
+                      name={tool}
+                      className="size-[calc(16*var(--k))] max-lg:size-[19px]"
+                    />
+                    <span className="sr-only">{techLabel(tool)}</span>
+                  </span>
+                ))}
               </div>
-            ))}
-          </div>
+
+              <ul className="deck-list mt-auto pt-[calc(15*var(--k))] max-lg:pt-4">
+                {pillar.delivers.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </Body>
       </Slide>
 
       {/* ---------------------------------------------------------------- 06 */}
       <Slide id="process">
-        <Body>
-          <Statement
-            heading="How the work runs"
-            lead="Four steps, the same on every engagement. You can stop after step two and still own something useful — a written scope you could take anywhere."
-            className="max-w-[calc(860*var(--k))] max-lg:max-w-none"
-          />
+        <Head
+          title="How an engagement runs."
+          note="Four steps, and you can stop us at the end of any of them."
+        />
 
-          <div className="mt-[var(--sp-4)] grid shrink-0 grid-cols-4 gap-[var(--sp-4)] max-lg:mt-7 max-lg:grid-cols-1 max-lg:gap-6">
-            {PROFILE_PROCESS.map((step) => (
-              <div key={step.number} className="flex flex-col">
-                <div className="flex items-center gap-[var(--sp-2)] max-lg:gap-3">
-                  <Marker n={step.number} />
-                  <span className="deck-rule" />
-                </div>
-                <h3 className="deck-h3 mt-[var(--sp-3)] max-lg:mt-3">{step.title}</h3>
-                <p className="deck-body mt-[var(--sp-2)] max-lg:mt-2">{step.copy}</p>
+        <Body className="gap-[calc(18*var(--k))] max-lg:gap-5">
+          <div className="grid grid-cols-4 gap-[calc(14*var(--k))] max-lg:grid-cols-1 max-lg:gap-4">
+            {PROFILE_PROCESS.map((step, index) => (
+              <div
+                key={step.number}
+                className={`${index === 0 ? "deck-card--tint" : "deck-card"} rounded-[calc(12*var(--k))] p-[calc(17*var(--k))] max-lg:rounded-[12px] max-lg:p-4`}
+              >
+                <span className="deck-micro">Step {step.number}</span>
+                <span className="deck-h4 mt-[calc(9*var(--k))] block">
+                  {step.title}
+                </span>
+                <span className="deck-note mt-[calc(7*var(--k))] block">
+                  {step.copy}
+                </span>
               </div>
             ))}
           </div>
 
-          {/* The picture takes the slack at the foot of the slide rather than
-              letting four short columns float in white space. */}
-          <div className="relative mt-[var(--sp-4)] min-h-0 flex-1 overflow-hidden rounded-[calc(12*var(--k))] max-lg:mt-7 max-lg:h-[200px] max-lg:flex-none max-lg:rounded-[12px]">
+          <div className="deck-photo min-h-0 flex-1 max-lg:h-[180px]">
             <Image
               src={PROFILE_IMAGERY.process}
-              alt=""
-              aria-hidden
+              alt="A project kick-off meeting"
               fill
-              sizes="100vw"
-              className="object-cover object-[center_35%]"
+              sizes="(max-width: 1023px) 100vw, 78vw"
+              className="object-cover object-center"
             />
           </div>
         </Body>
       </Slide>
 
       {/* ---------------------------------------------------------------- 07 */}
-      <Slide id="handover" tone="green">
-        <Body>
-          <div className="flex items-end justify-between gap-[var(--sp-5)] max-lg:flex-col max-lg:items-start max-lg:gap-4">
-            <Statement
-              heading="What you are left holding"
-              lead="A build is finished when someone who has never met us can run it. These six are produced by the work, not assembled at the end of it."
-              className="max-w-[calc(780*var(--k))] max-lg:max-w-none"
-            />
-            <p className="deck-chip shrink-0">Yours from commit one</p>
-          </div>
+      <Slide id="handover">
+        <Head
+          title={
+            <>
+              What you are <span className="deck-mark">left holding</span>.
+            </>
+          }
+          note="Handed over as the build runs, not assembled in the last week of it."
+        />
 
-          <div className="mt-[var(--sp-4)] grid min-h-0 flex-1 grid-cols-3 gap-[var(--sp-3)] max-lg:mt-7 max-lg:grid-cols-1 max-lg:gap-4">
-            {PROFILE_HANDOVER.map((item, index) => (
-              <div
-                key={item.title}
-                className="deck-tile flex flex-col p-[calc(18*var(--k))] max-lg:p-5"
-              >
-                <div className="flex items-center gap-[calc(10*var(--k))] max-lg:gap-3">
-                  <Marker n={two(index + 1)} tone="hollow" />
-                  <h3 className="deck-h3">{item.title}</h3>
-                </div>
-                <p className="deck-body mt-[var(--sp-2)] max-lg:mt-2">{item.copy}</p>
-              </div>
-            ))}
-          </div>
+        <Body className="grid grid-cols-3 grid-rows-2 gap-[calc(14*var(--k))] max-lg:grid-cols-1 max-lg:grid-rows-none max-lg:gap-4">
+          {PROFILE_HANDOVER.map((item, index) => (
+            <div
+              key={item.title}
+              className="deck-card--line flex flex-col rounded-[calc(12*var(--k))] p-[calc(17*var(--k))] max-lg:rounded-[12px] max-lg:p-4"
+            >
+              <span className="deck-micro">{two(index + 1)}</span>
+              <span className="deck-h4 mt-[calc(9*var(--k))] block">
+                {item.title}
+              </span>
+              <span className="deck-note mt-[calc(7*var(--k))] block">
+                {item.copy}
+              </span>
+            </div>
+          ))}
         </Body>
       </Slide>
 
-      {/* ------------------------------------------------------- 08 … 12 */}
-      {PROFILE_WORK.map((work, index) => {
-        // The photograph changes sides down the run, so five case slides do not
-        // read as the same slide five times.
-        const imageRight = index % 2 === 1;
+      {/* ------------------------------------------------------------- 08-12 */}
+      {PROFILE_WORK.map((work) => {
+        const headline = work.outcomes[0];
+
         return (
-          <Slide
-            id={`work-${work.slug}`}
-            key={work.slug}
-            contentClassName={
-              imageRight
-                ? "mr-[calc(402*var(--k))] max-lg:mr-0"
-                : "ml-[calc(402*var(--k))] max-lg:ml-0"
-            }
-            bleed={
-              <Bleed
-                className={`w-[calc(420*var(--k))] ${
-                  imageRight ? "left-auto" : "right-auto"
-                } max-lg:static max-lg:mb-5 max-lg:h-[200px] max-lg:w-full max-lg:rounded-[10px]`}
-              >
-                <Image
-                  src={work.image.src}
-                  alt={work.image.alt}
-                  fill
-                  sizes="(max-width: 1023px) 100vw, 35vw"
-                  className="object-cover"
-                />
-              </Bleed>
-            }
-          >
-            <Body className="gap-[calc(16*var(--k))] max-lg:gap-5">
-              <div className="min-h-0 flex-1">
-                <h2 className="deck-h2">{work.title}</h2>
+          <Slide key={work.slug} id={`work-${work.slug}`}>
+            <Head title={work.title} note={work.descriptor} />
 
-                <ul className="mt-[var(--sp-2)] flex flex-wrap gap-[calc(7*var(--k))] max-lg:mt-3 max-lg:gap-2">
-                  {work.categories.map((category) => (
-                    <li key={category} className="deck-chip">
-                      {category}
-                    </li>
-                  ))}
-                  {work.stack.map((tool) => (
-                    <li key={tool} className="deck-chip">
-                      {tool}
-                    </li>
-                  ))}
-                </ul>
+            <Body className="grid grid-cols-[calc(440*var(--k))_1fr] gap-[calc(34*var(--k))] max-lg:grid-cols-1 max-lg:gap-6">
+              <div className="flex min-h-0 flex-col">
+                <p className="deck-body">{work.summary}</p>
 
-                <div className="mt-[var(--sp-3)] grid grid-cols-2 gap-[var(--sp-4)] max-lg:mt-5 max-lg:grid-cols-1 max-lg:gap-5">
-                  <div>
-                    <p className="deck-eyebrow">The problem</p>
-                    <h3 className="deck-h3 mt-[var(--sp-2)] max-lg:mt-2">
-                      {work.challenge.heading}
-                    </h3>
-                    <p className="deck-body mt-[var(--sp-2)] max-lg:mt-2">
-                      {work.challenge.body}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="deck-eyebrow">What we built</p>
-                    <h3 className="deck-h3 mt-[var(--sp-2)] max-lg:mt-2">
-                      {work.solution.heading}
-                    </h3>
-                    <p className="deck-body mt-[var(--sp-2)] max-lg:mt-2">
-                      {work.solution.body}
-                    </p>
+                <div className="mt-auto pt-[calc(18*var(--k))] max-lg:mt-6 max-lg:pt-0">
+                  <Cap>Technology used</Cap>
+                  <div className="deck-grid grid-cols-3">
+                    {work.stack.map((name) => (
+                      <TechCell key={name} name={name} />
+                    ))}
+                    {/* Three across; a five-item stack leaves one cell over,
+                        and an empty one keeps the rule square. */}
+                    {work.stack.length % 3 === 2 ? <span /> : null}
                   </div>
                 </div>
               </div>
 
-              <div className="grid shrink-0 grid-cols-4 gap-[var(--sp-3)] border-t border-[var(--rule)] pt-[var(--sp-3)] max-lg:grid-cols-2 max-lg:gap-4 max-lg:pt-5">
-                {work.outcomes.map((outcome) => (
-                  <div key={outcome.label}>
-                    <p className="font-display text-[calc(40*var(--k))] font-medium leading-none tracking-[-0.04em] text-primary-green max-lg:text-[32px]">
-                      {outcome.value}
-                    </p>
-                    <p className="deck-eyebrow mt-[calc(8*var(--k))] max-lg:mt-2">
-                      {outcome.label}
-                    </p>
-                  </div>
-                ))}
+              <div className="flex min-h-0 flex-col gap-[calc(16*var(--k))] max-lg:gap-5">
+                <Stat
+                  figure={headline.value}
+                  label={headline.label}
+                  sub={headline.copy}
+                />
+
+                <div className="min-h-0 flex-1">
+                  <Cap>What made it hard</Cap>
+                  <ul className="deck-list">
+                    {work.issues.map((issue) => (
+                      <li key={issue.lead || issue.rest}>
+                        {issue.lead ? <b>{issue.lead}. </b> : null}
+                        {issue.rest}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div className="grid grid-cols-3 gap-[calc(12*var(--k))] max-lg:gap-3">
+                  {work.outcomes.slice(1).map((outcome) => (
+                    <div
+                      key={outcome.label}
+                      className="deck-card rounded-[calc(10*var(--k))] px-[calc(14*var(--k))] py-[calc(11*var(--k))] max-lg:rounded-[10px] max-lg:p-3"
+                    >
+                      <span className="deck-h3 block">{outcome.value}</span>
+                      <span className="deck-note mt-[calc(4*var(--k))] block">
+                        {outcome.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </Body>
           </Slide>
@@ -672,167 +724,127 @@ export default function ProfileDeck() {
 
       {/* ---------------------------------------------------------------- 13 */}
       <Slide id="clients">
-        <Body>
-          <div className="grid min-h-0 flex-1 grid-cols-12 gap-[var(--sp-5)] max-lg:grid-cols-1 max-lg:gap-7">
-            <div className="col-span-7 flex flex-col">
-              <Statement
-                heading="Who we build for"
-                lead="Founders and operators who need the system working on Monday. Three have let us show their mark; the rest are under agreements that do not allow it."
-              />
+        <Head
+          title="Who we build for."
+          note="Named with their permission. The rest of the portfolio is under agreement."
+        />
 
-              <ul className="mt-[var(--sp-4)] grid flex-1 grid-cols-3 gap-[var(--sp-3)] max-lg:mt-7 max-lg:gap-3">
-                {CLIENTS.map((client) => (
-                  <li
-                    key={client.name}
-                    className="deck-tile flex items-center justify-center p-[var(--sp-3)] max-lg:h-[110px] max-lg:p-4"
-                  >
-                    <Image
-                      src={client.src}
-                      alt={client.name}
-                      width={client.width}
-                      height={client.height}
-                      className="h-[calc(46*var(--k))] w-auto object-contain max-lg:h-[42px]"
-                    />
-                  </li>
-                ))}
-              </ul>
-
-              <p className="deck-eyebrow mt-[calc(16*var(--k))] max-lg:mt-4">
-                Trusted by 28+ teams worldwide
-              </p>
+        <Body className="grid grid-cols-[1fr_calc(420*var(--k))] gap-[calc(34*var(--k))] max-lg:grid-cols-1 max-lg:gap-6">
+          <div className="flex min-h-0 flex-col">
+            <div className="deck-grid grid-cols-3">
+              {CLIENTS.map((client) => (
+                <span
+                  key={client.name}
+                  className="min-h-[calc(126*var(--k))] max-lg:min-h-[110px]"
+                >
+                  <Image
+                    src={client.src}
+                    alt={client.name}
+                    width={client.width}
+                    height={client.height}
+                    className="h-[calc(44*var(--k))] w-auto object-contain max-lg:h-[42px]"
+                  />
+                </span>
+              ))}
             </div>
 
-            <div className="relative col-span-5 overflow-hidden rounded-[calc(12*var(--k))] max-lg:h-[220px] max-lg:rounded-[12px]">
-              <Image
-                src={PROFILE_IMAGERY.clients}
-                alt=""
-                aria-hidden
-                fill
-                sizes="(max-width: 1023px) 100vw, 40vw"
-                className="object-cover"
-              />
-            </div>
+            <p className="deck-body mt-[calc(20*var(--k))] max-lg:mt-5">
+              Three names we are allowed to print, out of{" "}
+              {PROFILE_FIGURES[1].figure} delivered projects. The work on the
+              pages before this one is published in full on the website, with
+              the same figures it carries here.
+            </p>
+          </div>
+
+          <div className="deck-photo max-lg:h-[200px]">
+            <Image
+              src={PROFILE_IMAGERY.clients}
+              alt="Signing off a project with a client"
+              fill
+              sizes="(max-width: 1023px) 100vw, 34vw"
+              className="object-cover"
+            />
           </div>
         </Body>
       </Slide>
 
       {/* ---------------------------------------------------------------- 14 */}
-      <Slide id="why-us" tone="ink">
-        <Body>
-          <div className="grid min-h-0 flex-1 grid-cols-12 gap-[var(--sp-5)] max-lg:grid-cols-1 max-lg:gap-7">
-            <Statement
-              className="col-span-4 flex flex-col justify-center"
-              heading={
-                <>
-                  Why teams
-                  <br />
-                  pick us
-                </>
-              }
-              lead="None of these is a differentiator alone. Together they describe an engagement where the expensive surprises happen early, while they are still cheap."
-            />
+      <Slide id="why-us">
+        <Head
+          title={
+            <>
+              Five reasons teams <span className="deck-mark">stay</span>.
+            </>
+          }
+          note="Each one is a term of the engagement, not a sentiment about it."
+        />
 
-            <ol className="col-span-8 flex flex-col justify-center gap-[calc(8*var(--k))] max-lg:gap-3">
-              {PROFILE_REASONS.map((reason) => (
-                <li
-                  key={reason.number}
-                  className="deck-tile flex gap-[calc(16*var(--k))] p-[calc(14*var(--k))] max-lg:gap-4 max-lg:p-4"
-                >
-                  <Marker n={reason.number} tone="hollow" />
-                  <div>
-                    <h3 className="deck-h3">{reason.title}</h3>
-                    <p className="deck-body mt-[calc(5*var(--k))] max-lg:mt-1.5">
-                      {reason.copy}
-                    </p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
+        <Body className="grid grid-cols-2 content-start gap-x-[calc(34*var(--k))] gap-y-[calc(17*var(--k))] max-lg:grid-cols-1 max-lg:gap-5">
+          {PROFILE_REASONS.map((reason) => (
+            <div
+              key={reason.number}
+              className="flex gap-[calc(14*var(--k))] max-lg:gap-4"
+            >
+              <span className="deck-h3 shrink-0 opacity-25">{reason.number}</span>
+              <span className="min-w-0">
+                <span className="deck-h4 block">{reason.title}</span>
+                <span className="deck-note mt-[calc(6*var(--k))] block">
+                  {reason.copy}
+                </span>
+              </span>
+            </div>
+          ))}
         </Body>
       </Slide>
 
       {/* ---------------------------------------------------------------- 15 */}
-      <Slide id="contact" tone="ink">
-        <Body className="justify-between">
-          <div className="max-lg:mb-9">
-            <h2 className="deck-h2 max-w-[calc(880*var(--k))] max-lg:max-w-none">
-              Tell us what you are building, and we will tell you{" "}
-              <span className="text-primary-green">what it takes</span>.
+      <Slide id="contact" chrome={false}>
+        <div className="flex items-center justify-between gap-[calc(24*var(--k))]">
+          <div className="flex items-center gap-[calc(11*var(--k))]">
+            <BrandMark className="size-[calc(30*var(--k))] rounded-[calc(7*var(--k))] max-lg:size-[30px] max-lg:rounded-[7px]" />
+            <Logo className="h-[calc(27*var(--k))] w-auto text-black max-lg:h-[26px]" />
+          </div>
+          <p className="deck-pill">Next step</p>
+        </div>
+
+        <div className="grid min-h-0 flex-1 grid-cols-[1fr_calc(460*var(--k))] items-end gap-[calc(40*var(--k))] pt-[calc(36*var(--k))] max-lg:mt-8 max-lg:grid-cols-1 max-lg:gap-8 max-lg:pt-0">
+          <div>
+            <h2 className="deck-h1">
+              Tell us what
+              <br />
+              <span className="deck-mark">breaks first</span>.
             </h2>
-            <p className="deck-lead mt-[var(--sp-3)] max-w-[calc(660*var(--k))] max-lg:mt-4 max-lg:max-w-none">
-              Thirty minutes, no deck, no obligation. You leave the call with an
-              honest read on scope, sequence and cost &mdash; whether or not we
-              are the right people to build it.
+            <p className="deck-lead mt-[calc(18*var(--k))] max-w-[calc(500*var(--k))] max-lg:mt-4 max-lg:max-w-none">
+              A thirty-minute call, and no deck from us. You describe the
+              problem, we tell you what it would take — whether or not that is
+              us.
             </p>
           </div>
 
-          <div className="grid grid-cols-12 items-end gap-[var(--sp-5)] max-lg:grid-cols-1 max-lg:gap-7">
-            <div className="col-span-7 flex flex-col gap-[var(--sp-3)] max-lg:gap-4">
-              <a
-                href={siteConfig.calendlyUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="deck-h3 flex w-fit items-center gap-[var(--sp-2)] rounded-[100px] bg-primary-green px-[var(--sp-4)] py-[var(--sp-3)] text-black transition-colors hover:bg-[#95e534] max-lg:gap-3 max-lg:px-6 max-lg:py-4"
+          <div className="flex flex-col gap-[calc(9*var(--k))] max-lg:gap-3">
+            {PROFILE_CONTACT.map((row) => (
+              <div
+                key={row.label}
+                className="deck-card--line flex items-baseline gap-[calc(14*var(--k))] rounded-[calc(10*var(--k))] px-[calc(16*var(--k))] py-[calc(11*var(--k))] max-lg:rounded-[10px] max-lg:p-3"
               >
-                Book a 30-minute call
-                <span aria-hidden>&rarr;</span>
-              </a>
-
-              <div className="flex flex-wrap items-center gap-x-[var(--sp-5)] gap-y-[var(--sp-2)] max-lg:gap-x-6 max-lg:gap-y-3">
-                <a
-                  href={`mailto:${siteConfig.email}`}
-                  className="deck-h3 transition-colors hover:text-primary-green"
-                >
-                  {siteConfig.email}
-                </a>
-                <a
-                  href={siteConfig.whatsappHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="deck-h3 flex items-center gap-[calc(8*var(--k))] transition-colors hover:text-primary-green max-lg:gap-2"
-                >
-                  <WhatsAppMark className="size-[calc(18*var(--k))] shrink-0 max-lg:size-[18px]" />
-                  {siteConfig.phoneDisplay}
-                </a>
+                <span className="deck-micro w-[calc(60*var(--k))] shrink-0 max-lg:w-[60px]">
+                  {row.label}
+                </span>
+                <span className="deck-h4 min-w-0 break-words">{row.value}</span>
               </div>
-            </div>
-
-            <div className="col-span-5">
-              <p className="deck-eyebrow">Office</p>
-              <p className="deck-lead mt-[var(--sp-2)] max-lg:mt-2">
-                {siteConfig.address.street}
-                <br />
-                {siteConfig.address.locality} {siteConfig.address.postalCode},{" "}
-                {siteConfig.address.countryName}
-              </p>
-            </div>
+            ))}
           </div>
+        </div>
 
-          <div className="mt-[var(--sp-4)] flex items-center justify-between gap-[var(--sp-4)] border-t border-[var(--rule)] pt-[var(--sp-3)] max-lg:mt-9 max-lg:flex-col max-lg:items-start max-lg:gap-4 max-lg:pt-6">
-            <div className="flex items-center gap-[var(--sp-2)] max-lg:gap-3">
-              <BrandMark className="size-[calc(30*var(--k))] rounded-[calc(7*var(--k))] max-lg:size-[32px] max-lg:rounded-[7px]" />
-              <Logo className="h-[calc(24*var(--k))] w-auto text-white max-lg:h-[24px]" />
-            </div>
-            <p className="deck-eyebrow">
-              {siteConfig.url.replace("https://", "")} &middot; Company Profile{" "}
-              {PROFILE_EDITION}
-            </p>
-          </div>
-        </Body>
+        <div className="deck-footer">
+          <span className="deck-micro">
+            {siteConfig.name} &middot; Company Profile {PROFILE_EDITION}
+          </span>
+          <span className="deck-micro">
+            {two(PROFILE_SLIDE_COUNT)} / {two(PROFILE_SLIDE_COUNT)}
+          </span>
+        </div>
       </Slide>
-
-      {/* Hidden on paper, where it is a dead link. */}
-      <p className="print-hide mt-[48px] text-center font-body text-[15px] leading-[24px] tracking-[-0.15px] text-neutral-paragraph">
-        Prefer the long version?{" "}
-        <Link
-          href="/case-study"
-          className="text-black underline decoration-primary-green decoration-2 underline-offset-4 transition-colors hover:text-primary-green"
-        >
-          Read the full case studies
-        </Link>
-        .
-      </p>
     </div>
   );
 }

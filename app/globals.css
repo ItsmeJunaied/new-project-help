@@ -247,6 +247,15 @@ video {
    a whole slide is always on screen at once — which is the difference between
    a deck and a long page with pictures.
 
+   Every slide is white. An earlier draft alternated white, near-black and
+   full-green pages, which is how the website reads a section at a time — and
+   printed, it read as screenshots of a website rather than as a document. A
+   profile deck earns its calm from being relentlessly the same: one paper
+   colour, one grid, one type scale, and the brand green spent only on the
+   things that are actually worth pointing at. The colour that does appear is
+   mixed from the token with `color-mix`, never pasted as a second hex, so the
+   whole deck re-tints if the brand green ever moves.
+
    Below 1024px a 16:9 frame puts body copy under 11px. There the deck stops
    being a deck: `--k` is pinned to a real pixel, the height is released, the
    stacking is switched off and each slide becomes a section of an ordinary
@@ -258,10 +267,27 @@ video {
    what the markup says. `.prose-content` above is deliberately unlayered:
    nothing may reach into rich text from outside it. */
 
+/* Unlayered, and outside the deck block, because both of these have to beat
+   everything: `@page` is not a style rule and cannot live in a cascade layer
+   at all, and `.print-hide` has to win over whatever the hidden element's own
+   classes say. The root layout mounts three things that are `position: fixed`
+   and therefore outside every wrapper on the page — the ambient audio pill,
+   the floating actions and the scroll bar. Fixed elements are painted onto the
+   first printed page, so without this the PDF opens with a play button sitting
+   on the cover. */
 @media print {
   @page {
     size: 1280px 720px;
     margin: 0;
+  }
+
+  html,
+  body {
+    background: #ffffff;
+  }
+
+  .print-hide {
+    display: none !important;
   }
 }
 
@@ -270,8 +296,8 @@ video {
     /* How far the top of a stuck slide sits from the top of the window, and
        the height the frame gives back so a slide is never taller than the
        screen it is read on. */
-    --deck-top: 64px;
-    --deck-reserve: 140px;
+    --deck-top: 56px;
+    --deck-reserve: 132px;
 
     position: relative;
     display: flex;
@@ -285,11 +311,11 @@ video {
     margin-inline: auto;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    border-radius: 6px;
+    border-radius: 10px;
     background: var(--color-white);
     box-shadow:
-      0 1px 0 rgba(21, 21, 21, 0.06),
-      0 40px 80px -60px rgba(21, 21, 21, 0.65);
+      0 1px 0 color-mix(in srgb, var(--color-black) 6%, transparent),
+      0 40px 80px -60px color-mix(in srgb, var(--color-black) 60%, transparent);
   }
 
   /* Slides stack rather than scroll past: each sticks where the last one
@@ -300,7 +326,7 @@ video {
   }
 
   .deck-stack-item + .deck-stack-item {
-    margin-top: 48px;
+    margin-top: 44px;
   }
 
   /* Drawn over a slide as the next one covers it, so the pile reads as depth
@@ -309,189 +335,327 @@ video {
     position: absolute;
     inset: 0;
     z-index: 20;
-    background: #060606;
+    background: #0b0b0b;
     opacity: 0;
     pointer-events: none;
   }
 
   .deck-slide {
     --k: calc(100cqw / 1280);
-    --sp-1: calc(8 * var(--k));
-    --sp-2: calc(14 * var(--k));
-    --sp-3: calc(22 * var(--k));
-    --sp-4: calc(32 * var(--k));
-    --sp-5: calc(48 * var(--k));
 
-    --rule: rgba(21, 21, 21, 0.12);
-    --tint: rgba(21, 21, 21, 0.04);
-    --accent: var(--color-primary-green);
+    /* The tint scale, all of it mixed from the two brand tokens. Washes are
+       for the decorative shapes and the panels; `--mark` is the highlighter
+       that stands behind a word in a headline, which is how this deck
+       emphasises — the green is far too light to set type in. */
+    --wash-1: color-mix(in srgb, var(--color-primary-green) 17%, transparent);
+    --wash-2: color-mix(in srgb, var(--color-primary-green) 8%, transparent);
+    --wash-3: color-mix(in srgb, var(--color-black) 5%, transparent);
+    --wash-4: color-mix(in srgb, var(--color-black) 2.5%, transparent);
+    --mark: color-mix(in srgb, var(--color-primary-green) 48%, transparent);
+    --rule: color-mix(in srgb, var(--color-black) 11%, transparent);
 
     position: absolute;
     inset: 0;
     z-index: 2;
     display: flex;
     flex-direction: column;
-    padding: calc(50 * var(--k)) calc(58 * var(--k)) calc(44 * var(--k));
+    padding: calc(46 * var(--k)) calc(60 * var(--k)) calc(34 * var(--k));
     color: var(--color-black);
   }
 
-  /* Three tones, so no two slides in a row read the same. Ink opens and closes
-     the deck the way the website does; the green slide is the one moment the
-     brand colour takes the whole page. */
-  .deck-frame--ink {
-    background: #0a0a0a;
+  /* ---- decoration ------------------------------------------------------
+     Soft shapes bleeding off the corners, well under the content and never
+     behind body copy. Size and position come from the markup; only the tint
+     is named here. */
+  .deck-blob {
+    position: absolute;
+    border-radius: 50%;
+    pointer-events: none;
   }
 
-  .deck-slide--ink {
-    --rule: rgba(255, 255, 255, 0.18);
-    --tint: rgba(255, 255, 255, 0.06);
-    color: var(--color-white);
+  /* The four tints, as classes, because they are used both by the decorative
+     shapes above and by the small solid swatches inside a slide. */
+  .deck-tint--1 {
+    background: var(--wash-1);
+  }
+  .deck-tint--2 {
+    background: var(--wash-2);
+  }
+  .deck-tint--3 {
+    background: var(--wash-3);
+  }
+  .deck-tint--4 {
+    background: var(--wash-4);
   }
 
-  .deck-frame--green {
-    background: var(--color-primary-green);
-  }
+  /* ---- type ------------------------------------------------------------ */
 
-  .deck-slide--green {
-    --rule: rgba(5, 5, 5, 0.22);
-    --tint: rgba(5, 5, 5, 0.07);
-    --accent: var(--color-black);
-    color: var(--color-black);
-  }
-
-  .deck-eyebrow {
+  /* The eyebrow is a pill in the top-left corner of every slide, in the same
+     place every time — the one piece of furniture that tells a reader they are
+     still inside the same document. */
+  .deck-pill {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    border-radius: 100px;
+    background: var(--wash-1);
+    padding: calc(6 * var(--k)) calc(14 * var(--k));
     font-family: var(--font-mono);
-    font-size: calc(12 * var(--k));
+    font-size: calc(10.5 * var(--k));
     line-height: 1;
-    letter-spacing: 0.16em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: var(--color-neutral-paragraph);
+    color: var(--color-black);
+    white-space: nowrap;
   }
 
-  .deck-slide--ink .deck-eyebrow {
-    color: #a8a29e;
-  }
-
-  .deck-slide--green .deck-eyebrow {
-    color: rgba(5, 5, 5, 0.65);
-  }
-
-  .deck-cover-title {
+  .deck-h1 {
     font-family: var(--font-display);
-    font-size: calc(82 * var(--k));
+    font-size: calc(74 * var(--k));
     font-weight: 500;
-    line-height: 0.96;
+    line-height: 0.98;
     letter-spacing: -0.045em;
   }
 
   .deck-h2 {
     font-family: var(--font-display);
-    font-size: calc(48 * var(--k));
+    font-size: calc(44 * var(--k));
     font-weight: 500;
-    line-height: 1.04;
+    line-height: 1.06;
     letter-spacing: -0.04em;
   }
 
   .deck-h3 {
     font-family: var(--font-display);
-    font-size: calc(21 * var(--k));
+    font-size: calc(30 * var(--k));
     font-weight: 500;
-    line-height: 1.25;
-    letter-spacing: -0.02em;
+    line-height: 1.1;
+    letter-spacing: -0.035em;
+  }
+
+  .deck-h4 {
+    font-family: var(--font-display);
+    font-size: calc(16 * var(--k));
+    font-weight: 500;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+  }
+
+  /* The grey line under a heading: what the thing is, in five words. */
+  .deck-note {
+    font-family: var(--font-body);
+    font-size: calc(13 * var(--k));
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+    color: var(--color-neutral-paragraph);
   }
 
   .deck-lead {
     font-family: var(--font-body);
-    font-size: calc(22 * var(--k));
-    line-height: 1.42;
+    font-size: calc(19 * var(--k));
+    line-height: 1.45;
     letter-spacing: -0.015em;
     color: var(--color-ash-dark);
   }
 
-  .deck-slide--ink .deck-lead {
-    color: #d4d4d4;
-  }
-
-  .deck-slide--green .deck-lead {
-    color: rgba(5, 5, 5, 0.78);
-  }
-
   .deck-body {
     font-family: var(--font-body);
-    font-size: calc(16 * var(--k));
-    line-height: 1.52;
-    letter-spacing: -0.01em;
+    font-size: calc(14.5 * var(--k));
+    line-height: 1.62;
+    letter-spacing: -0.005em;
     color: var(--color-neutral-paragraph);
   }
 
-  .deck-slide--ink .deck-body {
-    color: #a8a29e;
+  /* Section captions inside a slide — "Technology used", "Key features". */
+  .deck-cap {
+    font-family: var(--font-display);
+    font-size: calc(14 * var(--k));
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.01em;
+    color: var(--color-black);
   }
 
-  .deck-slide--green .deck-body {
-    color: rgba(5, 5, 5, 0.72);
+  .deck-micro {
+    font-family: var(--font-mono);
+    font-size: calc(10 * var(--k));
+    line-height: 1;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-text-ash);
+  }
+
+  /* How the deck emphasises a word. The brand green sits at roughly 1.9:1 on
+     white, so it cannot be used for type at any size; behind the word it is
+     a highlighter and the text stays black. */
+  .deck-mark {
+    background-image: linear-gradient(transparent 58%, var(--mark) 58%);
   }
 
   .deck-figure {
     font-family: var(--font-display);
-    font-size: calc(60 * var(--k));
+    font-size: calc(46 * var(--k));
     font-weight: 500;
-    line-height: 1;
+    line-height: 0.95;
     letter-spacing: -0.045em;
     font-variant-numeric: tabular-nums;
   }
 
-  /* A hairline carrying a short accent cap at its left end — the deck's one
-     repeated ornament. */
   .deck-rule {
-    position: relative;
     height: 1px;
     width: 100%;
     background: var(--rule);
   }
 
-  .deck-rule::before {
+  /* ---- panels ---------------------------------------------------------- */
+
+  /* A hairline grid of cells — tech marks, client marks. One border on the
+     wrapper and a 1px gap showing the same colour through gives an even rule
+     between every cell without doubling at the joins. */
+  .deck-grid {
+    display: grid;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    border-radius: calc(10 * var(--k));
+    overflow: hidden;
+  }
+
+  .deck-grid > * {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: calc(7 * var(--k));
+    background: var(--color-white);
+    padding: calc(10 * var(--k)) calc(8 * var(--k));
+    min-height: calc(46 * var(--k));
+    font-family: var(--font-body);
+    font-size: calc(12.5 * var(--k));
+    font-weight: 500;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+    color: var(--color-ash-dark);
+    text-align: center;
+  }
+
+  /* The figure callout: a tinted block with the number set large in black and
+     a two-line label beside it. Straight from the reference deck, and the one
+     place a statistic is allowed to shout. */
+  .deck-stat {
+    display: flex;
+    align-items: center;
+    gap: calc(14 * var(--k));
+    border-radius: calc(12 * var(--k));
+    background: var(--wash-1);
+    padding: calc(14 * var(--k)) calc(18 * var(--k));
+  }
+
+  /* A plain tinted panel for cells that are copy rather than data. */
+  .deck-card {
+    border-radius: calc(12 * var(--k));
+    background: var(--wash-4);
+    padding: calc(18 * var(--k));
+  }
+
+  .deck-card--tint {
+    background: var(--wash-2);
+  }
+
+  .deck-card--line {
+    background: transparent;
+    border: 1px solid var(--rule);
+  }
+
+  .deck-photo {
+    position: relative;
+    overflow: hidden;
+    border-radius: calc(12 * var(--k));
+    background: var(--wash-3);
+  }
+
+  /* ---- lists ----------------------------------------------------------- */
+
+  .deck-list {
+    display: grid;
+    gap: calc(9 * var(--k));
+  }
+
+  .deck-list > li {
+    position: relative;
+    padding-left: calc(17 * var(--k));
+    font-family: var(--font-body);
+    font-size: calc(13.5 * var(--k));
+    line-height: 1.5;
+    letter-spacing: -0.005em;
+    color: var(--color-neutral-paragraph);
+  }
+
+  .deck-list > li::before {
     content: "";
     position: absolute;
-    inset: 0 auto 0 0;
-    width: calc(54 * var(--k));
-    background: var(--accent);
-  }
-
-  /* A tinted panel: the deck's workhorse for stat cards, tool tiles and list
-     cells. Takes its tone from the slide, so it works on all three. */
-  .deck-tile {
-    background: var(--tint);
-    border-radius: calc(12 * var(--k));
-  }
-
-  .deck-chip {
-    display: inline-flex;
-    align-items: center;
-    border: 1px solid var(--rule);
-    border-radius: 100px;
-    padding: calc(5 * var(--k)) calc(12 * var(--k));
-    font-family: var(--font-mono);
-    font-size: calc(11 * var(--k));
-    line-height: 1.3;
-    color: var(--color-ash-dark);
-    white-space: nowrap;
-  }
-
-  .deck-slide--ink .deck-chip {
-    color: #d4d4d4;
-  }
-
-  .deck-slide--green .deck-chip {
-    color: rgba(5, 5, 5, 0.8);
-  }
-
-  /* One bar of the sector chart. Its width is set inline from the count, so
-     the drawing is the data rather than an illustration of it. */
-  .deck-bar {
-    height: calc(28 * var(--k));
-    border-radius: 100px;
+    left: 0;
+    top: calc(7 * var(--k));
+    width: calc(6 * var(--k));
+    height: calc(6 * var(--k));
+    border-radius: 50%;
     background: var(--color-primary-green);
+  }
+
+  .deck-list b {
+    font-weight: 600;
+    color: var(--color-black);
+  }
+
+  /* ---- chart ------------------------------------------------------------
+     A real column chart: the height of a column is the count, so the drawing
+     is the data rather than an illustration of it. */
+  .deck-chart {
+    display: flex;
+    align-items: stretch;
+    gap: calc(14 * var(--k));
+  }
+
+  .deck-chart-col {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: calc(8 * var(--k));
+    min-width: 0;
+  }
+
+  /* The column's bar resolves its height against this, which is a flex item of
+     a chart that has one — a percentage against an auto height resolves to
+     nothing at all. */
+  .deck-chart-track {
+    display: flex;
+    flex: 1;
+    width: 100%;
+    align-items: flex-end;
+    min-height: 0;
+  }
+
+  .deck-chart-bar {
+    width: 100%;
+    border-radius: calc(8 * var(--k)) calc(8 * var(--k)) calc(2 * var(--k))
+      calc(2 * var(--k));
+    background: var(--color-primary-green);
+  }
+
+  .deck-chart-bar--quiet {
+    background: var(--wash-1);
+  }
+
+  /* ---- running footer -------------------------------------------------- */
+  .deck-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: calc(20 * var(--k));
+    margin-top: auto;
+    border-top: 1px solid var(--rule);
+    padding-top: calc(12 * var(--k));
   }
 
   /* Screen, narrow: the deck becomes a document. */
@@ -499,8 +663,8 @@ video {
     .deck-frame {
       width: 100%;
       aspect-ratio: auto;
-      border-radius: 4px;
-      box-shadow: 0 1px 0 rgba(21, 21, 21, 0.08);
+      border-radius: 6px;
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--color-black) 8%, transparent);
     }
 
     .deck-stack-item {
@@ -508,7 +672,7 @@ video {
     }
 
     .deck-stack-item + .deck-stack-item {
-      margin-top: 22px;
+      margin-top: 20px;
     }
 
     .deck-veil {
@@ -518,15 +682,25 @@ video {
     .deck-slide {
       --k: 1px;
       position: static;
-      padding: 28px 20px 32px;
+      padding: 26px 20px 28px;
     }
 
-    .deck-cover-title {
-      font-size: clamp(38px, 10.5vw, 60px);
+    /* The decoration is drawn against a 1280x720 box. Released from that box
+       it lands in the wrong places, and it was never load-bearing. */
+    .deck-blob {
+      display: none;
+    }
+
+    .deck-h1 {
+      font-size: clamp(36px, 10vw, 58px);
     }
 
     .deck-h2 {
-      font-size: clamp(27px, 7vw, 38px);
+      font-size: clamp(26px, 6.6vw, 36px);
+    }
+
+    .deck-h3 {
+      font-size: 22px;
     }
 
     .deck-lead {
@@ -534,42 +708,53 @@ video {
     }
 
     .deck-body {
-      font-size: 16px;
+      font-size: 15.5px;
+    }
+
+    .deck-list > li {
+      font-size: 15px;
     }
 
     .deck-figure {
-      font-size: 42px;
+      font-size: 38px;
     }
 
-    .deck-bar {
-      height: 26px;
+    .deck-grid > * {
+      min-height: 54px;
+      font-size: 13px;
     }
   }
 
   /* Paper. The page box is the design canvas, so `--k` is a real pixel again
      and each slide prints at the size it was drawn — no scaling, no reflow. */
   @media print {
-    html,
-    body {
-      background: var(--color-white);
-    }
-
-    .deck-stack-item {
-      position: static;
-      margin-top: 0 !important;
-    }
-
+    /* `container-type` applies size containment, and a contained box is not
+       something the engine will fragment across pages — which is what tore
+       text in half in the printed PDF. Nothing in print needs the container
+       query anyway: `--k` is pinned to 1px two rules below, so the container
+       unit it would resolve is never read. */
     .deck-frame {
+      container-type: normal;
       width: 1280px;
       height: 720px;
       border-radius: 0;
       box-shadow: none;
       break-after: page;
       break-inside: avoid;
+      page-break-after: always;
+      page-break-inside: avoid;
+    }
+
+    .deck-stack,
+    .deck-stack-item {
+      display: block;
+      position: static;
+      margin-top: 0 !important;
     }
 
     .deck-stack-item:last-child .deck-frame {
       break-after: auto;
+      page-break-after: auto;
     }
 
     .deck-slide {
@@ -588,14 +773,14 @@ video {
       opacity: 1 !important;
     }
 
+    /* Every tint in the deck is a background, and a printer that drops
+       backgrounds would drop the pills, the panels, the chart and the hairline
+       grids — i.e. the whole design. */
     .deck-frame,
-    .deck-slide {
+    .deck-slide,
+    .deck-slide * {
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
-    }
-
-    .print-hide {
-      display: none !important;
     }
   }
 }
