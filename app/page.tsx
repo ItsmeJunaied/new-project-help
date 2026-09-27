@@ -9,6 +9,7 @@ import FeaturedWork from "@/components/sections/FeaturedWork";
 import ServicesIntro from "@/components/sections/ServicesIntro";
 import Services from "@/components/sections/Services";
 import TechStack from "@/components/sections/TechStack";
+import WorkingProcess from "@/components/sections/WorkingProcess";
 import Testimonials from "@/components/sections/Testimonials";
 import Awards from "@/components/sections/Awards";
 import ImageShowcase from "@/components/sections/ImageShowcase";
@@ -60,8 +61,10 @@ export default async function Home() {
         <FeaturedWork />
         <ServicesIntro />
         <Services />
-        {/* What we build, then what we build it with. */}
+        {/* What we build, then what we build it with, then how the building is
+            run — and only then the clients saying it worked. */}
         <TechStack />
+        <WorkingProcess />
         <Testimonials />
         <Awards />
         <ImageShowcase

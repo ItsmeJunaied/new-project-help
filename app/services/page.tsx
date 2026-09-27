@@ -33,11 +33,11 @@ export default function ServicesPage() {
       <Header activeLabel="SERVICES" />
       <main id="main">
         <ServicesHero />
-        {/* Up front, not near the footer. How the work is run is the question a
-            visitor arrives on this page with, and it frames the seven service
-            cards below rather than trailing after them. */}
-        <WorkingProcess />
         <Services spacingClassName="py-[80px] lg:pb-[374px] lg:pt-[127px]" />
+        {/* Straight after the cards: what we build, then how the building is
+            run. It answers the question the cards raise rather than pre-empting
+            it, and it is still far above the footer. */}
+        <WorkingProcess />
         <RelatedServices currentSlug="" />
         <Testimonials />
         <ImageShowcase

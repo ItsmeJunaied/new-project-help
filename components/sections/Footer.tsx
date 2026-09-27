@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import Logo from "@/components/ui/Logo";
-import { FooterTickerStar } from "@/components/ui/BrandIcons";
+import { BrandMark } from "@/components/ui/BrandIcons";
 import AutoVideo from "@/components/ui/AutoVideo";
 import VideoLightbox from "@/components/ui/VideoLightbox";
 import { useRef, useState } from "react";
@@ -435,10 +435,14 @@ export default function Footer() {
         <div ref={tickerRef} className="flex w-max items-end gap-[63px]">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="flex shrink-0 items-end gap-[63px]" aria-hidden={i > 0}>
+              {/* Our own mark between each repetition of the name.
+                  This was `FooterTickerStar`, which is not the Project Help
+                  logo at all — it is a starburst glyph that came in with the
+                  template. `BrandMark` carries the same two paths as the
+                  lockup in `components/ui/Logo`, which is the real artwork, and
+                  it is not rotated: a logo set at 102 degrees is not a logo. */}
               <span className="flex h-[160.824px] w-[160.822px] shrink-0 items-center justify-center">
-                <span className="block size-[135px] rotate-[102.39deg]">
-                  <FooterTickerStar className="size-[135px] text-primary-green" />
-                </span>
+                <BrandMark className="size-[118px]" />
               </span>
               <span className="whitespace-nowrap font-display text-[clamp(4rem,9.4vw,180px)] font-semibold uppercase leading-[1.1] tracking-[-8px] text-white">
                 project help

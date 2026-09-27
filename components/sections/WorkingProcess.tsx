@@ -4,6 +4,7 @@ import { useRef, type CSSProperties } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
+import TechMark, { TechMarkSprite, techLabel, type TechName } from "@/components/ui/TechMarks";
 
 type Node = {
   id: string;
@@ -13,6 +14,8 @@ type Node = {
   copy: string;
   span: string;
   output: string;
+  /** What is actually open on a screen during this stage. */
+  tools: TechName[];
   /** Where it sits on the four-by-four canvas. Ignored once the cards stack. */
   place: string;
 };
@@ -32,6 +35,7 @@ const NODES: Node[] = [
     copy: "Your users, your deadline and your budget — before anybody names a technology.",
     span: "One call",
     output: "Discovery notes",
+    tools: ["figma", "github"],
     place: "lg:col-start-1 lg:row-start-2",
   },
   {
@@ -41,6 +45,7 @@ const NODES: Node[] = [
     copy: "A written scope, wireframes and the stack, at a fixed price and timeline to sign off.",
     span: "1–2 weeks",
     output: "Signed scope",
+    tools: ["figma", "postgres", "docker"],
     place: "lg:col-start-2 lg:row-start-2",
   },
   {
@@ -50,6 +55,7 @@ const NODES: Node[] = [
     copy: "Screens and a clickable prototype, reviewed while changing them is still cheap.",
     span: "2–3 weeks",
     output: "Approved UI",
+    tools: ["figma", "framer"],
     place: "lg:col-start-3 lg:row-start-1",
   },
   {
@@ -59,6 +65,7 @@ const NODES: Node[] = [
     copy: "Repos, staging and pipelines standing before the first sprint opens.",
     span: "In parallel",
     output: "Staging + CI",
+    tools: ["github", "docker", "terraform", "vercel"],
     place: "lg:col-start-3 lg:row-start-3",
   },
   {
@@ -68,6 +75,7 @@ const NODES: Node[] = [
     copy: "Two-week slices. A standup every morning, a demo at the end of each one.",
     span: "The bulk of it",
     output: "Working software",
+    tools: ["react", "nextjs", "typescript", "laravel", "dotnet"],
     place: "lg:col-start-4 lg:row-start-2",
   },
   {
@@ -77,6 +85,7 @@ const NODES: Node[] = [
     copy: "Tested on staging, accepted by you, then a rehearsed release with a way back.",
     span: "1 week",
     output: "Live system",
+    tools: ["github", "docker", "grafana"],
     place: "lg:col-start-2 lg:row-start-4",
   },
   {
@@ -86,6 +95,7 @@ const NODES: Node[] = [
     copy: "Six to twelve months of fixes on us, monitoring, and the next slice scoped.",
     span: "6–12 months",
     output: "Roadmap",
+    tools: ["grafana", "n8n", "github"],
     place: "lg:col-start-1 lg:row-start-4",
   },
 ];
@@ -121,6 +131,13 @@ const EDGES: Edge[] = [
 
 /** Enough groups for the widest of the two layouts. */
 const WIRE_SLOTS = EDGES.length;
+
+/**
+ * Every mark this section draws, so the sprite carries exactly those and no
+ * more — the full set of artwork is far too heavy to put on a page that shows
+ * a dozen of them.
+ */
+const SPRITE_MARKS = Array.from(new Set(NODES.flatMap((node) => node.tools)));
 
 const WIRE_RADIUS = 20;
 
@@ -183,6 +200,44 @@ function roundedPath(points: Point[], radius: number) {
 
   const last = via[via.length - 1];
   return `${d} L ${last.x.toFixed(1)} ${last.y.toFixed(1)}`;
+}
+
+/**
+ * A cube, drawn in isometric projection: three faces sharing a corner, which is
+ * the whole trick — no perspective maths, just a rhombus for the top and a
+ * parallelogram down each side, each face a different value of the same colour
+ * so the eye reads a light source and therefore a solid.
+ *
+ * All three faces are mixed against `--lit`, so the block is stone while its
+ * stage is waiting and brand green once the light has reached it. It sits on a
+ * soft ellipse rather than in mid-air, because a shadow is most of what makes a
+ * drawn object look like it is somewhere.
+ */
+function IsoBlock({ className }: { className?: string }) {
+  const face = (percent: number, fallback: string) =>
+    `color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * ${percent}%), ${fallback})`;
+
+  return (
+    <svg
+      viewBox="0 0 44 46"
+      className={className}
+      aria-hidden
+      style={{ overflow: "visible" }}
+    >
+      <ellipse cx="22" cy="41" rx="14" ry="3.6" fill="rgba(21,21,21,0.09)" />
+      {/* Top, then the two walls. Darker going away from the light. */}
+      <path d="M22 6 L38 15 L22 24 L6 15 Z" fill={face(70, "#e9eae7")} />
+      <path d="M6 15 L22 24 L22 38 L6 29 Z" fill={face(42, "#cfd1cc")} />
+      <path d="M38 15 L22 24 L22 38 L38 29 Z" fill={face(24, "#bdbfba")} />
+      <path
+        d="M22 6 L38 15 L22 24 L6 15 Z M6 15 L6 29 L22 38 L38 29 L38 15"
+        fill="none"
+        stroke={face(80, "rgba(21,21,21,0.14)")}
+        strokeWidth="0.9"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 /**
@@ -253,6 +308,55 @@ export default function WorkingProcess() {
           start: "top 85%",
         }),
       });
+    },
+    { scope: sectionRef },
+  );
+
+  /**
+   * The tilt. Each card leans a few degrees towards the cursor and lifts off
+   * the canvas, which is what makes the row read as objects standing on a
+   * surface rather than as rectangles printed on it — and it turns the
+   * isometric block on each card into something the light moves across.
+   *
+   * The wiring underneath is deliberately NOT tilted: the wires are measured in
+   * the flat layout, and rotating the card they terminate on would pull the
+   * card's edge away from the wire that meets it. Lifting only the card, over
+   * a wire that stays put, is also what gives the lift somewhere to read
+   * against.
+   */
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return;
+      if (!window.matchMedia("(hover: hover)").matches) return;
+
+      const cleanups = gsap.utils.toArray<HTMLElement>(".process-card").map((card) => {
+        const rotateY = gsap.quickTo(card, "rotateY", { duration: 0.5, ease: "power3.out" });
+        const rotateX = gsap.quickTo(card, "rotateX", { duration: 0.5, ease: "power3.out" });
+        const lift = gsap.quickTo(card, "z", { duration: 0.5, ease: "power3.out" });
+
+        const onMove = (event: PointerEvent) => {
+          const box = card.getBoundingClientRect();
+          rotateY(((event.clientX - (box.left + box.width / 2)) / box.width) * 10);
+          rotateX(((event.clientY - (box.top + box.height / 2)) / box.height) * -8);
+          lift(34);
+        };
+
+        const onLeave = () => {
+          rotateY(0);
+          rotateX(0);
+          lift(0);
+        };
+
+        card.addEventListener("pointermove", onMove);
+        card.addEventListener("pointerleave", onLeave);
+
+        return () => {
+          card.removeEventListener("pointermove", onMove);
+          card.removeEventListener("pointerleave", onLeave);
+        };
+      });
+
+      return () => cleanups.forEach((off) => off());
     },
     { scope: sectionRef },
   );
@@ -506,6 +610,8 @@ export default function WorkingProcess() {
       data-node-id="156:8025"
       className="w-full overflow-x-clip bg-bg py-[80px] lg:py-[120px]"
     >
+      <TechMarkSprite names={SPRITE_MARKS} />
+
       <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="flex w-full flex-col items-start gap-6 lg:flex-row lg:gap-[204px]">
           <p className="process-meta shrink-0 font-body text-[18px] font-medium leading-[18px] tracking-[-0.25px] text-[#111]">
@@ -544,7 +650,7 @@ export default function WorkingProcess() {
 
         {/* The canvas. Engineering paper, dashed column guides, then the wiring
             overlay, then the cards — each layer sitting above the last. */}
-        <div className="process-flow relative mt-[48px] w-full pb-[26px] lg:mt-[76px] lg:pb-[34px]">
+        <div className="process-flow relative mt-[48px] w-full pb-[26px] [perspective:1600px] lg:mt-[76px] lg:pb-[34px]">
           <div
             aria-hidden
             className="pointer-events-none absolute -inset-x-6 -inset-y-[40px] [background-image:radial-gradient(circle,rgba(21,21,21,0.085)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_82%_70%_at_50%_50%,black,transparent)]"
@@ -611,7 +717,7 @@ export default function WorkingProcess() {
                   className={
                     "process-card relative flex w-full flex-col gap-[11px] rounded-[16px] bg-white p-[18px] " +
                     "shadow-[0_1px_2px_rgba(21,21,21,0.05),0_18px_32px_-26px_rgba(21,21,21,0.55)] " +
-                    "will-change-transform"
+                    "[transform-style:preserve-3d] will-change-transform"
                   }
                 >
                   {/* Border and wash both read off the one lit value. Drawn as
@@ -664,13 +770,42 @@ export default function WorkingProcess() {
                     </span>
                   </div>
 
-                  <h3 className="relative font-display text-[17px] font-semibold leading-[1.18] tracking-[-0.35px] text-black">
-                    {node.title}
-                  </h3>
+                  <div className="relative flex items-start gap-[12px]">
+                    <IsoBlock className="process-block mt-[1px] size-[42px] shrink-0" />
+                    <h3 className="font-display text-[17px] font-semibold leading-[1.18] tracking-[-0.35px] text-black">
+                      {node.title}
+                    </h3>
+                  </div>
 
                   <p className="relative font-body text-[12.5px] leading-[19px] tracking-[-0.1px] text-neutral-paragraph">
                     {node.copy}
                   </p>
+
+                  {/* What is actually open during this stage. Real marks, from
+                      the same sprite the engineering-stack section draws. */}
+                  <div className="relative flex flex-wrap items-center gap-[6px]">
+                    <span
+                      style={{
+                        borderColor:
+                          "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 45%), rgba(21,21,21,0.09))",
+                        backgroundColor:
+                          "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 12%), var(--color-bg))",
+                      }}
+                      className="rounded-full border px-[8px] py-[4px] font-mono text-[9px] uppercase leading-none tracking-[0.5px] text-ash-dark"
+                    >
+                      Tools
+                    </span>
+                    {node.tools.map((tool) => (
+                      <span
+                        key={tool}
+                        title={techLabel(tool)}
+                        className="flex size-[26px] items-center justify-center rounded-[8px] border border-black/[0.07] bg-white shadow-[0_1px_2px_rgba(21,21,21,0.06)]"
+                      >
+                        <TechMark name={tool} className="size-[15px]" />
+                        <span className="sr-only">{techLabel(tool)}</span>
+                      </span>
+                    ))}
+                  </div>
 
                   <p className="relative mt-auto flex items-center gap-[7px] border-t border-black/[0.07] pt-[11px] font-body text-[11.5px] leading-none tracking-[-0.1px] text-ash-dark">
                     <span
