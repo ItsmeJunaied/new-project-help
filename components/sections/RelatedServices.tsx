@@ -5,303 +5,482 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
-import { SERVICES } from "@/lib/services";
+import { SERVICES, WORK_DOMAINS } from "@/lib/services";
 
 /**
- * Three grounds, not seven.
+ * Four grounds, and three of them are light.
  *
- * The first attempt at this gave every service its own hue and the board came
- * out a rainbow — seven cards shouting over each other with nothing holding
- * them together. A brand board does the opposite: one colour family, plus black
- * and plus a light, arranged so the eye moves between them. So there are three
- * values here and they are the brand's own — near-black, the green, and the
- * paper the site is printed on — and which card gets which is a composition
- * decision rather than a property of the service.
- *
- * `tone` is what the solid on that card is drawn in, and `accent` is the one
- * colour the card is allowed besides its ground. On the two dark grounds that
- * accent is the green, which is what ties the object to the ground it stands
- * on rather than leaving it floating there in a different scheme.
+ * The first attempt gave every service its own hue and the board came out a
+ * rainbow. The second put it on one family but leaned on near-black, which made
+ * it heavy. This is the same one family, lightened: paper, mint and sage, with
+ * a single charcoal every sixth card so the board has somewhere to rest. The
+ * green is never the ground and always the highlight, which is the only way
+ * fifteen cards read as one set.
  */
 type Scheme = {
   ground: string;
-  /** Base colour of the isometric solid. */
-  tone: string;
-  /** Headline and the arrow. */
+  /** What the drawing is rendered in. */
   ink: string;
-  /** The supporting line. */
+  /** Headline. */
+  title: string;
+  /** Supporting line. */
   muted: string;
-  /** The one permitted highlight: the solid's lid, the index, the glow. */
+  /** The one permitted highlight, in the drawing and on the index. */
   accent: string;
-  /** Border, so a light card is not a hole in the page. */
   edge: string;
-  /**
-   * How much of the accent is allowed into the glow behind the solid.
-   *
-   * Per scheme because the same 26% that gives a black card depth turns a
-   * cream one green — it is a wash over the ground, and a pale ground has
-   * nothing to absorb it.
-   */
+  /** How much accent is allowed into the wash behind the drawing. */
   glow: number;
 };
 
-const DARK: Scheme = {
-  ground: "linear-gradient(152deg, #232323 0%, #070707 100%)",
-  tone: "#ffffff",
-  ink: "#ffffff",
-  muted: "rgba(255,255,255,0.62)",
-  accent: "var(--color-primary-green)",
-  edge: "rgba(255,255,255,0.08)",
-  glow: 30,
-};
-
-const GREEN: Scheme = {
-  ground:
-    "linear-gradient(152deg, color-mix(in srgb, var(--color-primary-green) 92%, #ffffff) 0%, color-mix(in srgb, var(--color-primary-green) 58%, #16330a) 100%)",
-  tone: "#0f1f05",
-  ink: "#0f1f05",
-  muted: "rgba(15,31,5,0.62)",
-  accent: "#0f1f05",
-  edge: "rgba(15,31,5,0.12)",
-  glow: 13,
-};
-
-const LIGHT: Scheme = {
-  ground: "linear-gradient(152deg, #fbfbf8 0%, #e9e9e2 100%)",
-  tone: "#151515",
+const CREAM: Scheme = {
+  ground: "linear-gradient(150deg, #f8f6ef 0%, #eae7db 100%)",
   ink: "#151515",
-  muted: "rgba(21,21,21,0.58)",
+  title: "#151515",
+  muted: "rgba(21,21,21,0.56)",
   accent: "var(--color-primary-green)",
-  edge: "rgba(21,21,21,0.1)",
-  glow: 9,
+  edge: "rgba(21,21,21,0.12)",
+  glow: 12,
 };
+
+const MINT: Scheme = {
+  ground:
+    "linear-gradient(150deg, #f0fbdc 0%, color-mix(in srgb, var(--color-primary-green) 40%, #ffffff) 100%)",
+  ink: "#16300a",
+  title: "#12280a",
+  muted: "rgba(18,40,10,0.58)",
+  accent: "#3d7a12",
+  edge: "rgba(18,40,10,0.14)",
+  glow: 10,
+};
+
+const SAGE: Scheme = {
+  ground: "linear-gradient(150deg, #e9f1e5 0%, #d3e1cd 100%)",
+  ink: "#17261b",
+  title: "#17261b",
+  muted: "rgba(23,38,27,0.56)",
+  accent: "#3d7a12",
+  edge: "rgba(23,38,27,0.14)",
+  glow: 11,
+};
+
+const CHAR: Scheme = {
+  ground: "linear-gradient(150deg, #343434 0%, #1a1a1a 100%)",
+  ink: "#ffffff",
+  title: "#ffffff",
+  muted: "rgba(255,255,255,0.6)",
+  accent: "var(--color-primary-green)",
+  edge: "rgba(255,255,255,0.1)",
+  glow: 26,
+};
+
+/** One charcoal in every six, so the board has an anchor without being heavy. */
+const SCHEMES = [MINT, CREAM, CHAR, SAGE, MINT, CREAM];
 
 /**
  * The board, by position rather than by service.
  *
- * Read off the reference: a big square anchoring the top left, a tall panel
- * beside it, a taller one holding the right-hand edge, then wide panels
- * closing the bottom. The sizes are the composition — seven identical
- * rectangles would be a list with pictures on it.
- *
- * Two arrangements because two counts exist: seven services on /services, six
- * on a detail page where the current one is left out. Both tile a four-column
- * grid exactly, with no hole for the browser to fill by guessing.
+ * Six cards fill twelve cells — a big square, two tall panels beside it, then a
+ * row of one-plus-two-plus-one. Repeating that block is what lets the same
+ * pattern tile any multiple of six exactly, and it is why the card list below
+ * is trimmed to fifteen: fifteen is two whole blocks plus a half block of
+ * 2x2 + 1x2 + 1x2, which also lands flush.
  */
-const BENTO: Record<number, string[]> = {
-  // 4 x 4. Cells: 4+1+1, 1, 2, 2, 2 -> 16.
-  7: [
-    "lg:col-span-2 lg:row-span-2",
-    "lg:row-span-2",
-    "lg:row-span-3",
-    "",
-    "lg:col-span-2",
-    "lg:col-span-2",
-    "lg:col-span-2",
-  ],
-  // 4 x 3. Cells: 4+2+2, 1, 2, 1 -> 12.
-  6: ["lg:col-span-2 lg:row-span-2", "lg:row-span-2", "lg:row-span-2", "", "lg:col-span-2", ""],
+const PATTERN = [
+  "lg:col-span-2 lg:row-span-2",
+  "lg:row-span-2",
+  "lg:row-span-2",
+  "",
+  "lg:col-span-2",
+  "",
+];
+
+/** Positions with room for a larger headline and a larger drawing. */
+const LARGE = new Set([0, 6, 12]);
+
+type Card = {
+  key: string;
+  title: string;
+  line: string;
+  /** Which drawing. */
+  art: string;
+  /** Null for the work we do that has no page of its own. */
+  href: string | null;
 };
 
-/** Which ground each position takes. Dark, green, light, and around again. */
-const SCHEMES = [DARK, GREEN, DARK, LIGHT, GREEN, DARK, LIGHT];
+/**
+ * The domains that have no service page, keyed to a drawing.
+ *
+ * These are real work — they are the names clients ask for, and they already
+ * appear on /about — they simply do not have a page to link to, so their cards
+ * do not pretend to. Workflow Automation is deliberately not among them: it
+ * says the same thing as Business Automation, and dropping it is what brings
+ * the board to fifteen and makes it tile.
+ */
+const DOMAIN_ART: Record<string, string> = {
+  "Custom Software": "custom",
+  "Web Applications": "webapps",
+  "ERP Systems": "erp",
+  "CRM Systems": "crm",
+  "Enterprise Software": "enterprise",
+  "API Development": "api",
+  Microservices: "microservices",
+  "Business Automation": "automation",
+};
 
-/** Positions that get room for a larger headline. */
-const LARGE = new Set([0, 2]);
+const SERVICE_ART: Record<string, string> = {
+  "saas-platform-development": "saas",
+  "ecommerce-digital-commerce": "ecommerce",
+  "devops-cloud-infrastructure": "devops",
+  "ai-ml-data-analytics": "aiml",
+  "technology-consulting": "consulting",
+  "mobile-app-development": "mobile",
+  "cybersecurity-data-protection": "security",
+};
+
+/* --------------------------------------------------------------- drawings */
 
 /**
- * One box in isometric projection — a rhombus for the lid and a parallelogram
- * down each visible wall, sharing a corner.
+ * The window every drawing sits in.
  *
- * `cx, cy` is the CENTRE OF THE LID, not of the solid, so a stack is written by
- * moving cy and nothing else. The three faces are one colour at three
- * opacities: that difference is the only thing telling the eye where the light
- * is, and therefore the only thing making it a solid rather than a hexagon.
- *
- * The lid takes the card's accent when one is given, which is what keeps the
- * object and its ground in the same scheme.
+ * Fifteen unrelated pictures would be fifteen things to look at. One frame, one
+ * title bar and one stroke weight across all of them means the eye reads a set
+ * and only has to take in what is different inside each.
  */
-function Slab({
-  cx,
-  cy,
-  w,
-  h,
-  tone,
-  lid,
-}: {
-  cx: number;
-  cy: number;
-  /** Half-width of the lid. Its depth follows at half this, which is the projection. */
-  w: number;
-  /** Wall height. */
-  h: number;
-  tone: string;
-  lid?: string;
-}) {
-  const d = w / 2;
-
+function Frame({ ink, children }: { ink: string; children: React.ReactNode }) {
   return (
-    <g>
-      <path
-        d={`M${cx} ${cy - d} L${cx + w} ${cy} L${cx} ${cy + d} L${cx - w} ${cy} Z`}
-        fill={lid ?? tone}
-        fillOpacity={lid ? 1 : 0.96}
+    <>
+      <rect x="8" y="13" width="124" height="78" rx="10" fill={ink} fillOpacity="0.05" />
+      <rect
+        x="8"
+        y="13"
+        width="124"
+        height="78"
+        rx="10"
+        fill="none"
+        stroke={ink}
+        strokeOpacity="0.16"
       />
-      <path
-        d={`M${cx - w} ${cy} L${cx} ${cy + d} L${cx} ${cy + d + h} L${cx - w} ${cy + h} Z`}
-        fill={tone}
-        fillOpacity="0.58"
-      />
-      <path
-        d={`M${cx + w} ${cy} L${cx} ${cy + d} L${cx} ${cy + d + h} L${cx + w} ${cy + h} Z`}
-        fill={tone}
-        fillOpacity="0.36"
-      />
-    </g>
+      <path d="M8 27h124" stroke={ink} strokeOpacity="0.13" />
+      <circle cx="17" cy="20" r="1.9" fill={ink} fillOpacity="0.26" />
+      <circle cx="24" cy="20" r="1.9" fill={ink} fillOpacity="0.18" />
+      {children}
+    </>
   );
 }
 
-/**
- * A different solid per service, all built from the same box.
- *
- * Not illustration for its own sake — each arrangement is the shape of the
- * thing: tenants stacked, a pipeline running left to right, a model sitting
- * over its data, a device standing on end. Only the topmost element takes the
- * accent, so every card has exactly one highlight.
- */
-function ServiceObject({
-  slug,
-  scheme,
-  className,
-}: {
-  slug: string;
-  scheme: Scheme;
-  className?: string;
-}) {
-  const { tone, accent } = scheme;
+/** A drawing of the thing itself, one per card. */
+function Art({ id, ink, accent }: { id: string; ink: string; accent: string }) {
+  const soft = (o: number) => ({ fill: ink, fillOpacity: o });
+  const line = (o: number) => ({ stroke: ink, strokeOpacity: o, strokeWidth: 1.4, fill: "none" });
 
-  const body = (() => {
-    switch (slug) {
-      case "saas-platform-development":
+  const inner = (() => {
+    switch (id) {
+      case "saas":
+        // A tenant dashboard: nav down the side, usage climbing.
         return (
           <>
-            <Slab cx={60} cy={64} w={40} h={9} tone={tone} />
-            <Slab cx={60} cy={46} w={33} h={8} tone={tone} />
-            <Slab cx={60} cy={29} w={26} h={7} tone={tone} lid={accent} />
+            <rect x="15" y="34" width="20" height="50" rx="3" {...soft(0.1)} />
+            <rect x="18" y="38" width="14" height="2.6" rx="1.3" {...soft(0.22)} />
+            <rect x="18" y="44" width="10" height="2.6" rx="1.3" {...soft(0.16)} />
+            <rect x="41" y="34" width="84" height="18" rx="3" {...soft(0.08)} />
+            <rect x="46" y="39" width="26" height="3" rx="1.5" fill={accent} />
+            <rect x="41" y="70" width="12" height="14" rx="2" {...soft(0.18)} />
+            <rect x="58" y="63" width="12" height="21" rx="2" {...soft(0.24)} />
+            <rect x="75" y="57" width="12" height="27" rx="2" fill={accent} />
+            <rect x="92" y="66" width="12" height="18" rx="2" {...soft(0.2)} />
           </>
         );
-      case "ecommerce-digital-commerce":
+      case "ecommerce":
+        // Three products and a full basket.
         return (
           <>
-            <Slab cx={44} cy={50} w={32} h={21} tone={tone} lid={accent} />
-            <Slab cx={90} cy={68} w={19} h={12} tone={tone} />
+            <rect x="16" y="36" width="30" height="30" rx="4" {...soft(0.14)} />
+            <rect x="52" y="36" width="30" height="30" rx="4" {...soft(0.14)} />
+            <rect x="88" y="36" width="30" height="30" rx="4" fill={accent} fillOpacity="0.9" />
+            <rect x="16" y="71" width="18" height="3" rx="1.5" {...soft(0.2)} />
+            <rect x="52" y="71" width="18" height="3" rx="1.5" {...soft(0.2)} />
+            <rect x="88" y="71" width="18" height="3" rx="1.5" {...soft(0.2)} />
+            <path d="M16 80h10l3 6h14" {...line(0.3)} />
+            <circle cx="41" cy="88" r="2.4" fill={accent} />
           </>
         );
-      case "devops-cloud-infrastructure":
+      case "devops":
+        // Three stages, the last one green.
         return (
           <>
-            <Slab cx={28} cy={64} w={19} h={12} tone={tone} />
-            <Slab cx={60} cy={53} w={19} h={12} tone={tone} />
-            <Slab cx={92} cy={42} w={19} h={12} tone={tone} lid={accent} />
+            <path d="M28 58h84" {...line(0.22)} />
+            <rect x="16" y="48" width="24" height="20" rx="4" {...soft(0.16)} />
+            <rect x="58" y="48" width="24" height="20" rx="4" {...soft(0.16)} />
+            <rect x="100" y="48" width="24" height="20" rx="4" fill={accent} fillOpacity="0.9" />
+            <path d="M106 58l4 4 7-8" stroke="#ffffff" strokeWidth="1.8" fill="none" />
+            <rect x="16" y="76" width="34" height="3" rx="1.5" {...soft(0.16)} />
           </>
         );
-      case "ai-ml-data-analytics":
+      case "aiml":
+        // A curve, and the point the model is confident about.
         return (
           <>
-            <Slab cx={60} cy={70} w={40} h={9} tone={tone} />
-            <circle cx={60} cy={36} r={16} fill={accent} />
-            <circle cx={60} cy={36} r={16} fill="url(#objShade)" />
-            <circle cx={26} cy={31} r={3.5} fill={tone} fillOpacity="0.55" />
-            <circle cx={96} cy={25} r={4.5} fill={tone} fillOpacity="0.4" />
+            <path d="M18 82h104" {...line(0.18)} />
+            <path d="M18 82V36" {...line(0.18)} />
+            <path d="M22 76c14 0 20-18 34-22s26 12 40 4 16-14 24-16" {...line(0.3)} />
+            <circle cx="88" cy="50" r="5.5" fill={accent} />
+            <circle cx="88" cy="50" r="10" fill={accent} fillOpacity="0.18" />
+            <circle cx="46" cy="60" r="2.6" {...soft(0.26)} />
+            <circle cx="118" cy="43" r="2.6" {...soft(0.2)} />
           </>
         );
-      case "technology-consulting":
+      case "consulting":
+        // An assessment, and the decision signed off at the end of it.
         return (
           <>
-            <Slab cx={60} cy={72} w={38} h={8} tone={tone} />
-            <Slab cx={60} cy={41} w={13} h={25} tone={tone} lid={accent} />
+            <rect x="24" y="34" width="70" height="50" rx="4" {...soft(0.09)} />
+            <rect x="32" y="42" width="44" height="3" rx="1.5" {...soft(0.24)} />
+            <rect x="32" y="51" width="54" height="2.6" rx="1.3" {...soft(0.16)} />
+            <rect x="32" y="59" width="48" height="2.6" rx="1.3" {...soft(0.16)} />
+            <rect x="32" y="67" width="34" height="2.6" rx="1.3" {...soft(0.16)} />
+            <circle cx="99" cy="70" r="12" fill={accent} />
+            <path d="M93 70l4.5 4.5L106 66" stroke="#ffffff" strokeWidth="2" fill="none" />
           </>
         );
-      case "mobile-app-development":
+      case "mobile":
+        // A device, and the app running on it.
         return (
           <>
-            <Slab cx={60} cy={72} w={34} h={7} tone={tone} />
-            <Slab cx={60} cy={31} w={16} h={35} tone={tone} lid={accent} />
+            <rect x="52" y="32" width="36" height="58" rx="7" {...soft(0.12)} />
+            <rect x="52" y="32" width="36" height="58" rx="7" fill="none" stroke={ink} strokeOpacity="0.2" />
+            <rect x="64" y="36" width="12" height="2" rx="1" {...soft(0.3)} />
+            <rect x="57" y="43" width="12" height="12" rx="3" fill={accent} />
+            <rect x="72" y="43" width="12" height="12" rx="3" {...soft(0.2)} />
+            <rect x="57" y="59" width="12" height="12" rx="3" {...soft(0.2)} />
+            <rect x="72" y="59" width="12" height="12" rx="3" {...soft(0.14)} />
+            <rect x="60" y="79" width="20" height="3" rx="1.5" {...soft(0.22)} />
+          </>
+        );
+      case "security":
+        // What is being protected, and the lock on it.
+        return (
+          <>
+            <path
+              d="M70 32l26 9v18c0 14-11 24-26 30-15-6-26-16-26-30V41z"
+              fill={ink}
+              fillOpacity="0.1"
+              stroke={ink}
+              strokeOpacity="0.22"
+              strokeWidth="1.4"
+            />
+            <rect x="58" y="57" width="24" height="18" rx="3.5" fill={accent} />
+            <path d="M64 57v-5a6 6 0 0112 0v5" stroke={accent} strokeWidth="2.6" fill="none" />
+            <circle cx="70" cy="65" r="2.6" fill="#ffffff" />
+          </>
+        );
+      case "custom":
+        // Code, written for this and nothing else.
+        return (
+          <>
+            <rect x="16" y="34" width="30" height="50" rx="3" {...soft(0.07)} />
+            <rect x="20" y="40" width="4" height="2.4" rx="1.2" {...soft(0.2)} />
+            <rect x="20" y="47" width="4" height="2.4" rx="1.2" {...soft(0.2)} />
+            <rect x="20" y="54" width="4" height="2.4" rx="1.2" {...soft(0.2)} />
+            <rect x="52" y="38" width="46" height="3" rx="1.5" {...soft(0.24)} />
+            <rect x="58" y="47" width="38" height="3" rx="1.5" fill={accent} />
+            <rect x="58" y="56" width="52" height="3" rx="1.5" {...soft(0.16)} />
+            <rect x="64" y="65" width="30" height="3" rx="1.5" {...soft(0.16)} />
+            <rect x="52" y="74" width="24" height="3" rx="1.5" {...soft(0.24)} />
+          </>
+        );
+      case "webapps":
+        // A portal: navigation, and the panels behind it.
+        return (
+          <>
+            <rect x="16" y="34" width="22" height="50" rx="3" {...soft(0.1)} />
+            <rect x="20" y="39" width="14" height="2.6" rx="1.3" fill={accent} />
+            <rect x="20" y="46" width="11" height="2.6" rx="1.3" {...soft(0.18)} />
+            <rect x="20" y="53" width="13" height="2.6" rx="1.3" {...soft(0.18)} />
+            <rect x="44" y="34" width="38" height="22" rx="3" {...soft(0.14)} />
+            <rect x="88" y="34" width="36" height="22" rx="3" {...soft(0.09)} />
+            <rect x="44" y="62" width="80" height="22" rx="3" {...soft(0.09)} />
+            <rect x="50" y="70" width="30" height="3" rx="1.5" {...soft(0.2)} />
+          </>
+        );
+      case "erp":
+        // Ledgers that finally agree with each other.
+        return (
+          <>
+            <rect x="16" y="34" width="108" height="12" rx="3" {...soft(0.14)} />
+            <rect x="22" y="39" width="20" height="3" rx="1.5" {...soft(0.28)} />
+            <rect x="56" y="39" width="20" height="3" rx="1.5" {...soft(0.22)} />
+            <rect x="90" y="39" width="20" height="3" rx="1.5" {...soft(0.22)} />
+            {[52, 64, 76].map((y, i) => (
+              <g key={y}>
+                <rect x="16" y={y} width="108" height="10" rx="2.5" {...soft(0.06)} />
+                <rect x="22" y={y + 3.6} width="24" height="2.8" rx="1.4" {...soft(0.18)} />
+                <rect x="56" y={y + 3.6} width="16" height="2.8" rx="1.4" {...soft(0.14)} />
+                <rect
+                  x="90"
+                  y={y + 3.6}
+                  width="18"
+                  height="2.8"
+                  rx="1.4"
+                  {...(i === 1 ? { fill: accent } : soft(0.14))}
+                />
+              </g>
+            ))}
+          </>
+        );
+      case "crm":
+        // A pipeline shaped like your sales motion.
+        return (
+          <>
+            {[16, 58, 100].map((x, i) => (
+              <g key={x}>
+                <rect x={x} y="34" width="24" height="3" rx="1.5" {...soft(i === 1 ? 0.3 : 0.2)} />
+                <rect x={x} y="42" width="24" height="16" rx="3" {...soft(0.12)} />
+                <rect
+                  x={x}
+                  y="62"
+                  width="24"
+                  height="16"
+                  rx="3"
+                  {...(i === 1 ? { fill: accent, fillOpacity: 0.9 } : soft(0.12))}
+                />
+              </g>
+            ))}
+            <rect x="16" y="82" width="24" height="7" rx="3" {...soft(0.07)} />
+          </>
+        );
+      case "enterprise":
+        // The shape of the business, drawn once.
+        return (
+          <>
+            <rect x="54" y="32" width="32" height="14" rx="3.5" fill={accent} fillOpacity="0.9" />
+            <path d="M70 46v10M34 56h72M34 56v10M70 56v10M106 56v10" {...line(0.24)} />
+            <rect x="20" y="66" width="28" height="16" rx="3.5" {...soft(0.14)} />
+            <rect x="56" y="66" width="28" height="16" rx="3.5" {...soft(0.14)} />
+            <rect x="92" y="66" width="28" height="16" rx="3.5" {...soft(0.14)} />
+          </>
+        );
+      case "api":
+        // Endpoints another team can build against.
+        return (
+          <>
+            {[
+              [38, 0.9],
+              [52, 0.14],
+              [66, 0.14],
+              [80, 0.14],
+            ].map(([y, o], i) => (
+              <g key={y}>
+                <rect
+                  x="16"
+                  y={y}
+                  width="22"
+                  height="10"
+                  rx="3"
+                  {...(i === 0 ? { fill: accent, fillOpacity: o } : soft(o))}
+                />
+                <rect x="44" y={(y as number) + 3.5} width="52" height="3" rx="1.5" {...soft(0.18)} />
+                <rect
+                  x="102"
+                  y={(y as number) + 3.5}
+                  width="22"
+                  height="3"
+                  rx="1.5"
+                  {...soft(0.1)}
+                />
+              </g>
+            ))}
+          </>
+        );
+      case "microservices":
+        // Services split where the business already splits.
+        return (
+          <>
+            <path d="M40 48h60M40 48v28M100 48v28M40 76h60M52 62h36" {...line(0.2)} />
+            <rect x="26" y="38" width="28" height="20" rx="4" {...soft(0.16)} />
+            <rect x="86" y="38" width="28" height="20" rx="4" fill={accent} fillOpacity="0.9" />
+            <rect x="26" y="66" width="28" height="20" rx="4" {...soft(0.16)} />
+            <rect x="86" y="66" width="28" height="20" rx="4" {...soft(0.16)} />
           </>
         );
       default:
+        // The manual step between two systems, removed.
         return (
           <>
-            <Slab cx={60} cy={68} w={40} h={10} tone={tone} />
-            <Slab cx={60} cy={41} w={21} h={17} tone={tone} lid={accent} />
+            <rect x="16" y="50" width="26" height="20" rx="4" {...soft(0.16)} />
+            <rect x="57" y="50" width="26" height="20" rx="4" fill={accent} fillOpacity="0.9" />
+            <rect x="98" y="50" width="26" height="20" rx="4" {...soft(0.16)} />
+            <path d="M42 60h15M83 60h15" {...line(0.26)} />
+            <path d="M53 57l4 3-4 3M94 57l4 3-4 3" {...line(0.3)} />
+            <path d="M29 76v6h82v-6" {...line(0.16)} />
           </>
         );
     }
   })();
 
-  return (
-    <svg viewBox="0 0 120 100" className={className} aria-hidden>
-      <defs>
-        <linearGradient id="objShade" x1="0" y1="0" x2="0.4" y2="1">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.22" />
-          <stop offset="1" stopColor="#000000" stopOpacity="0.3" />
-        </linearGradient>
-      </defs>
-      {/* Grounded. A solid with no shadow floats, whatever else is done to it. */}
-      <ellipse cx="60" cy="90" rx="38" ry="6.5" fill={tone} fillOpacity="0.16" />
-      {body}
-    </svg>
-  );
+  return <Frame ink={ink}>{inner}</Frame>;
 }
 
-/**
- * The other services, shown as a board rather than listed as links.
- *
- * Every service page linking to every other is what turns seven isolated pages
- * into a cluster a crawler can traverse — and it is the row a reader wants when
- * this service turns out not to be the one they need. It used to be seven
- * titles on seven hairlines, which did that job and nothing else.
- */
+/* ----------------------------------------------------------------- board */
+
 export default function RelatedServices({ currentSlug }: { currentSlug: string }) {
   const sectionRef = useRef<HTMLElement>(null);
-  const others = SERVICES.filter((service) => service.slug !== currentSlug);
-  const bento = BENTO[others.length] ?? [];
+
+  // On a detail page this is the sibling row — the other six services, each
+  // with a page to go to. On /services it is the whole offering, so the work we
+  // do that has no page of its own is on the board too.
+  const services = SERVICES.filter((service) => service.slug !== currentSlug).map((service) => ({
+    key: service.slug,
+    title: service.shortTitle,
+    line: service.included[0],
+    art: SERVICE_ART[service.slug] ?? "custom",
+    href: `/services/${service.slug}`,
+  }));
+
+  const domains: Card[] = currentSlug
+    ? []
+    : WORK_DOMAINS.filter((domain) => !domain.service && DOMAIN_ART[domain.name]).map((domain) => ({
+        key: domain.name,
+        title: domain.name,
+        line: domain.copy,
+        art: DOMAIN_ART[domain.name],
+        href: null,
+      }));
+
+  const cards: Card[] = [...services, ...domains];
 
   useGSAP(
     () => {
-      const trigger = reveal(sectionRef.current, { start: "top 86%" });
-
       gsap.from(".related-head", {
         y: 24,
         opacity: 0,
         duration: 0.7,
         ease: "power2.out",
-        scrollTrigger: trigger,
+        scrollTrigger: reveal(sectionRef.current, { start: "top 86%" }),
       });
 
       gsap.from(".related-card", {
-        y: 36,
+        y: 34,
         opacity: 0,
-        duration: 0.75,
+        duration: 0.7,
         ease: "power3.out",
-        stagger: 0.07,
+        stagger: 0.05,
         scrollTrigger: reveal(sectionRef.current?.querySelector(".related-grid") ?? null, {
-          start: "top 88%",
+          start: "top 90%",
         }),
       });
 
       if (prefersReducedMotion()) return;
 
-      // The solids breathe, a beat apart from each other, so the board is never
-      // completely still without anything on it actually moving.
-      gsap.utils.toArray<HTMLElement>(".related-object").forEach((object, index) => {
-        gsap.to(object, {
-          y: -7,
-          duration: 2.6 + index * 0.18,
+      // The drawings breathe, a beat apart from each other, so the board is
+      // never completely still without anything on it actually moving.
+      gsap.utils.toArray<HTMLElement>(".related-art").forEach((art, index) => {
+        gsap.to(art, {
+          y: -6,
+          duration: 2.8 + (index % 5) * 0.22,
           ease: "sine.inOut",
           repeat: -1,
           yoyo: true,
-          delay: index * 0.2,
+          delay: (index % 7) * 0.18,
         });
       });
     },
@@ -311,33 +490,31 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
   return (
     <section ref={sectionRef} className="w-full bg-bg px-6 pb-[80px] lg:px-[40px] lg:pb-[120px]">
       <div className="mx-auto w-full max-w-[1440px]">
-        <h2 className="related-head w-full font-display text-[clamp(1.75rem,3vw,38px)] font-semibold leading-[1.15] tracking-[-0.8px] text-black">
-          {currentSlug ? "Other Services" : "All Services"}
-        </h2>
+        <div className="related-head flex w-full flex-wrap items-end justify-between gap-[14px]">
+          <h2 className="font-display text-[clamp(1.75rem,3vw,38px)] font-semibold leading-[1.15] tracking-[-0.8px] text-black">
+            {currentSlug ? "Other Services" : "All Services"}
+          </h2>
+          <p className="font-mono text-[11px] uppercase leading-none tracking-[0.8px] text-neutral-paragraph">
+            {String(cards.length).padStart(2, "0")}{currentSlug ? " more" : " kinds of work"}
+          </p>
+        </div>
 
-        {/* Four columns of fixed-height rows, so a card that spans two rows is
+        {/* Four columns of fixed-height rows, so a card spanning two rows is
             twice the height of one that does not — which is what makes this a
             board rather than a grid of equal boxes. */}
-        <div className="related-grid mt-[26px] grid w-full grid-cols-1 gap-[12px] sm:grid-cols-2 lg:mt-[34px] lg:grid-cols-4 lg:auto-rows-[172px] lg:gap-[14px]">
-          {others.map((service, index) => {
+        <div className="related-grid mt-[24px] grid w-full grid-cols-1 gap-[12px] sm:grid-cols-2 lg:mt-[32px] lg:grid-cols-4 lg:auto-rows-[168px] lg:gap-[14px]">
+          {cards.map((card, index) => {
             const scheme = SCHEMES[index % SCHEMES.length];
             const large = LARGE.has(index);
 
-            return (
-              <Link
-                key={service.slug}
-                href={`/services/${service.slug}`}
-                style={{ backgroundImage: scheme.ground, borderColor: scheme.edge }}
-                className={`related-card group relative flex min-h-[214px] flex-col justify-end overflow-hidden rounded-[18px] border p-[20px] lg:min-h-0 lg:p-[24px] ${
-                  bento[index] ?? ""
-                }`}
-              >
-                {/* A light behind the solid, in the card's own accent, so no
+            const body = (
+              <>
+                {/* A wash behind the drawing in the card's own accent, so no
                     ground is a flat sheet of one value. */}
                 <span
                   aria-hidden
                   style={{
-                    backgroundImage: `radial-gradient(58% 52% at 70% 32%, color-mix(in srgb, ${scheme.accent} ${scheme.glow}%, transparent), transparent 72%)`,
+                    backgroundImage: `radial-gradient(56% 50% at 70% 34%, color-mix(in srgb, ${scheme.accent} ${scheme.glow}%, transparent), transparent 72%)`,
                   }}
                   className="pointer-events-none absolute inset-0"
                 />
@@ -345,57 +522,78 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
                 <span
                   aria-hidden
                   style={{ color: scheme.accent }}
-                  className="absolute left-[20px] top-[18px] font-mono text-[10px] uppercase leading-none tracking-[1px] lg:left-[24px] lg:top-[22px]"
+                  className="absolute left-[18px] top-[16px] font-mono text-[10px] uppercase leading-none tracking-[1px] lg:left-[22px] lg:top-[19px]"
                 >
                   {String(index + 1).padStart(2, "0")}
                 </span>
 
-                <span
-                  aria-hidden
-                  style={{ borderColor: scheme.edge, color: scheme.ink }}
-                  className="absolute right-[18px] top-[16px] flex size-[28px] items-center justify-center rounded-full border transition-transform duration-300 group-hover:translate-x-[3px] lg:right-[22px] lg:top-[20px]"
-                >
-                  <svg width="12" height="12" viewBox="0 0 15 15" fill="none">
-                    <path
-                      d="M3 12 12 3M4.6 3H12v7.4"
-                      stroke="currentColor"
-                      strokeWidth="1.7"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </span>
+                {card.href ? (
+                  <span
+                    aria-hidden
+                    style={{ borderColor: scheme.edge, color: scheme.title }}
+                    className="absolute right-[16px] top-[14px] flex size-[27px] items-center justify-center rounded-full border transition-transform duration-300 group-hover:translate-x-[3px] lg:right-[20px] lg:top-[17px]"
+                  >
+                    <svg width="11" height="11" viewBox="0 0 15 15" fill="none">
+                      <path
+                        d="M3 12 12 3M4.6 3H12v7.4"
+                        stroke="currentColor"
+                        strokeWidth="1.8"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                  </span>
+                ) : null}
 
-                {/* Centred on negative margins rather than -translate-y-1/2:
-                    GSAP owns this element's transform for the float above, and
-                    a Tailwind translate on the same property is overwritten the
+                {/* Centred on a negative margin rather than -translate-y-1/2:
+                    GSAP owns this element's transform for the float above, and a
+                    Tailwind translate on the same property is overwritten the
                     first frame the tween runs. */}
-                <ServiceObject
-                  slug={service.slug}
-                  scheme={scheme}
-                  className={`related-object pointer-events-none absolute right-[8px] top-1/2 -mt-[46px] h-[92px] w-[110px] transition-transform duration-500 group-hover:scale-[1.05] sm:right-[12px] sm:-mt-[56px] sm:h-[112px] sm:w-[134px] ${
-                    large ? "lg:right-[26px] lg:-mt-[78px] lg:h-[156px] lg:w-[186px]" : ""
+                <svg
+                  viewBox="0 0 140 104"
+                  aria-hidden
+                  className={`related-art pointer-events-none absolute right-[4px] top-1/2 -mt-[42px] h-[84px] w-[113px] transition-transform duration-500 group-hover:scale-[1.04] sm:right-[8px] sm:-mt-[50px] sm:h-[100px] sm:w-[135px] ${
+                    large ? "lg:right-[20px] lg:-mt-[66px] lg:h-[132px] lg:w-[178px]" : ""
                   }`}
-                />
+                >
+                  <Art id={card.art} ink={scheme.ink} accent={scheme.accent} />
+                </svg>
 
-                {/* Held clear of the solid on its right. */}
-                <div className="relative flex max-w-[56%] flex-col gap-[6px] lg:max-w-[64%]">
+                {/* Held clear of the drawing on its right. */}
+                <div className="relative flex max-w-[54%] flex-col gap-[5px] lg:max-w-[62%]">
                   <h3
-                    style={{ color: scheme.ink }}
-                    className={`font-display font-semibold leading-[1.06] tracking-[-0.6px] ${
-                      large ? "text-[21px] lg:text-[clamp(1.5rem,2.2vw,30px)]" : "text-[19px]"
+                    style={{ color: scheme.title }}
+                    className={`font-display font-semibold leading-[1.06] tracking-[-0.5px] ${
+                      large ? "text-[20px] lg:text-[clamp(1.4rem,2vw,28px)]" : "text-[17px]"
                     }`}
                   >
-                    {service.shortTitle}
+                    {card.title}
                   </h3>
                   <p
                     style={{ color: scheme.muted }}
-                    className="font-body text-[12px] leading-[17px] tracking-[-0.1px]"
+                    className="line-clamp-2 font-body text-[11.5px] leading-[16px] tracking-[-0.1px]"
                   >
-                    {service.included[0]}
+                    {card.line}
                   </p>
                 </div>
+              </>
+            );
+
+            const shell = `related-card group relative flex min-h-[206px] flex-col justify-end overflow-hidden rounded-[18px] border p-[18px] lg:min-h-0 lg:p-[22px] ${
+              PATTERN[index % PATTERN.length]
+            }`;
+
+            const style = { backgroundImage: scheme.ground, borderColor: scheme.edge };
+
+            // A domain with no page does not pretend to have one.
+            return card.href ? (
+              <Link key={card.key} href={card.href} style={style} className={shell}>
+                {body}
               </Link>
+            ) : (
+              <div key={card.key} style={style} className={shell}>
+                {body}
+              </div>
             );
           })}
         </div>
