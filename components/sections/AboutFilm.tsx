@@ -211,8 +211,14 @@ export default function AboutFilm({ src, poster, screens = 3 }: AboutFilmProps) 
     { scope: sectionRef, dependencies: [scrubbing] },
   );
 
-  // Reduced motion, or a film that never arrived: one frame, playing itself,
-  // with the copy stacked underneath instead of held over the picture.
+  // No film on disk. An empty 16:9 frame is a large hole in the page directly
+  // under the statement lines, which is worse than the section simply not being
+  // there — so it takes itself out until the file exists. Nothing else on the
+  // page depends on it, and it comes back on its own once the encode has run.
+  if (missing) return null;
+
+  // Reduced motion: one frame, playing itself, with the copy stacked underneath
+  // instead of held over the picture.
   if (!scrubbing) {
     return (
       <section className="w-full bg-black py-[64px] lg:py-[96px]">

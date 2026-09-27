@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
@@ -88,61 +87,100 @@ const SERVICES: ServiceCardData[] = [
   },
 ];
 
+/**
+ * Where each card comes to rest, and how much of the one beneath it stays
+ * showing. Written out per card rather than calculated, because these are
+ * Tailwind classes and a computed `top` would have to give up the breakpoint.
+ *
+ * The step is what turns four stuck cards into a legible stack: each one halts
+ * a little lower than the last, so the titles above it stay in view as a set of
+ * tabs rather than being covered completely.
+ */
+const REST = [
+  "top-[16px] lg:top-[40px]",
+  "top-[27px] lg:top-[62px]",
+  "top-[38px] lg:top-[84px]",
+  "top-[49px] lg:top-[106px]",
+];
+
 function ServiceCard({ card }: { card: ServiceCardData }) {
   return (
-    <article className="service-card relative w-full bg-white lg:h-[586px]">
-      <ParallaxImage
-        src={card.image.src}
-        alt={card.image.alt}
-        sizes="(max-width: 1023px) 100vw, 652px"
-        // Anchored to the right gutter instead of a hard left of 764px, which
-        // only landed inside the card on a full 1440 canvas. The max-width keeps
-        // it clear of the 661px-wide copy block on narrower windows; at 1440 and
-        // up neither constraint binds and the position is exactly as drawn.
-        className="relative h-[280px] w-full sm:h-[380px] lg:absolute lg:right-[24px] lg:top-[24px] lg:h-[538px] lg:w-[652px] lg:max-w-[calc(100%-700px)]"
-      />
-
-      <div className="flex w-full flex-col gap-[48px] px-6 py-10 sm:px-[54px] lg:absolute lg:left-[54px] lg:top-[45px] lg:w-[607px] lg:gap-[85px] lg:p-0">
-        <div className="flex w-full flex-col items-start gap-[28px]">
-          <div className="service-card-meta flex items-center gap-[4px]">
-            <span className="relative size-[14px] shrink-0">
-              <Image
-                src="/icons/icon-service-arrow.png"
-                alt=""
-                fill
-                sizes="14px"
-                className="object-contain"
-              />
-            </span>
-            <p className="font-body text-[14px] font-medium leading-[19.5px] text-pure-black">
+    <article
+      className={
+        // Rounded, bordered and opaque, all three because of the stacking: a
+        // flat white card with square corners cannot be told from the one it is
+        // sliding over, and a transparent one would show it straight through.
+        "service-card relative flex w-full flex-col overflow-hidden rounded-[24px] border border-black/[0.09] bg-white " +
+        "shadow-[0_2px_2px_-1px_rgba(21,21,21,0.06),0_34px_64px_-44px_rgba(21,21,21,0.5)] " +
+        "will-change-transform lg:h-[560px] lg:flex-row"
+      }
+    >
+      <div className="flex w-full flex-col gap-[32px] p-6 sm:p-[40px] lg:w-[calc(100%-608px)] lg:justify-between lg:gap-[40px] lg:p-[48px]">
+        <div className="flex w-full flex-col items-start gap-[22px]">
+          <span className="service-card-meta inline-flex items-center gap-[8px] rounded-full border border-black/10 bg-bg px-[13px] py-[6px]">
+            <span aria-hidden className="size-[5px] rounded-full bg-primary-green" />
+            <span className="font-mono text-[11px] uppercase leading-none tracking-[0.7px] text-ash-dark">
               {card.index}
-            </p>
-          </div>
+            </span>
+          </span>
 
-          <div className="flex w-full flex-col items-start gap-[24px]">
-            <h3 className="service-card-title w-full font-display text-[clamp(2rem,3.4vw,48px)] font-medium leading-none tracking-[-1.5px] text-pure-black">
-              <Link href={`/services/${card.id}`} className="transition-opacity hover:opacity-70">
-                {card.title}
-              </Link>
-            </h3>
-            <p className="service-card-copy w-full font-display text-[clamp(1.0625rem,1.4vw,20px)] leading-[1.3] tracking-[-0.25px] text-black">
-              {card.description}
-            </p>
-          </div>
+          <h3 className="service-card-title w-full font-display text-[clamp(1.75rem,3vw,42px)] font-medium leading-[1.04] tracking-[-1.2px] text-pure-black">
+            <Link href={`/services/${card.id}`} className="transition-opacity hover:opacity-70">
+              {card.title}
+            </Link>
+          </h3>
+
+          <p className="service-card-copy w-full font-body text-[15px] leading-[25px] tracking-[-0.16px] text-neutral-paragraph lg:text-[16px] lg:leading-[26px]">
+            {card.description}
+          </p>
         </div>
 
-        <ul className="flex w-full flex-col items-start border-b border-black/20">
-          {card.items.map((item) => (
-            <li
-              key={item}
-              className="service-card-item group w-full overflow-hidden border-t border-black/20 py-[18px] font-display text-[20px] font-medium uppercase leading-[24px] tracking-[-0.25px] text-black"
-            >
-              <span className="inline-block transition-transform duration-500 ease-out group-hover:translate-x-3">
+        <div className="flex w-full flex-col gap-[26px]">
+          <ul className="flex w-full flex-wrap gap-[7px]">
+            {card.items.map((item) => (
+              <li
+                key={item}
+                className="service-card-item rounded-full border border-black/10 bg-bg px-[12px] py-[7px] font-body text-[12.5px] leading-[1.3] tracking-[-0.1px] text-ash-deep"
+              >
                 {item}
-              </span>
-            </li>
-          ))}
-        </ul>
+              </li>
+            ))}
+          </ul>
+
+          <Link
+            href={`/services/${card.id}`}
+            className="group inline-flex w-fit items-center gap-[9px] rounded-[100px] bg-black px-[22px] py-[12px] transition-colors duration-300 hover:bg-primary-green"
+          >
+            <span className="font-body text-[15px] font-medium leading-[22px] tracking-[-0.2px] text-white transition-colors duration-300 group-hover:text-black">
+              Explore this service
+            </span>
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 15 15"
+              fill="none"
+              aria-hidden="true"
+              className="shrink-0 text-white transition-[transform,color] duration-300 group-hover:translate-x-[3px] group-hover:text-black"
+            >
+              <path
+                d="M3 12 12 3M4.6 3H12v7.4"
+                stroke="currentColor"
+                strokeWidth="1.6"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </svg>
+          </Link>
+        </div>
+      </div>
+
+      <div className="w-full shrink-0 px-6 pb-6 sm:px-[40px] sm:pb-[40px] lg:w-[608px] lg:p-[20px] lg:pl-0">
+        <ParallaxImage
+          src={card.image.src}
+          alt={card.image.alt}
+          sizes="(max-width: 1023px) 100vw, 588px"
+          className="relative h-[240px] w-full rounded-[14px] sm:h-[320px] lg:h-full"
+        />
       </div>
     </article>
   );
@@ -177,69 +215,77 @@ export default function Services({
       });
 
       const reduced = prefersReducedMotion();
+      const slots = gsap.utils.toArray<HTMLElement>(".service-slot");
 
-      gsap.utils.toArray<HTMLElement>(".service-card").forEach((card, i) => {
-        const enter = reveal(card, { start: "top 85%" });
+      slots.forEach((slot, i) => {
+        const card = slot.querySelector<HTMLElement>(".service-card");
+        if (!card) return;
 
         gsap.from(card, {
-          y: 72,
+          y: 64,
           opacity: 0,
           duration: 0.9,
           ease: "power3.out",
-          scrollTrigger: enter,
+          scrollTrigger: reveal(card, { start: "top 88%" }),
         });
 
-        gsap.from(card.querySelectorAll(".service-card-meta, .service-card-title, .service-card-copy"), {
-          y: 24,
-          opacity: 0,
-          duration: 0.7,
-          ease: "power2.out",
-          stagger: 0.1,
-          scrollTrigger: reveal(card, { start: "top 80%" }),
-        });
+        gsap.from(
+          card.querySelectorAll(".service-card-meta, .service-card-title, .service-card-copy"),
+          {
+            y: 22,
+            opacity: 0,
+            duration: 0.7,
+            ease: "power2.out",
+            stagger: 0.1,
+            scrollTrigger: reveal(card, { start: "top 82%" }),
+          },
+        );
 
         gsap.from(card.querySelectorAll(".service-card-item"), {
-          y: 24,
+          y: 18,
           opacity: 0,
-          duration: 0.6,
+          duration: 0.5,
           ease: "power2.out",
-          stagger: 0.08,
-          scrollTrigger: reveal(card, { start: "top 72%" }),
+          stagger: 0.06,
+          scrollTrigger: reveal(card, { start: "top 74%" }),
         });
 
         if (reduced) return;
 
-        // Cards recede as the next one arrives, so the stack reads as depth
-        // rather than four separate blocks scrolling past.
+        const next = slots[i + 1];
+        if (!next) return;
+
+        // Each card settles back as the next one climbs over it, so the stack
+        // reads as depth rather than as four cards happening to overlap. Driven
+        // by the NEXT card's approach, because that is the thing whose arrival
+        // this is a reaction to.
         //
-        // fromTo with explicit start values, not a bare to(). A to() reads its
-        // start when it first renders, and the enter tween above has the card
-        // at opacity 0 at that moment — so the recede interpolated 0 -> 0.55
-        // instead of 1 -> 0.55. The card snapped from fully readable to ~13%
-        // the instant its bottom crossed 70%, then brightened as it left. That
-        // is the "content vanishes before you can read it" behaviour.
-        //
-        // immediateRender: false is what keeps this fromTo from writing
-        // opacity 1 over the enter tween's start state at build time.
+        // fromTo with explicit start values and immediateRender: false, not a
+        // bare to(). A to() reads its start value when it first renders, and the
+        // enter tween above has the card at opacity 0 at that moment — so this
+        // would interpolate 0 -> 0.9 and the card would snap from unreadable to
+        // dim the instant the next one appeared.
         gsap.fromTo(
           card,
           { scale: 1, opacity: 1 },
           {
-            scale: 0.94,
-            opacity: 0.55,
+            scale: 0.955,
+            opacity: 0.88,
             ease: "none",
             immediateRender: false,
             scrollTrigger: {
-              trigger: card,
-              start: "bottom 70%",
-              end: "bottom 15%",
+              trigger: next,
+              start: "top bottom",
+              end: "top top+=140",
               scrub: true,
               invalidateOnRefresh: true,
             },
           },
         );
 
-        gsap.set(card, { transformOrigin: "center top", zIndex: i + 1 });
+        // Scaled from the top edge, so the strip of this card still showing
+        // above the next one does not drift while it shrinks.
+        gsap.set(card, { transformOrigin: "center top" });
       });
     },
     { scope: sectionRef },
@@ -263,9 +309,20 @@ export default function Services({
           <div className="services-meta-rule h-px w-full bg-black/20" />
         </div>
 
-        <div className="mt-[48px] flex w-full flex-col gap-[24px] lg:mt-[75px] lg:gap-[50px]">
-          {SERVICES.map((card) => (
-            <ServiceCard key={card.id} card={card} />
+        {/* The stack. Each card is wrapped in its own sticky slot: the slots stay
+            in normal flow and supply the scroll distance, and the card inside
+            comes to rest a little lower than the one before it. Nothing here may
+            be given `overflow: hidden` — a scroll container anywhere above a
+            sticky element is what silently turns it back into a static one. */}
+        <div className="mt-[40px] flex w-full flex-col gap-[28px] lg:mt-[72px] lg:gap-[40px]">
+          {SERVICES.map((card, index) => (
+            <div
+              key={card.id}
+              style={{ zIndex: index + 1 }}
+              className={`service-slot sticky ${REST[index] ?? REST[REST.length - 1]}`}
+            >
+              <ServiceCard card={card} />
+            </div>
           ))}
         </div>
       </div>

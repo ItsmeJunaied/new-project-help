@@ -33,6 +33,10 @@ export default function ServicesPage() {
       <Header activeLabel="SERVICES" />
       <main id="main">
         <ServicesHero />
+        {/* Up front, not near the footer. How the work is run is the question a
+            visitor arrives on this page with, and it frames the seven service
+            cards below rather than trailing after them. */}
+        <WorkingProcess />
         <Services spacingClassName="py-[80px] lg:pb-[374px] lg:pt-[127px]" />
         <RelatedServices currentSlug="" />
         <Testimonials />
@@ -40,7 +44,6 @@ export default function ServicesPage() {
           heightClassName="h-[420px] sm:h-[600px] lg:h-[1080px]"
           nodeId="156:7822"
         />
-        <WorkingProcess />
         <TeamCta />
       </main>
       <Footer />

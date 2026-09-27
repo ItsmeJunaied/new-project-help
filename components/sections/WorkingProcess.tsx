@@ -67,34 +67,114 @@ const STAGES: Stage[] = [
   },
 ];
 
-/** How wide the light's influence is, as a fraction of the rail. */
-const PULSE_REACH = 0.085;
+type Side = "top" | "right" | "bottom" | "left";
+
+type Edge = {
+  from: string;
+  to: string;
+  /**
+   * How the wire leaves and enters on the three-column layout. `across` is the
+   * long return run between the two rows — out of the bottom of the last card in
+   * row one, along the gap, and into the top of the first card in row two.
+   */
+  route: "along" | "across" | "under";
+  /** The iteration edge is not a step forward, so it is drawn as one that isn't. */
+  dashed?: boolean;
+  /** Dropped when the cards stack and there is no room beside them. */
+  wideOnly?: boolean;
+};
+
+const EDGES: Edge[] = [
+  { from: "discovery", to: "scope", route: "along" },
+  { from: "scope", to: "design", route: "along" },
+  { from: "design", to: "build", route: "across" },
+  { from: "build", to: "launch", route: "along" },
+  { from: "launch", to: "support", route: "along" },
+  { from: "support", to: "build", route: "under", dashed: true, wideOnly: true },
+];
+
+/** Corner radius on the wires. Generous, because these are the visual. */
+const WIRE_RADIUS = 22;
+
+/** How far below the cards the iteration wire is routed. */
+const UNDER_OUTSET = 34;
+
+type Point = { x: number; y: number };
 
 /**
- * The delivery process, drawn as a wired flow rather than listed as four rows.
+ * An orthogonal polyline with its corners rounded off.
  *
- * Same idea as the engineering stack section: the thing being described is a
- * connected system, so it is drawn connected. Six stages sit on one rail,
- * alternating above and below it, and a light runs the rail end to end — each
- * node flashing as the light reaches it and keeping an afterglow once it has
- * gone. That is what makes it read as flow in a direction rather than as six
- * lamps taking turns.
+ * Straight-line SVG elbows read as a wiring diagram; rounded ones read as the
+ * reference this section was drawn from. Each corner is cut back by the radius
+ * along both of its legs and bridged with a quadratic whose control point is the
+ * corner itself, which is exactly a circular-ish fillet and costs one command.
  *
- * The rail is a hairline, not an SVG stroke: it stays exactly 1px at every
- * width, and it turns from horizontal to vertical at the breakpoint where the
- * stages stop fitting side by side.
+ * The radius is clamped to half the shorter leg so a tight corner narrows its
+ * own fillet instead of overshooting into the next one.
+ */
+function roundedPath(points: Point[], radius: number) {
+  // Collinear and duplicate waypoints produce zero-length legs, and a fillet on
+  // one of those is a NaN in the `d` attribute that voids the whole path.
+  const via: Point[] = points.filter((point, index) => {
+    if (index === 0 || index === points.length - 1) return true;
+    const before = points[index - 1];
+    const after = points[index + 1];
+    if (point.x === before.x && point.x === after.x) return false;
+    if (point.y === before.y && point.y === after.y) return false;
+    return !(point.x === before.x && point.y === before.y);
+  });
+
+  if (via.length < 2) return "";
+
+  let d = `M ${via[0].x.toFixed(1)} ${via[0].y.toFixed(1)}`;
+
+  for (let i = 1; i < via.length - 1; i += 1) {
+    const previous = via[i - 1];
+    const corner = via[i];
+    const next = via[i + 1];
+
+    const inLength = Math.hypot(corner.x - previous.x, corner.y - previous.y);
+    const outLength = Math.hypot(next.x - corner.x, next.y - corner.y);
+    const r = Math.min(radius, inLength / 2, outLength / 2);
+
+    const entry = {
+      x: corner.x + ((previous.x - corner.x) / inLength) * r,
+      y: corner.y + ((previous.y - corner.y) / inLength) * r,
+    };
+    const exit = {
+      x: corner.x + ((next.x - corner.x) / outLength) * r,
+      y: corner.y + ((next.y - corner.y) / outLength) * r,
+    };
+
+    d += ` L ${entry.x.toFixed(1)} ${entry.y.toFixed(1)}`;
+    d += ` Q ${corner.x.toFixed(1)} ${corner.y.toFixed(1)} ${exit.x.toFixed(1)} ${exit.y.toFixed(1)}`;
+  }
+
+  const last = via[via.length - 1];
+  return `${d} L ${last.x.toFixed(1)} ${last.y.toFixed(1)}`;
+}
+
+/**
+ * The delivery process, drawn as a node graph that lights itself up.
  *
- * The light and the flashes come off ONE looping value, read by one ticker. A
- * timeline per node with its own callbacks would drift out of step with the
- * light the moment the tab was backgrounded and the two were resumed from
- * different places.
+ * Six stages on a three-by-two canvas, wired with rounded orthogonal
+ * connectors. A GSAP timeline then walks the graph in order: a stage comes up,
+ * the wire out of it draws itself towards the next stage, that stage comes up,
+ * and so on to the end — so the diagram explains the sequence by performing it
+ * rather than by numbering it.
+ *
+ * The wires are SVG because they turn corners, and their geometry is MEASURED
+ * rather than declared: the cards are laid out by CSS grid, and the connectors
+ * are computed from where the browser actually put them. A hand-written viewBox
+ * would need `preserveAspectRatio="none"` to stretch, which would make the
+ * stroke thicker horizontally than vertically and the corners visibly oval.
  */
 export default function WorkingProcess() {
   const sectionRef = useRef<HTMLElement>(null);
 
   useGSAP(
     () => {
-      const trigger = reveal(sectionRef.current, { start: "top 78%" });
+      const trigger = reveal(sectionRef.current, { start: "top 80%" });
 
       gsap.from(".process-heading-inner", {
         yPercent: 110,
@@ -121,218 +201,207 @@ export default function WorkingProcess() {
         scrollTrigger: trigger,
       });
 
-      const count = sectionRef.current?.querySelector<HTMLElement>(".process-count");
-      if (count) {
-        gsap.from(count, {
-          scale: 0.86,
-          opacity: 0,
-          duration: 1,
-          ease: "power3.out",
-          scrollTrigger: reveal(count, { start: "top 90%" }),
-        });
-      }
-
-      // The flow assembles in the order it is read: the rail draws itself, the
-      // nodes land on it, then each card rises out of the rail it is wired to.
-      const flowTrigger = reveal(sectionRef.current?.querySelector(".process-flow") ?? null, {
-        start: "top 84%",
+      gsap.from(".process-card", {
+        y: 30,
+        opacity: 0,
+        duration: 0.7,
+        ease: "power3.out",
+        stagger: 0.07,
+        scrollTrigger: reveal(sectionRef.current?.querySelector(".process-flow") ?? null, {
+          start: "top 85%",
+        }),
       });
-
-      gsap
-        .timeline({ scrollTrigger: flowTrigger })
-        .from(".process-rail", {
-          scaleX: 0,
-          scaleY: 0,
-          duration: 1,
-          ease: "power2.inOut",
-        })
-        .from(".process-dot", { scale: 0, duration: 0.5, ease: "back.out(2.2)", stagger: 0.07 }, "-=0.45")
-        .from(".process-stem", { scaleX: 0, scaleY: 0, duration: 0.3, stagger: 0.07 }, "-=0.5")
-        .from(
-          ".process-card",
-          {
-            // Tipped away from the reader and pushed back in space, so the cards
-            // come up out of the diagram rather than fading in on top of it.
-            y: 34,
-            rotateX: -14,
-            z: -90,
-            opacity: 0,
-            duration: 0.7,
-            ease: "power3.out",
-            stagger: 0.08,
-          },
-          "-=0.35",
-        )
-        .from(".process-loop", { opacity: 0, duration: 0.6, ease: "power2.out" }, "-=0.2");
     },
     { scope: sectionRef },
   );
 
   /**
-   * The travelling light, and the flash it leaves on each node.
+   * The wiring, and the light that runs it.
    *
-   * `head` is a single position along the rail, 0 to 1. The light is placed at
-   * it, and every node's `--pulse` is set from how close the head is to that
-   * node — instant attack, exponential release, so a node lights the moment the
-   * light arrives and dims behind it. Both axes come out of the same code; only
-   * the property being written changes.
+   * Rebuilt whole on resize rather than patched: the cards move to a different
+   * grid at the breakpoint, every waypoint changes with them, and a path whose
+   * `d` is recomputed needs its dash lengths recomputed too. Tearing the
+   * timeline down and drawing it again is both simpler and correct.
    */
   useGSAP(
     () => {
-      if (prefersReducedMotion()) return;
-
       const flow = sectionRef.current?.querySelector<HTMLElement>(".process-flow");
-      if (!flow) return;
+      const svg = flow?.querySelector<SVGSVGElement>(".process-wires");
+      if (!flow || !svg) return;
 
-      const nodes = gsap.utils.toArray<HTMLElement>(".process-node", flow);
-      if (!nodes.length) return;
+      const cardOf = (id: string) => flow.querySelector<HTMLElement>(`[data-stage="${id}"]`);
+      const reduced = prefersReducedMotion();
 
-      const glow = new Float64Array(nodes.length);
+      let timeline: gsap.core.Timeline | null = null;
+      let release: (() => void) | null = null;
 
-      // GSAP's matchMedia runs the axis it matches and reverts everything that
-      // setup wrote when the breakpoint changes, so neither orientation can
-      // leave a stale inline `left` or `top` behind on the other one's rail.
-      const media = gsap.matchMedia();
+      const build = () => {
+        timeline?.kill();
+        timeline = null;
+        release?.();
+        release = null;
 
-      const wire = (horizontal: boolean) => () => {
-        const rail = flow.querySelector<HTMLElement>(
-          horizontal ? ".process-rail-h" : ".process-rail-v",
-        );
-        const light = flow.querySelector<HTMLElement>(
-          horizontal ? ".process-light-h" : ".process-light-v",
-        );
-        if (!rail || !light) return;
+        const width = flow.offsetWidth;
+        const height = flow.offsetHeight;
+        if (!width || !height) return;
 
-        const axis = horizontal ? "left" : "top";
+        // One SVG user unit per CSS pixel, so a 1px stroke is 1px everywhere and
+        // the corner fillets stay circular.
+        svg.setAttribute("viewBox", `0 0 ${width} ${height}`);
 
         /**
-         * Where each node sits along the rail, as a fraction of its length. Not
-         * assumed to be evenly spaced: stacked, the cards are different heights,
-         * so the only honest answer comes from measuring the dots.
+         * A card's box in LAYOUT coordinates — offsets, not bounding rects.
+         *
+         * The cards are under an entrance tween when this first runs, and a
+         * bounding rect includes that tween's transform: measured there, every
+         * wire would be pinned to where its card was passing through rather than
+         * to where it comes to rest, and the whole diagram would sit thirty
+         * pixels low once the cards settled. Offsets are the untransformed
+         * layout, which is what the wires actually have to meet.
          */
-        let positions: number[] = [];
+        const frame = (element: HTMLElement) => {
+          let x = 0;
+          let y = 0;
+          let node: HTMLElement | null = element;
 
-        const measure = () => {
-          const railBox = rail.getBoundingClientRect();
-          const length = horizontal ? railBox.width : railBox.height;
-          if (!length) return;
-
-          positions = nodes.map((node) => {
-            const dot = node.querySelector<HTMLElement>(".process-dot");
-            if (!dot) return 0;
-            const box = dot.getBoundingClientRect();
-            return horizontal
-              ? (box.left + box.width / 2 - railBox.left) / length
-              : (box.top + box.height / 2 - railBox.top) / length;
-          });
-        };
-
-        measure();
-
-        const remeasure = gsap.delayedCall(0, measure).pause();
-        const onResize = () => remeasure.restart(true);
-        window.addEventListener("resize", onResize);
-
-        // Overshoots both ends so the light enters and leaves rather than
-        // appearing at the first node and vanishing at the last.
-        const run = { head: 0 };
-
-        const tween = gsap.to(run, {
-          head: 1,
-          duration: 5.6,
-          ease: "none",
-          repeat: -1,
-          repeatDelay: 0.5,
-          paused: true,
-        });
-
-        const tick = () => {
-          const head = run.head * 1.16 - 0.08;
-          light.style[axis] = `${head * 100}%`;
-
-          // Instant on, slow off. A symmetrical ease would light a node on the
-          // way in as brightly as it dims it on the way out, and the flow would
-          // lose its direction.
-          const release = Math.pow(0.9, gsap.ticker.deltaRatio());
-
-          for (let i = 0; i < nodes.length; i += 1) {
-            const distance = Math.abs((positions[i] ?? 0) - head);
-            const lit = distance < PULSE_REACH ? 1 - distance / PULSE_REACH : 0;
-
-            glow[i] = Math.max(lit, glow[i] * release);
-            nodes[i].style.setProperty("--pulse", glow[i].toFixed(3));
+          while (node && node !== flow) {
+            x += node.offsetLeft;
+            y += node.offsetTop;
+            node = node.offsetParent as HTMLElement | null;
           }
+
+          return { x, y, w: element.offsetWidth, h: element.offsetHeight };
         };
 
-        // Nothing here is worth a frame while the section is off screen.
-        const gate = whileVisible(flow, {
-          on: () => {
-            tween.play();
-            gsap.ticker.add(tick);
-          },
-          off: () => {
-            tween.pause();
-            gsap.ticker.remove(tick);
-          },
+        const anchor = (element: HTMLElement, side: Side): Point => {
+          const f = frame(element);
+          if (side === "right") return { x: f.x + f.w, y: f.y + f.h / 2 };
+          if (side === "left") return { x: f.x, y: f.y + f.h / 2 };
+          if (side === "bottom") return { x: f.x + f.w / 2, y: f.y + f.h };
+          return { x: f.x + f.w / 2, y: f.y };
+        };
+
+        // Below the breakpoint the cards are one per row, so every wire is a
+        // simple drop from the card above into the one below whatever the edge
+        // asked for on the wide layout.
+        const stacked = !window.matchMedia("(min-width: 1024px)").matches;
+
+        const drawn: { edge: Edge; lights: SVGPathElement[] }[] = [];
+
+        EDGES.forEach((edge, index) => {
+          const group = svg.querySelector<SVGGElement>(`[data-edge="${index}"]`);
+          const from = cardOf(edge.from);
+          const to = cardOf(edge.to);
+          if (!group || !from || !to) return;
+
+          if (stacked && edge.wideOnly) {
+            group.setAttribute("opacity", "0");
+            return;
+          }
+          group.removeAttribute("opacity");
+
+          const route = stacked ? "across" : edge.route;
+          let points: Point[] = [];
+
+          if (route === "along") {
+            const start = anchor(from, "right");
+            const end = anchor(to, "left");
+            const midX = (start.x + end.x) / 2;
+            points = [start, { x: midX, y: start.y }, { x: midX, y: end.y }, end];
+          } else if (route === "across") {
+            const start = anchor(from, "bottom");
+            const end = anchor(to, "top");
+            const midY = (start.y + end.y) / 2;
+            points = [start, { x: start.x, y: midY }, { x: end.x, y: midY }, end];
+          } else {
+            // Out of the bottom of one card, along beneath both, and back up
+            // into the bottom of the other.
+            const start = anchor(from, "bottom");
+            const end = anchor(to, "bottom");
+            const lane = Math.max(start.y, end.y) + UNDER_OUTSET;
+            points = [start, { x: start.x, y: lane }, { x: end.x, y: lane }, end];
+          }
+
+          const d = roundedPath(points, WIRE_RADIUS);
+          const lights: SVGPathElement[] = [];
+
+          group.querySelectorAll<SVGPathElement>("path").forEach((path) => {
+            path.setAttribute("d", d);
+
+            if (!path.classList.contains("process-wire-light")) return;
+
+            const length = path.getTotalLength();
+            gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
+            lights.push(path);
+          });
+
+          drawn.push({ edge, lights });
         });
 
-        return () => {
-          gate();
-          gsap.ticker.remove(tick);
-          tween.kill();
-          remeasure.kill();
-          window.removeEventListener("resize", onResize);
-          nodes.forEach((node) => node.style.removeProperty("--pulse"));
-          light.style.removeProperty(axis);
-        };
+        gsap.set(".process-card", { "--lit": 0 });
+
+        if (reduced) {
+          // The whole graph on, at rest. The information is the wiring, not the
+          // travelling light, so none of it is withheld.
+          drawn.forEach(({ lights }) => gsap.set(lights, { strokeDashoffset: 0 }));
+          gsap.set(".process-card", { "--lit": 1 });
+          return;
+        }
+
+        const run = gsap.timeline({ repeat: -1, repeatDelay: 1.4, paused: true });
+
+        // The first stage has no wire into it, so it lights on its own.
+        const first = cardOf(STAGES[0].id);
+        if (first) run.to(first, { "--lit": 1, duration: 0.4, ease: "power2.out" });
+
+        drawn.forEach(({ edge, lights }) => {
+          // The iteration wire loops back to a stage that is already lit, so it
+          // draws without claiming to activate anything.
+          const target = edge.dashed ? null : cardOf(edge.to);
+
+          run.to(lights, {
+            strokeDashoffset: 0,
+            duration: edge.route === "across" ? 1.1 : 0.8,
+            ease: "power1.inOut",
+          });
+
+          if (target) {
+            run.to(target, { "--lit": 1, duration: 0.35, ease: "power2.out" }, "-=0.22");
+          }
+        });
+
+        // Held at full, then wiped back to nothing before it runs again, so the
+        // reset reads as deliberate rather than as a jump cut.
+        run.to({}, { duration: 1.6 });
+        run.to(
+          drawn.flatMap(({ lights }) => lights),
+          { strokeDashoffset: (i, target: SVGPathElement) => target.getTotalLength(), duration: 0.5, ease: "power2.in" },
+        );
+        run.to(".process-card", { "--lit": 0, duration: 0.4 }, "<");
+
+        timeline = run;
+        release = whileVisible(flow, {
+          on: () => run.play(),
+          off: () => run.pause(),
+        });
       };
 
-      media.add("(min-width: 1024px)", wire(true));
-      media.add("(max-width: 1023.98px)", wire(false));
+      build();
 
-      return () => media.revert();
-    },
-    { scope: sectionRef },
-  );
+      // The grid reflows on resize and the fonts settling changes card heights,
+      // so the geometry is taken again rather than trusted.
+      const rebuild = gsap.delayedCall(0.15, build).pause();
+      const onResize = () => rebuild.restart(true);
 
-  /**
-   * The tilt. Each card leans a few degrees towards the cursor, which is what
-   * makes the row read as objects standing in space rather than as rectangles
-   * printed on the background.
-   */
-  useGSAP(
-    () => {
-      if (prefersReducedMotion()) return;
-      if (!window.matchMedia("(hover: hover)").matches) return;
+      window.addEventListener("resize", onResize);
+      document.fonts?.ready.then(() => rebuild.restart(true));
 
-      const cleanups = gsap.utils.toArray<HTMLElement>(".process-card").map((card) => {
-        const rotateY = gsap.quickTo(card, "rotateY", { duration: 0.5, ease: "power3.out" });
-        const rotateX = gsap.quickTo(card, "rotateX", { duration: 0.5, ease: "power3.out" });
-        const lift = gsap.quickTo(card, "z", { duration: 0.5, ease: "power3.out" });
-
-        const onMove = (event: PointerEvent) => {
-          const box = card.getBoundingClientRect();
-          rotateY(((event.clientX - (box.left + box.width / 2)) / box.width) * 11);
-          rotateX(((event.clientY - (box.top + box.height / 2)) / box.height) * -9);
-          lift(26);
-        };
-
-        const onLeave = () => {
-          rotateY(0);
-          rotateX(0);
-          lift(0);
-        };
-
-        card.addEventListener("pointermove", onMove);
-        card.addEventListener("pointerleave", onLeave);
-
-        return () => {
-          card.removeEventListener("pointermove", onMove);
-          card.removeEventListener("pointerleave", onLeave);
-        };
-      });
-
-      return () => cleanups.forEach((off) => off());
+      return () => {
+        window.removeEventListener("resize", onResize);
+        rebuild.kill();
+        timeline?.kill();
+        release?.();
+      };
     },
     { scope: sectionRef },
   );
@@ -362,160 +431,153 @@ export default function WorkingProcess() {
 
         <div className="process-divider mt-[32px] h-px w-full bg-[#313131] lg:mt-[48px]" />
 
-        <div className="mt-[32px] flex w-full flex-col items-start justify-between gap-[28px] lg:mt-[44px] lg:flex-row lg:items-end">
+        <div className="mt-[32px] flex w-full flex-col items-start justify-between gap-[24px] lg:mt-[40px] lg:flex-row lg:items-end">
           <p className="process-meta max-w-[560px] font-display text-[20px] leading-[1.3] tracking-[-0.25px] text-ash-muted">
             A clear, collaborative process that turns a vague idea into software
             running in production — six stages, wired end to end.
           </p>
 
-          <div className="flex items-end gap-[20px]">
-            <p className="process-meta max-w-[220px] font-display text-[16px] leading-[1.35] tracking-[-0.2px] text-ash-muted">
+          <div className="process-meta flex items-end gap-[20px]">
+            <p className="max-w-[220px] font-display text-[16px] leading-[1.35] tracking-[-0.2px] text-ash-muted">
               Two-week slices, from first call to live system
             </p>
-            <p className="process-count font-display text-[clamp(4rem,8vw,120px)] font-medium uppercase leading-[0.82] tracking-[-0.0625em] text-white">
+            <p className="font-display text-[clamp(3.5rem,7vw,104px)] font-medium uppercase leading-[0.82] tracking-[-0.0625em] text-white">
               06
             </p>
           </div>
         </div>
 
-        {/* The diagram. `perspective` lives on the wrapper so every card tilts
-            towards the same vanishing point instead of each having its own. */}
-        <div className="process-flow relative mt-[48px] w-full [perspective:1500px] lg:mt-[92px] lg:h-[660px]">
-          {/* Horizontal rail, from the first node to the last. */}
-          <div
+        {/* The canvas. Cards are grid children; the wires are an overlay sized to
+            the same box, drawn from where the grid actually put them. */}
+        <div className="process-flow relative mt-[56px] w-full pb-[56px] lg:mt-[88px] lg:pb-[64px]">
+          <svg
             aria-hidden
-            className="process-rail process-rail-h absolute left-0 right-0 top-1/2 hidden h-px -translate-y-1/2 bg-white/[0.14] lg:block"
+            className="process-wires pointer-events-none absolute inset-0 size-full overflow-visible"
+            preserveAspectRatio="none"
+            fill="none"
           >
-            <span
-              className="process-light-h pointer-events-none absolute top-1/2 h-px w-[15%] -translate-x-1/2 -translate-y-1/2 bg-[linear-gradient(to_right,transparent,rgba(134,213,42,0.15)_28%,var(--color-primary-green)_50%,rgba(134,213,42,0.15)_72%,transparent)]"
-              style={{ left: "-8%" }}
-            />
-          </div>
+            {EDGES.map((edge, index) => (
+              <g key={`${edge.from}-${edge.to}`} data-edge={index}>
+                <path
+                  className="process-wire-base"
+                  stroke="rgba(255,255,255,0.13)"
+                  strokeWidth={1}
+                  strokeLinecap="round"
+                  strokeDasharray={edge.dashed ? "5 7" : undefined}
+                />
+                {/* Halo first, hairline over it: together they read as a lit
+                    filament rather than as a green line. */}
+                <path
+                  className="process-wire-light"
+                  stroke="var(--color-primary-green)"
+                  strokeWidth={7}
+                  strokeLinecap="round"
+                  opacity={0.16}
+                />
+                <path
+                  className="process-wire-light"
+                  stroke="var(--color-primary-green)"
+                  strokeWidth={1.6}
+                  strokeLinecap="round"
+                />
+              </g>
+            ))}
+          </svg>
 
-          {/* Stacked, the same rail runs down the left-hand side instead. */}
-          <div
-            aria-hidden
-            className="process-rail process-rail-v absolute bottom-[18px] left-[20px] top-[18px] w-px bg-white/[0.14] lg:hidden"
-          >
-            <span
-              className="process-light-v pointer-events-none absolute left-1/2 h-[14%] w-px -translate-x-1/2 -translate-y-1/2 bg-[linear-gradient(to_bottom,transparent,rgba(134,213,42,0.15)_28%,var(--color-primary-green)_50%,rgba(134,213,42,0.15)_72%,transparent)]"
-              style={{ top: "-8%" }}
-            />
-          </div>
-
-          <ol className="relative flex w-full flex-col gap-[30px] lg:grid lg:h-full lg:grid-cols-6 lg:gap-0">
-            {STAGES.map((stage, index) => {
-              // Alternating sides, which is what gives the rail something to run
-              // between and keeps six cards legible across one screen.
-              const above = index % 2 === 0;
-
-              return (
-                <li
-                  key={stage.id}
-                  className="process-node relative pl-[52px] lg:h-full lg:pl-0"
-                  style={{ "--pulse": 0 } as CSSProperties}
+          {/* The column gap is the length of the wires between neighbours, so it
+              is wide enough for a light to visibly travel one rather than blink
+              across a stub. */}
+          <ol className="relative grid w-full grid-cols-1 gap-y-[64px] lg:grid-cols-3 lg:gap-x-[92px] lg:gap-y-[150px]">
+            {STAGES.map((stage) => (
+              <li key={stage.id} className="relative flex">
+                <article
+                  data-stage={stage.id}
+                  style={{ "--lit": 0 } as CSSProperties}
+                  className="process-card group relative flex w-full flex-col gap-[14px] rounded-[18px] border bg-[#0b0b0b] p-[22px] will-change-transform"
                 >
-                  {/* The node on the rail. Its ring is the flash. */}
+                  {/* Border and fill both read off the one lit value. */}
                   <span
                     aria-hidden
-                    className="process-dot absolute left-[20px] top-[22px] z-[2] flex size-[13px] -translate-x-1/2 items-center justify-center rounded-full border border-white/25 bg-black lg:left-1/2 lg:top-1/2 lg:-translate-y-1/2"
-                  >
-                    <span
-                      style={{
-                        opacity: "var(--pulse)",
-                        transform: "scale(calc(0.6 + var(--pulse) * 0.7))",
-                      }}
-                      className="absolute inset-[-7px] rounded-full bg-[radial-gradient(circle,rgba(134,213,42,0.55),transparent_70%)]"
-                    />
-                    <span
-                      style={{
-                        backgroundColor:
-                          "color-mix(in srgb, var(--color-primary-green) calc(var(--pulse) * 100%), #3a3a3a)",
-                      }}
-                      className="size-[5px] rounded-full"
-                    />
-                  </span>
-
-                  {/* Dot to card. Horizontal when stacked, vertical when not. */}
-                  <span
-                    aria-hidden
-                    style={{
-                      backgroundColor:
-                        "color-mix(in srgb, var(--color-primary-green) calc(var(--pulse) * 70%), rgba(255,255,255,0.14))",
-                    }}
-                    className={`process-stem absolute left-[20px] top-[22px] h-px w-[30px] origin-left lg:left-1/2 lg:w-px lg:h-[58px] lg:origin-top ${
-                      above ? "lg:bottom-1/2 lg:top-auto" : "lg:top-1/2"
-                    }`}
-                  />
-
-                  <article
                     style={{
                       borderColor:
-                        "color-mix(in srgb, var(--color-primary-green) calc(var(--pulse) * 55%), rgba(255,255,255,0.12))",
+                        "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 62%), rgba(255,255,255,0.11))",
                     }}
-                    className={`process-card relative flex flex-col gap-[12px] rounded-[14px] border bg-[#0c0c0c] p-[18px] [transform-style:preserve-3d] will-change-transform lg:absolute lg:inset-x-[9px] lg:min-h-[196px] ${
-                      above ? "lg:bottom-1/2 lg:mb-[58px]" : "lg:top-1/2 lg:mt-[58px]"
-                    }`}
-                  >
-                    {/* Fills with the node's own light as the wave passes. */}
-                    <span
-                      aria-hidden
-                      style={{ opacity: "var(--pulse)" }}
-                      className="pointer-events-none absolute inset-0 rounded-[14px] bg-[radial-gradient(120%_100%_at_50%_0%,rgba(134,213,42,0.14),transparent_70%)]"
-                    />
+                    className="pointer-events-none absolute inset-0 rounded-[18px] border"
+                  />
+                  <span
+                    aria-hidden
+                    style={{ opacity: "var(--lit)" }}
+                    className="pointer-events-none absolute inset-0 rounded-[18px] bg-[radial-gradient(130%_110%_at_50%_0%,rgba(134,213,42,0.15),transparent_72%)]"
+                  />
 
-                    <div className="relative flex items-center justify-between gap-[10px]">
+                  <div className="relative flex items-center justify-between gap-[10px]">
+                    <span className="flex items-center gap-[9px]">
+                      <span
+                        aria-hidden
+                        className="relative flex size-[9px] items-center justify-center"
+                      >
+                        <span
+                          style={{
+                            opacity: "var(--lit)",
+                            transform: "scale(calc(0.7 + var(--lit) * 0.8))",
+                          }}
+                          className="absolute inset-[-6px] rounded-full bg-[radial-gradient(circle,rgba(134,213,42,0.6),transparent_70%)]"
+                        />
+                        <span
+                          style={{
+                            backgroundColor:
+                              "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 100%), #3d3d3d)",
+                          }}
+                          className="size-[7px] rounded-full"
+                        />
+                      </span>
                       <span
                         style={{
                           color:
-                            "color-mix(in srgb, var(--color-primary-green) calc(var(--pulse) * 100%), #5e5e5e)",
+                            "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 100%), #6a6a6a)",
                         }}
                         className="font-mono text-[11px] leading-none tracking-[1px]"
                       >
                         {stage.number}
                       </span>
-                      <span className="font-mono text-[10px] uppercase leading-none tracking-[0.6px] text-[#5e5e5e]">
-                        {stage.span}
-                      </span>
-                    </div>
+                    </span>
 
-                    <h3 className="relative font-display text-[19px] font-medium leading-[1.18] tracking-[-0.4px] text-white">
-                      {stage.title}
-                    </h3>
+                    <span className="font-mono text-[10px] uppercase leading-none tracking-[0.6px] text-[#5e5e5e]">
+                      {stage.span}
+                    </span>
+                  </div>
 
-                    <p className="relative font-body text-[13px] leading-[20px] tracking-[-0.1px] text-[#8f8f8f]">
-                      {stage.copy}
-                    </p>
+                  <h3 className="relative font-display text-[20px] font-medium leading-[1.16] tracking-[-0.4px] text-white">
+                    {stage.title}
+                  </h3>
 
-                    <p className="relative mt-auto flex items-center gap-[7px] border-t border-white/[0.08] pt-[12px] font-body text-[12px] leading-none tracking-[-0.1px] text-ash-muted">
-                      <span
-                        aria-hidden
-                        style={{
-                          backgroundColor:
-                            "color-mix(in srgb, var(--color-primary-green) calc(20% + var(--pulse) * 80%), transparent)",
-                        }}
-                        className="size-[4px] shrink-0 rounded-full"
-                      />
-                      {stage.output}
-                    </p>
-                  </article>
-                </li>
-              );
-            })}
+                  <p className="relative font-body text-[13px] leading-[20px] tracking-[-0.1px] text-[#8f8f8f]">
+                    {stage.copy}
+                  </p>
+
+                  <p className="relative mt-auto flex items-center gap-[7px] border-t border-white/[0.08] pt-[13px] font-body text-[12px] leading-none tracking-[-0.1px] text-ash-muted">
+                    <span
+                      aria-hidden
+                      style={{
+                        backgroundColor:
+                          "color-mix(in srgb, var(--color-primary-green) calc(22% + var(--lit) * 78%), transparent)",
+                      }}
+                      className="size-[4px] shrink-0 rounded-full"
+                    />
+                    {stage.output}
+                  </p>
+                </article>
+              </li>
+            ))}
           </ol>
 
-          {/* The one stage that is a loop rather than a step. Spans the build and
-              go-live columns of the six-column grid — 50% to 83.3% — which is
-              why it is a percentage rather than a grid child. */}
-          <div
-            aria-hidden
-            className="process-loop absolute bottom-0 left-1/2 hidden h-[34px] w-[33.333%] lg:block"
-          >
-            <span className="absolute inset-0 rounded-b-[14px] border-b border-l border-r border-dashed border-white/[0.16]" />
-            <span className="absolute left-1/2 top-full -translate-x-1/2 -translate-y-1/2 bg-black px-[10px] font-mono text-[10px] uppercase leading-none tracking-[0.6px] text-[#5e5e5e]">
-              ↺ repeat every two weeks
-            </span>
-          </div>
+          {/* Sits ON the iteration wire, masking it with its own background, so
+              the caption labels that wire rather than floating under it. The
+              offset is the container's bottom padding less UNDER_OUTSET — which
+              is where the wire's lane lands. */}
+          <p className="process-meta pointer-events-none absolute bottom-[30px] left-1/2 hidden -translate-x-1/2 translate-y-1/2 bg-black px-[10px] font-mono text-[10px] uppercase leading-none tracking-[0.6px] text-[#5e5e5e] lg:block">
+            ↺ the next slice re-enters the sprint
+          </p>
         </div>
       </div>
     </section>
@@ -542,7 +604,7 @@ function whileVisible(element: Element, handlers: { on: () => void; off: () => v
   observer.observe(element);
 
   // A backgrounded tab does not move the element, so the observer never fires
-  // and the ticker would keep running on a page nobody is looking at.
+  // and the timeline would keep running on a page nobody is looking at.
   const onVisibility = () => {
     if (document.hidden) handlers.off();
     else if (element.getBoundingClientRect().bottom > 0) handlers.on();
