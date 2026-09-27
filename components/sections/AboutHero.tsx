@@ -7,7 +7,14 @@ import { gsap } from "@/lib/gsap";
 
 import RuleList from "@/components/ui/RuleList";
 
-const CORE_STACK = ["React & Next.js", "Node.js & TypeScript", "AWS · Azure · GCP", "Python & AI/ML"];
+/**
+ * The aside beside "Our Story" used to list four technologies, which said
+ * nothing a reader could act on and duplicated the stack section further down
+ * the page — where the whole stack is now drawn properly, with the marks. So it
+ * carries the summary instead: who we are, in the facts a reader wants first.
+ */
+const SUMMARY =
+  "A custom software company in Dhaka, building SaaS platforms, enterprise systems, mobile apps and AI products since 2021. Senior engineers on every build, a fixed scope before a line is written, and the repository in your name from the first commit.";
 
 // The strip alternates tall and short frames across the 1440 grid.
 const GALLERY = [
@@ -80,9 +87,9 @@ export default function AboutHero() {
           </h1>
 
           <RuleList
-            title="{ Core stack }"
-            items={CORE_STACK}
-            className="about-hero-aside w-full lg:h-[207px] lg:w-auto"
+            title="{ In short }"
+            body={SUMMARY}
+            className="about-hero-aside w-full lg:w-auto lg:self-stretch"
           />
         </div>
 

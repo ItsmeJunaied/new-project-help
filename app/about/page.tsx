@@ -5,6 +5,8 @@ import Header from "@/components/sections/Header";
 import AboutHero from "@/components/sections/AboutHero";
 import ServicesIntro from "@/components/sections/ServicesIntro";
 import AboutApproach from "@/components/sections/AboutApproach";
+import AboutCapabilities from "@/components/sections/AboutCapabilities";
+import TechStack from "@/components/sections/TechStack";
 import ImageShowcase from "@/components/sections/ImageShowcase";
 import AboutTeam from "@/components/sections/AboutTeam";
 import Awards from "@/components/sections/Awards";
@@ -15,12 +17,16 @@ import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 export const metadata: Metadata = buildMetadata({
   title: "About Us",
   description:
-    "Project Help is a Bangladesh-based custom software development company founded in 2021. Senior engineers, two-week delivery slices, and code you own from the first commit.",
+    "Project Help is a Bangladesh-based custom software development company founded in 2021 — SaaS platforms and MVPs, ERP, CRM and enterprise systems, web and mobile applications, eCommerce, AI/ML and AI agents, cloud, APIs and business automation. Senior engineers, two-week delivery slices, and code you own from the first commit.",
   path: "/about",
   keywords: [
     "about Project Help",
     "software company Bangladesh",
     "custom software team Dhaka",
+    "SaaS and MVP development company",
+    "ERP CRM enterprise software development",
+    "AI agents and AI/ML development",
+    "technology stack .NET Laravel Node Next.js Rust Flutter",
   ],
 });
 
@@ -34,6 +40,8 @@ export default function AboutPage() {
         <AboutHero />
         <ServicesIntro lines={STATEMENT_LINES} id="approach" nodeId="156:8682" />
         <AboutApproach />
+        <AboutCapabilities />
+        <TechStack />
         <ImageShowcase
           src="/images/about-showcase.jpg"
           alt="The Project Help team working together in the office"

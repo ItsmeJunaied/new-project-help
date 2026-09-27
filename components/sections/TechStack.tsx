@@ -6,35 +6,48 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
 import { BrandMark } from "@/components/ui/BrandIcons";
-import TechMark, { techLabel, type TechName } from "@/components/ui/TechMarks";
-import { PILLARS } from "@/lib/stack";
+import TechMark, { TechMarkSprite, techLabel, type TechName } from "@/components/ui/TechMarks";
+import { ALL_TOOLS, PILLARS } from "@/lib/stack";
 
 
 /** The drifting band. Order is deliberate — no two neighbours share a colour. */
 const BAND: TechName[] = [
   "react",
-  "postgres",
-  "docker",
-  "python",
-  "typescript",
-  "mongodb",
-  "aws",
-  "elasticsearch",
-  "graphql",
-  "nextjs",
-  "redis",
-  "kubernetes",
-  "tailwind",
-  "figma",
+  "laravel",
   "nodejs",
-  "terraform",
-  "flutter",
-  "javascript",
-  "pytorch",
-  "vercel",
-  "go",
+  "dotnet",
+  "firebase",
+  "postgres",
+  "grafana",
+  "mongodb",
   "openai",
+  "tailwind",
+  "redis",
+  "supabase",
+  "terraform",
+  "tensorflow",
+  "kubernetes",
+  "graphql",
+  "javascript",
+  "rust",
+  "gcp",
+  "woocommerce",
+  "swift",
+  "vue",
+  "azure",
+  "n8n",
+  "python",
+  "shopify",
+  "dart",
+  "github",
 ];
+
+/**
+ * Every mark this section draws, so the sprite carries exactly those and no
+ * more. The band and the cards between them cover most of the set, but listing
+ * it keeps a mark that is only in one of the two from being left undefined.
+ */
+const SPRITE_MARKS: TechName[] = [...ALL_TOOLS, ...BAND];
 
 const TOOL_COUNT = PILLARS.reduce((total, pillar) => total + pillar.tools.length, 0);
 
@@ -63,7 +76,7 @@ const WIRE_ORIGIN = ["origin-right", "origin-right", "origin-left", "origin-left
 function Tile({ name }: { name: TechName }) {
   return (
     <span className="flex size-[52px] shrink-0 items-center justify-center rounded-[14px] border border-black/[0.07] bg-white opacity-[0.62] shadow-[0_6px_16px_-12px_rgba(21,21,21,0.9)]">
-      <TechMark name={name} className="size-[24px]" />
+      <TechMark name={name} className="size-[26px]" />
     </span>
   );
 }
@@ -166,6 +179,8 @@ export default function TechStack() {
       id="stack"
       className="relative w-full overflow-hidden bg-white py-[72px] lg:py-[112px]"
     >
+      <TechMarkSprite names={SPRITE_MARKS} />
+
       {/* Engineering paper, faded out at the edges so it never competes with
           the type sitting on it. */}
       <div
@@ -186,7 +201,10 @@ export default function TechStack() {
           <span className="text-primary-green">down</span>
         </h2>
 
-        <p className="stack-head mt-[18px] max-w-[620px] text-center font-body text-[16px] leading-[25px] tracking-[-0.16px] text-neutral-paragraph">
+        {/* Above the band: the circle that clears a hole in the drift for the
+            centre mark is 300px across and reaches up past the band's own top
+            edge, which washed out the last line of this paragraph. */}
+        <p className="stack-head relative z-[1] mt-[18px] max-w-[620px] text-center font-body text-[16px] leading-[25px] tracking-[-0.16px] text-neutral-paragraph">
           Nothing here is on the list because it trended this year. Every layer is chosen
           for the problem in front of it, named in the scope before a line is committed,
           and handed over documented.
@@ -275,9 +293,10 @@ export default function TechStack() {
                 {pillar.tools.map((tool) => (
                   <li
                     key={tool}
-                    className="flex size-[40px] items-center justify-center rounded-[11px] border border-black/[0.07] bg-bg transition-colors duration-300 group-hover:border-primary-green/35"
+                    title={techLabel(tool)}
+                    className="flex size-[42px] items-center justify-center rounded-[11px] border border-black/[0.07] bg-bg transition-colors duration-300 group-hover:border-primary-green/35"
                   >
-                    <TechMark name={tool} className="size-[21px]" />
+                    <TechMark name={tool} className="size-[23px]" />
                     <span className="sr-only">{techLabel(tool)}</span>
                   </li>
                 ))}

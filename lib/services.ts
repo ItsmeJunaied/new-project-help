@@ -618,3 +618,105 @@ export const SERVICE_SLUGS = SERVICES.map((service) => service.slug);
 export function getService(slug: string) {
   return SERVICES.find((service) => service.slug === slug);
 }
+
+/**
+ * The kinds of work we take on.
+ *
+ * The seven SERVICES above are what the company *sells* — each has a page, a
+ * price conversation and a process. This is the longer answer to "do you do X?",
+ * which is the question the about page was failing to answer: it listed four
+ * technologies and left a reader to guess whether an ERP rebuild or an AI agent
+ * was in scope.
+ *
+ * `service` points at the page that covers a domain where one exists. Half of
+ * these do not have their own page and should not pretend to — they are named
+ * here because clients ask for them by these names.
+ */
+export type WorkDomain = {
+  name: string;
+  copy: string;
+  service: string | null;
+};
+
+export const WORK_DOMAINS: WorkDomain[] = [
+  {
+    name: "SaaS Platforms",
+    copy: "Multi-tenant products with billing, roles, and an admin surface your own team can operate.",
+    service: "saas-platform-development",
+  },
+  {
+    name: "MVP Development",
+    copy: "The smallest version that proves the idea — built to be extended afterwards, not thrown away.",
+    service: "saas-platform-development",
+  },
+  {
+    name: "Custom Software",
+    copy: "Systems written around how a business actually works, for when nothing off the shelf fits it.",
+    service: null,
+  },
+  {
+    name: "Web Applications",
+    copy: "Dashboards, portals and internal tools that stay quick once there is real data behind them.",
+    service: null,
+  },
+  {
+    name: "Mobile Applications",
+    copy: "iOS and Android from one codebase, or native where the hardware or the store demands it.",
+    service: "mobile-app-development",
+  },
+  {
+    name: "eCommerce",
+    copy: "Storefronts, catalogues and checkout, plus the operations that run behind the order.",
+    service: "ecommerce-digital-commerce",
+  },
+  {
+    name: "AI & Machine Learning",
+    copy: "Models trained on your data, measured against a set you keep, and shipped inside the product.",
+    service: "ai-ml-data-analytics",
+  },
+  {
+    name: "AI Agents",
+    copy: "Assistants wired into real systems, with the tools, limits and logs to audit what they did.",
+    service: "ai-ml-data-analytics",
+  },
+  {
+    name: "ERP Systems",
+    copy: "Inventory, production, purchasing and accounts in one place, finally agreeing with each other.",
+    service: null,
+  },
+  {
+    name: "CRM Systems",
+    copy: "Pipelines, quotes and forecasts shaped around your sales motion rather than a template's stages.",
+    service: null,
+  },
+  {
+    name: "Enterprise Software",
+    copy: "Platforms for the people who run the business — HR, payroll, operations, reporting.",
+    service: null,
+  },
+  {
+    name: "API Development",
+    copy: "Documented, versioned APIs another team can build against without reading your controllers.",
+    service: null,
+  },
+  {
+    name: "Microservices",
+    copy: "Services split along boundaries that exist in the business, when a monolith has stopped fitting.",
+    service: null,
+  },
+  {
+    name: "Cloud Solutions",
+    copy: "Migration, provisioning and cost control across AWS, Azure and Google Cloud.",
+    service: "devops-cloud-infrastructure",
+  },
+  {
+    name: "Business Automation",
+    copy: "The manual steps between systems removed — reconciliations, exports, approvals, chasing.",
+    service: null,
+  },
+  {
+    name: "Workflow Automation",
+    copy: "Long-running processes with states, handoffs and an audit trail instead of a chain of emails.",
+    service: null,
+  },
+];

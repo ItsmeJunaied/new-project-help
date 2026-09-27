@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "check:brand": "node scripts/check-brand-colour.mjs",
-    "build:icons": "node scripts/build-favicon.mjs"
+    "build:icons": "node scripts/build-favicon.mjs",
+    "build:tech-marks": "node scripts/build-tech-marks.mjs"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -19,6 +20,7 @@
     "react-dom": "19.2.8"
   },
   "devDependencies": {
+    "@iconify-json/logos": "^1.2.14",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

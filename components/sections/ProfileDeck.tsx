@@ -7,8 +7,17 @@ import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/anim";
 import Logo from "@/components/ui/Logo";
 import { BrandMark } from "@/components/ui/BrandIcons";
-import TechMark, { techLabel, type TechName } from "@/components/ui/TechMarks";
-import { PILLARS, techMarkFor } from "@/lib/stack";
+import TechMark, {
+  TechMarkSprite,
+  techLabel,
+  type TechName,
+} from "@/components/ui/TechMarks";
+import {
+  DECK_TOOLS,
+  DECK_TOOLS_PER_PILLAR,
+  PILLARS,
+  techMarkFor,
+} from "@/lib/stack";
 import { CLIENTS } from "@/lib/clients";
 import { siteConfig } from "@/lib/site";
 import {
@@ -252,11 +261,6 @@ function TechCell({ name }: { name: string }) {
   );
 }
 
-/** The four pillars' tools, de-duplicated, in pillar order. */
-const STACK_TOOLS: TechName[] = Array.from(
-  new Set(PILLARS.flatMap((pillar) => pillar.tools)),
-);
-
 /**
  * Blank cells to finish the last row of the four-across tool grid. A grid
  * shows its own background through the cells it has no children for, and the
@@ -264,9 +268,22 @@ const STACK_TOOLS: TechName[] = Array.from(
  * solid grey block rather than as two tools.
  */
 const PAD_STACK = Array.from(
-  { length: (4 - (STACK_TOOLS.length % 4)) % 4 },
+  { length: (4 - (DECK_TOOLS.length % 4)) % 4 },
   (_, i) => i,
 );
+
+/**
+ * Every mark the deck draws: the tools it has room for, plus whatever the case
+ * study slides recognise in their own stack lists. The sprite carries exactly
+ * these, because the full set is 87KB of artwork and most of it never appears
+ * on a printed page.
+ */
+const DECK_MARKS: TechName[] = [
+  ...DECK_TOOLS,
+  ...PROFILE_WORK.flatMap((work) =>
+    work.stack.map(techMarkFor).filter((mark): mark is TechName => mark !== null),
+  ),
+];
 
 export default function ProfileDeck() {
   const deckRef = useRef<HTMLDivElement>(null);
@@ -311,6 +328,8 @@ export default function ProfileDeck() {
 
   return (
     <div ref={deckRef} className="deck-stack">
+      <TechMarkSprite names={DECK_MARKS} />
+
       {/* ---------------------------------------------------------------- 01 */}
       <Slide id="cover" chrome={false}>
         <div className="flex items-center justify-between gap-[calc(24*var(--k))]">
@@ -470,7 +489,7 @@ export default function ProfileDeck() {
           <div className="flex flex-col">
             <Cap>Technology we use</Cap>
             <div className="deck-grid grid-cols-4">
-              {STACK_TOOLS.map((tool) => (
+              {DECK_TOOLS.map((tool) => (
                 <span key={tool}>
                   <TechMark
                     name={tool}
@@ -569,7 +588,7 @@ export default function ProfileDeck() {
               </span>
 
               <div className="mt-[calc(14*var(--k))] flex flex-wrap gap-[calc(7*var(--k))] max-lg:mt-4">
-                {pillar.tools.map((tool) => (
+                {pillar.tools.slice(0, DECK_TOOLS_PER_PILLAR).map((tool) => (
                   <span
                     key={tool}
                     className="deck-tint--3 flex size-[calc(28*var(--k))] items-center justify-center rounded-[calc(8*var(--k))] max-lg:size-[34px] max-lg:rounded-[8px]"
