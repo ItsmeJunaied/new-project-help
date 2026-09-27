@@ -153,7 +153,15 @@ function fade(engine: Engine, to: number, seconds: number) {
   master.gain.linearRampToValueAtTime(to, now + seconds);
 }
 
-export default function AmbientAudio() {
+/**
+ * `inline` hands the control to something else to position and to sit on.
+ *
+ * All of the audio machinery above is unchanged by it — only the chrome is. In
+ * the dock the bar already supplies the pill, the border and the shadow, and
+ * the ground underneath is dark rather than paper, so the two values that were
+ * drawn for a light ground flip and the outer fixed wrapper goes.
+ */
+export default function AmbientAudio({ inline = false }: { inline?: boolean }) {
   const engineRef = useRef<Engine | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameRef = useRef<number | null>(null);
@@ -497,7 +505,7 @@ export default function AmbientAudio() {
       getComputedStyle(document.documentElement)
         .getPropertyValue("--color-primary-green")
         .trim() || "currentColor";
-    const restingStroke = "rgba(21,21,21,0.28)";
+    const restingStroke = inline ? "rgba(255,255,255,0.34)" : "rgba(21,21,21,0.28)";
 
     const reduced = prefersReducedMotion();
     const points = pointsRef.current;
@@ -578,23 +586,26 @@ export default function AmbientAudio() {
         window.cancelAnimationFrame(frameRef.current);
       frameRef.current = null;
     };
-  }, [playing]);
+  }, [playing, inline]);
 
   const percent = Math.round(volume * 100);
 
-  return (
-    <div className="print-hide pointer-events-none fixed bottom-[20px] left-[16px] z-40 sm:bottom-[28px] sm:left-[28px]">
-      <div
-        className="pointer-events-auto flex items-center gap-[10px] rounded-full border border-black/15 bg-bg/90 py-[8px] pl-[8px] pr-[14px] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.3)] backdrop-blur-sm"
-        onMouseLeave={() => setSliderOpen(false)}
-      >
+  const control = (
+    <div
+      className={
+        inline
+          ? "flex items-center gap-[8px]"
+          : "pointer-events-auto flex items-center gap-[10px] rounded-full border border-black/15 bg-bg/90 py-[8px] pl-[8px] pr-[14px] shadow-[0_8px_24px_-8px_rgba(0,0,0,0.3)] backdrop-blur-sm"
+      }
+      onMouseLeave={() => setSliderOpen(false)}
+    >
         <button
           ref={toggleButtonRef}
           type="button"
           onClick={toggle}
           aria-pressed={playing}
           aria-label={playing ? "Pause ambient sound" : "Play ambient sound"}
-          className="flex size-[40px] shrink-0 items-center justify-center rounded-full bg-primary-green text-white transition-transform duration-300 hover:scale-105 active:scale-95"
+          className={`flex shrink-0 items-center justify-center rounded-full bg-primary-green text-black transition-transform duration-300 hover:scale-105 active:scale-95 ${inline ? "size-[34px]" : "size-[40px]"}`}
         >
           {playing ? (
             <svg width="13" height="14" viewBox="0 0 13 14" aria-hidden="true">
@@ -628,7 +639,9 @@ export default function AmbientAudio() {
         <canvas
           ref={canvasRef}
           aria-hidden="true"
-          className="h-[28px] w-[88px]"
+          // The waveform is the first thing to go on a phone: it says nothing the
+          // play button does not, and the dock has 375px to fit into.
+          className={inline ? "hidden h-[24px] w-[52px] sm:block" : "h-[28px] w-[88px]"}
         />
 
         <button
@@ -636,7 +649,7 @@ export default function AmbientAudio() {
           onClick={() => setSliderOpen((open) => !open)}
           aria-expanded={sliderOpen}
           aria-label={sliderOpen ? "Hide volume" : "Change volume"}
-          className="flex size-[24px] shrink-0 items-center justify-center rounded-full text-black/55 transition-colors hover:text-black"
+          className={`flex size-[24px] shrink-0 items-center justify-center rounded-full transition-colors ${inline ? "text-white/55 hover:text-white" : "text-black/55 hover:text-black"}`}
         >
           <svg
             width="16"
@@ -679,7 +692,7 @@ export default function AmbientAudio() {
             of the whole control jumping a step wider. */}
         <div
           className={`overflow-hidden transition-all duration-300 ease-out ${
-            sliderOpen ? "ml-[2px] w-[80px] opacity-100" : "w-0 opacity-0"
+            sliderOpen ? (inline ? "ml-[2px] w-[62px] opacity-100" : "ml-[2px] w-[80px] opacity-100") : "w-0 opacity-0"
           }`}
         >
           <input
@@ -692,12 +705,20 @@ export default function AmbientAudio() {
             onChange={(event) => changeVolume(Number(event.target.value) / 100)}
             aria-label="Ambient sound volume"
             style={{
-              background: `linear-gradient(to right, var(--color-primary-green) ${percent}%, rgba(21,21,21,0.18) ${percent}%)`,
+              background: `linear-gradient(to right, var(--color-primary-green) ${percent}%, ${inline ? "rgba(255,255,255,0.22)" : "rgba(21,21,21,0.18)"} ${percent}%)`,
             }}
-            className="h-[4px] w-[80px] cursor-pointer appearance-none rounded-full [&::-moz-range-thumb]:size-[13px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary-green [&::-webkit-slider-thumb]:size-[13px] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary-green"
+            className={`h-[4px] cursor-pointer ${inline ? "w-[62px]" : "w-[80px]"} appearance-none rounded-full [&::-moz-range-thumb]:size-[13px] [&::-moz-range-thumb]:cursor-pointer [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary-green [&::-webkit-slider-thumb]:size-[13px] [&::-webkit-slider-thumb]:cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary-green`}
           />
         </div>
-      </div>
+    </div>
+  );
+
+  // In the dock, whatever is hosting it owns the position and the chrome.
+  if (inline) return control;
+
+  return (
+    <div className="print-hide pointer-events-none fixed bottom-[20px] left-[16px] z-40 sm:bottom-[28px] sm:left-[28px]">
+      {control}
     </div>
   );
 }
