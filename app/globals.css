@@ -227,11 +227,36 @@ video {
   user-select: none;
 }
 
-/* The deck's own classes live in the `components` layer so that a Tailwind
-   utility still wins against them — `.deck-figure` and `text-primary-green` on
-   the same element both set a property each, and unlayered rules beat every
-   layered one no matter what the markup says. `.prose-content` above is
-   deliberately unlayered: nothing may reach into rich text from outside it. */
+/* ==========================================================================
+   Company profile deck  —  /company-profile
+   ==========================================================================
+
+   The profile is a 16:9 deck, and it has to be the same document on screen and
+   on paper: a prospect who prints it should get the pages they were just
+   reading, not a reflowed approximation of them.
+
+   That rules out viewport-based sizing inside a slide. Each one carries `--k`,
+   one design pixel, resolved from the frame's own width with a container query
+   unit — `--k` is 1px when the frame is 1280 wide, 0.8px when it is 1024, and
+   every size inside is a multiple of it. The layout cannot break at an
+   in-between width because there are no in-between widths: there is one
+   layout, scaled. Sizes below are design pixels at 1280; read
+   `calc(24 * var(--k))` as "24px on the drawing".
+
+   The frame is sized from the viewport HEIGHT rather than from its column, so
+   a whole slide is always on screen at once — which is the difference between
+   a deck and a long page with pictures.
+
+   Below 1024px a 16:9 frame puts body copy under 11px. There the deck stops
+   being a deck: `--k` is pinned to a real pixel, the height is released, the
+   stacking is switched off and each slide becomes a section of an ordinary
+   page. The markup does not change; only the frame does.
+
+   These classes live in the `components` layer so a Tailwind utility still
+   wins against them — `.deck-figure` and `text-primary-green` on one element
+   each set a property, and an unlayered rule beats every layered one no matter
+   what the markup says. `.prose-content` above is deliberately unlayered:
+   nothing may reach into rich text from outside it. */
 
 @media print {
   @page {
@@ -241,38 +266,52 @@ video {
 }
 
 @layer components {
-  /* ==========================================================================
-     Company profile deck  —  /company-profile
-     ==========================================================================
+  .deck-stack {
+    /* How far the top of a stuck slide sits from the top of the window, and
+       the height the frame gives back so a slide is never taller than the
+       screen it is read on. */
+    --deck-top: 64px;
+    --deck-reserve: 140px;
 
-     The profile is a 16:9 deck drawn on a 1280x720 canvas, and it has to be the
-     same document on screen and on paper: a prospect who prints it should get
-     the page they were just reading, not a reflowed approximation of it.
-
-     That rules out viewport-based sizing. Instead each slide carries `--k`, one
-     design pixel, resolved from the frame's own width with a container query
-     unit — `--k` is 1px when the frame is 1280 wide, 0.8px when it is 1024, and
-     every size inside the slide is written as a multiple of it. The layout
-     cannot break at an in-between width because there are no in-between widths:
-     there is one layout, scaled.
-
-     Below 1024px a 16:9 frame puts body copy under 11px, so the deck stops
-     being a deck. `--k` is pinned to a real pixel, the height is released, and
-     each slide becomes a section of an ordinary page. The markup is identical;
-     only the frame changes.
-
-     Sizes here are design pixels at 1280. Read `calc(24 * var(--k))` as "24px
-     on the drawing". */
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
 
   .deck-frame {
     container-type: inline-size;
     position: relative;
-    width: 100%;
+    width: min(100%, calc((100svh - var(--deck-reserve)) * 16 / 9));
+    margin-inline: auto;
     aspect-ratio: 16 / 9;
     overflow: hidden;
-    border-radius: 4px;
+    border-radius: 6px;
     background: var(--color-white);
-    box-shadow: 0 1px 0 rgba(21, 21, 21, 0.08), 0 30px 60px -48px rgba(21, 21, 21, 0.5);
+    box-shadow:
+      0 1px 0 rgba(21, 21, 21, 0.06),
+      0 40px 80px -60px rgba(21, 21, 21, 0.65);
+  }
+
+  /* Slides stack rather than scroll past: each sticks where the last one
+     stopped, and the next rides up over it. */
+  .deck-stack-item {
+    position: sticky;
+    top: var(--deck-top);
+  }
+
+  .deck-stack-item + .deck-stack-item {
+    margin-top: 48px;
+  }
+
+  /* Drawn over a slide as the next one covers it, so the pile reads as depth
+     rather than as a stack of equally bright cards. GSAP drives the opacity. */
+  .deck-veil {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    background: #060606;
+    opacity: 0;
+    pointer-events: none;
   }
 
   .deck-slide {
@@ -282,25 +321,42 @@ video {
     --sp-3: calc(22 * var(--k));
     --sp-4: calc(32 * var(--k));
     --sp-5: calc(48 * var(--k));
-    --rule: rgba(21, 21, 21, 0.1);
+
+    --rule: rgba(21, 21, 21, 0.12);
+    --tint: rgba(21, 21, 21, 0.04);
+    --accent: var(--color-primary-green);
 
     position: absolute;
     inset: 0;
+    z-index: 2;
     display: flex;
     flex-direction: column;
-    padding: calc(52 * var(--k)) calc(60 * var(--k)) calc(44 * var(--k));
+    padding: calc(50 * var(--k)) calc(58 * var(--k)) calc(44 * var(--k));
     color: var(--color-black);
   }
 
-  /* The cover and the closing slide are set on ink, the same black the site
-     footer uses, so the deck opens and closes the way the website does. */
+  /* Three tones, so no two slides in a row read the same. Ink opens and closes
+     the deck the way the website does; the green slide is the one moment the
+     brand colour takes the whole page. */
   .deck-frame--ink {
     background: #0a0a0a;
   }
 
   .deck-slide--ink {
-    --rule: rgba(255, 255, 255, 0.16);
+    --rule: rgba(255, 255, 255, 0.18);
+    --tint: rgba(255, 255, 255, 0.06);
     color: var(--color-white);
+  }
+
+  .deck-frame--green {
+    background: var(--color-primary-green);
+  }
+
+  .deck-slide--green {
+    --rule: rgba(5, 5, 5, 0.22);
+    --tint: rgba(5, 5, 5, 0.07);
+    --accent: var(--color-black);
+    color: var(--color-black);
   }
 
   .deck-eyebrow {
@@ -316,17 +372,21 @@ video {
     color: #a8a29e;
   }
 
+  .deck-slide--green .deck-eyebrow {
+    color: rgba(5, 5, 5, 0.65);
+  }
+
   .deck-cover-title {
     font-family: var(--font-display);
-    font-size: calc(86 * var(--k));
+    font-size: calc(82 * var(--k));
     font-weight: 500;
-    line-height: 0.98;
+    line-height: 0.96;
     letter-spacing: -0.045em;
   }
 
   .deck-h2 {
     font-family: var(--font-display);
-    font-size: calc(50 * var(--k));
+    font-size: calc(48 * var(--k));
     font-weight: 500;
     line-height: 1.04;
     letter-spacing: -0.04em;
@@ -342,7 +402,7 @@ video {
 
   .deck-lead {
     font-family: var(--font-body);
-    font-size: calc(23 * var(--k));
+    font-size: calc(22 * var(--k));
     line-height: 1.42;
     letter-spacing: -0.015em;
     color: var(--color-ash-dark);
@@ -352,9 +412,13 @@ video {
     color: #d4d4d4;
   }
 
+  .deck-slide--green .deck-lead {
+    color: rgba(5, 5, 5, 0.78);
+  }
+
   .deck-body {
     font-family: var(--font-body);
-    font-size: calc(17 * var(--k));
+    font-size: calc(16 * var(--k));
     line-height: 1.52;
     letter-spacing: -0.01em;
     color: var(--color-neutral-paragraph);
@@ -364,17 +428,21 @@ video {
     color: #a8a29e;
   }
 
-  .deck-figure {
-    font-family: var(--font-display);
-    font-size: calc(58 * var(--k));
-    font-weight: 500;
-    line-height: 1;
-    letter-spacing: -0.04em;
+  .deck-slide--green .deck-body {
+    color: rgba(5, 5, 5, 0.72);
   }
 
-  /* A hairline that carries a green cap at its left end — the deck's one
-     repeated ornament, and the only place the brand colour is used structurally
-     rather than as an accent on a word. */
+  .deck-figure {
+    font-family: var(--font-display);
+    font-size: calc(60 * var(--k));
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -0.045em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* A hairline carrying a short accent cap at its left end — the deck's one
+     repeated ornament. */
   .deck-rule {
     position: relative;
     height: 1px;
@@ -385,11 +453,16 @@ video {
   .deck-rule::before {
     content: "";
     position: absolute;
-    left: 0;
-    top: 0;
-    height: 1px;
-    width: calc(56 * var(--k));
-    background: var(--color-primary-green);
+    inset: 0 auto 0 0;
+    width: calc(54 * var(--k));
+    background: var(--accent);
+  }
+
+  /* A tinted panel: the deck's workhorse for stat cards, tool tiles and list
+     cells. Takes its tone from the slide, so it works on all three. */
+  .deck-tile {
+    background: var(--tint);
+    border-radius: calc(12 * var(--k));
   }
 
   .deck-chip {
@@ -399,9 +472,8 @@ video {
     border-radius: 100px;
     padding: calc(5 * var(--k)) calc(12 * var(--k));
     font-family: var(--font-mono);
-    font-size: calc(12 * var(--k));
+    font-size: calc(11 * var(--k));
     line-height: 1.3;
-    letter-spacing: 0.01em;
     color: var(--color-ash-dark);
     white-space: nowrap;
   }
@@ -410,42 +482,81 @@ video {
     color: #d4d4d4;
   }
 
+  .deck-slide--green .deck-chip {
+    color: rgba(5, 5, 5, 0.8);
+  }
+
+  /* One bar of the sector chart. Its width is set inline from the count, so
+     the drawing is the data rather than an illustration of it. */
+  .deck-bar {
+    height: calc(28 * var(--k));
+    border-radius: 100px;
+    background: var(--color-primary-green);
+  }
+
   /* Screen, narrow: the deck becomes a document. */
   @media screen and (max-width: 1023px) {
     .deck-frame {
+      width: 100%;
       aspect-ratio: auto;
+      border-radius: 4px;
       box-shadow: 0 1px 0 rgba(21, 21, 21, 0.08);
+    }
+
+    .deck-stack-item {
+      position: static;
+    }
+
+    .deck-stack-item + .deck-stack-item {
+      margin-top: 22px;
+    }
+
+    .deck-veil {
+      display: none;
     }
 
     .deck-slide {
       --k: 1px;
       position: static;
-      padding: 30px 22px 34px;
+      padding: 28px 20px 32px;
     }
 
     .deck-cover-title {
-      font-size: clamp(40px, 11vw, 64px);
+      font-size: clamp(38px, 10.5vw, 60px);
     }
 
     .deck-h2 {
-      font-size: clamp(28px, 7.2vw, 40px);
+      font-size: clamp(27px, 7vw, 38px);
     }
 
     .deck-lead {
-      font-size: 18px;
+      font-size: 17px;
+    }
+
+    .deck-body {
+      font-size: 16px;
     }
 
     .deck-figure {
-      font-size: 40px;
+      font-size: 42px;
+    }
+
+    .deck-bar {
+      height: 26px;
     }
   }
 
-  /* Paper. The page box is the design canvas, so `--k` is a real pixel again and
-     the slide prints at the size it was drawn — no scaling, no reflow. */
+  /* Paper. The page box is the design canvas, so `--k` is a real pixel again
+     and each slide prints at the size it was drawn — no scaling, no reflow. */
   @media print {
     html,
     body {
       background: var(--color-white);
+    }
+
+    .deck-stack-item {
+      position: static;
+      margin-top: 0 !important;
     }
 
     .deck-frame {
@@ -457,7 +568,7 @@ video {
       break-inside: avoid;
     }
 
-    .deck-frame:last-of-type {
+    .deck-stack-item:last-child .deck-frame {
       break-after: auto;
     }
 
@@ -465,14 +576,18 @@ video {
       --k: 1px;
     }
 
-    /* The entrance tween leaves an inline transform on any slide the reader
+    .deck-veil {
+      display: none;
+    }
+
+    /* The scroll animation leaves an inline transform on any slide the reader
        printed before it scrolled into view, and a translated page box prints
        translated. `!important` because inline styles are what we are beating. */
     .profile-slide {
       transform: none !important;
+      opacity: 1 !important;
     }
 
-    /* Ink slides and green accents are the document, not decoration. */
     .deck-frame,
     .deck-slide {
       -webkit-print-color-adjust: exact;

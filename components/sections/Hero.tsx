@@ -7,21 +7,9 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/anim";
 import AutoVideo from "@/components/ui/AutoVideo";
-import { COMPANY_PROFILE_HREF, PROFILE_EDITION } from "@/lib/company-profile";
+import { COMPANY_PROFILE_HREF } from "@/lib/company-profile";
+import { CLIENTS } from "@/lib/clients";
 
-/**
- * Real client marks, supplied by the clients themselves.
- *
- * `height` is per logo on purpose: a row matches on cap height, not box height,
- * so the two square marks stand taller than the Rongobuy wordmark. Rongobuy is
- * also kept at its native 161x36 rather than upscaled, so its height is set by
- * what the source actually has.
- */
-const CLIENTS = [
-  { name: "Signature Bangla", src: "/images/clients/signature-bangla.png", width: 120, height: 120, className: "h-[30px]" },
-  { name: "Textalyz AI", src: "/images/clients/textalyz-ai.png", width: 120, height: 120, className: "h-[30px]" },
-  { name: "Rongobuy", src: "/images/clients/rongobuy.png", width: 161, height: 36, className: "h-[18px]" },
-];
 
 export default function Hero() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -219,31 +207,22 @@ export default function Hero() {
             shipped on time.
           </p>
 
-          {/* Its own row, hard against the left gutter. Set beside the tagline
-              it runs out over the showreel — the text block is 860 wide and the
-              film starts 540 in from the right, so from about 1360px down the
-              two overlap. Tolerable for a paragraph that never fills its
-              measure; not for something a visitor is meant to click. */}
-          <div className="mt-[26px] lg:mt-[clamp(14px,2.6svh,30px)]">
-            <Link
-              href={COMPANY_PROFILE_HREF}
-              className="hero-reveal group inline-flex items-center gap-[10px] rounded-[100px] border border-black/15 px-[20px] py-[11px] font-body text-[15px] font-semibold leading-[22px] tracking-[-0.2px] text-black transition-colors hover:border-black/45"
-            >
-              <span
-                aria-hidden
-                className="size-[7px] shrink-0 rounded-full bg-primary-green"
-              />
-              Company Profile {PROFILE_EDITION}
-              <span
-                aria-hidden
-                className="transition-transform duration-300 group-hover:translate-x-[3px]"
-              >
-                &rarr;
-              </span>
-            </Link>
-          </div>
+          {/* The profile link shares the trust row rather than taking one of
+              its own. On its own row it cost the banner about 60px, which is
+              the difference between the client logos sitting above the fold and
+              below it — and the whole hero is tuned in svh to clear the fold on
+              a short laptop. `ml-auto` parks it at the right edge of the text
+              block, following the logos rather than being pushed to the far
+              right of it.
 
-          <div className="mt-[28px] flex flex-wrap items-center gap-x-[24px] gap-y-4 lg:mt-[clamp(14px,2.6svh,32px)]">
+              The row is also the one part of the hero that is measured against
+              the showreel. The text column is capped at 860 while the film sits
+              540 in from the right edge, so from about 1360px down the column
+              runs underneath it — the client logos were already doing this at
+              1024. The cap here is the distance from the left gutter to the
+              film, so the row wraps instead of sliding under it, and it only
+              wraps at widths with the height to spare. */}
+          <div className="mt-[32px] flex flex-wrap items-center gap-x-[24px] gap-y-4 lg:mt-[clamp(16px,3.4svh,44px)] lg:max-w-[calc(min(100vw,1440px)-636px)]">
             <p className="hero-brand font-body text-[16px] leading-[1.6] tracking-[-0.48px] text-black">
               Trusted by 28+ teams worldwide :
             </p>
@@ -258,11 +237,28 @@ export default function Hero() {
                     // Above the fold now that the banner fits one screen, so
                     // these must not lazy-load and pop in after paint.
                     loading="eager"
-                    className={`${client.className} w-auto object-contain`}
+                    className={`${client.rowClassName} w-auto object-contain`}
                   />
                 </li>
               ))}
             </ul>
+
+            <Link
+              href={COMPANY_PROFILE_HREF}
+              className="hero-brand group inline-flex shrink-0 items-center gap-[9px] rounded-[100px] border border-black/15 px-[18px] py-[9px] font-body text-[14px] font-semibold leading-[20px] tracking-[-0.2px] text-black transition-colors hover:border-black/45"
+            >
+              <span
+                aria-hidden
+                className="size-[6px] shrink-0 rounded-full bg-primary-green"
+              />
+              Company Profile
+              <span
+                aria-hidden
+                className="transition-transform duration-300 group-hover:translate-x-[3px]"
+              >
+                &rarr;
+              </span>
+            </Link>
           </div>
         </div>
       </div>

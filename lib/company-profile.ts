@@ -168,6 +168,7 @@ export const PROFILE_REASONS = [
  */
 export const PROFILE_WORK = PUBLISHED_CASE_STUDIES.map((study) => ({
   slug: study.slug,
+  image: study.card,
   title: study.cardTitle,
   categories: study.categories,
   summary: study.summary,
@@ -178,12 +179,24 @@ export const PROFILE_WORK = PUBLISHED_CASE_STUDIES.map((study) => ({
   facts: study.facts,
 }));
 
+/**
+ * Photographs the deck uses, all of them already published elsewhere on the
+ * site. Kept here so a slide names an intent rather than a file path.
+ */
+export const PROFILE_IMAGERY = {
+  cover: "/images/about-showcase.jpg",
+  capabilities: "/images/service-detail-tools.webp",
+  sectors: "/images/about-photo-working.webp",
+  process: "/images/cta-team-meeting.webp",
+  clients: "/images/client-onboarding-signing.webp",
+} as const;
+
 /** Every slide in order, which is also the contents rail and the print order. */
 export const PROFILE_SLIDES: ProfileSlide[] = [
   { id: "cover", eyebrow: `Company Profile ${PROFILE_EDITION}`, title: "Project Help" },
   { id: "at-a-glance", eyebrow: "Who we are", title: "At a glance" },
   { id: "what-we-build", eyebrow: "Capabilities", title: "What we build" },
-  { id: "industries", eyebrow: "Sectors", title: "Where we have shipped" },
+  { id: "industries", eyebrow: "Sectors", title: "Where the work has shipped" },
   { id: "stack", eyebrow: "Engineering", title: "One stack, all the way down" },
   { id: "process", eyebrow: "Engagement", title: "How the work runs" },
   { id: "handover", eyebrow: "Handover", title: "What you are left holding" },
@@ -192,6 +205,7 @@ export const PROFILE_SLIDES: ProfileSlide[] = [
     eyebrow: `Selected work ${String(index + 1).padStart(2, "0")}`,
     title: work.title,
   })),
+  { id: "clients", eyebrow: "Clients", title: "Who we build for" },
   { id: "why-us", eyebrow: "The case", title: "Why teams pick us" },
   { id: "contact", eyebrow: "Next step", title: "Start the conversation" },
 ];
