@@ -1,6 +1,6 @@
 /**
- * Encodes the three supplied showreels into the web deliveries in /public/videos,
- * and grabs a poster frame for each.
+ * Encodes the supplied masters into the web deliveries in /public/videos, and
+ * grabs a poster frame for each.
  *
  * The sources are 50 MB of 1080p master between them — fine as masters, far too
  * heavy to put on a landing page. Everything here is about getting them down to
@@ -20,6 +20,10 @@
  * sized the other way round, every visitor pays 7 MB for a silent loop. The v8
  * film needs no such split: it runs full-bleed, so the inline copy is already
  * the good one.
+ *
+ * The about film is the odd one out: it is not played at all, it is scrubbed by
+ * the scrollbar on /about, and so it is encoded for seeking. Its job carries a
+ * `gop` of 4 where everything else takes the 60 that suits playback.
  *
  * Poster frames are pulled from the ENCODED file rather than the source, so the
  * still and the first frame of video are the same picture and there is nothing
@@ -46,6 +50,7 @@ const write = process.argv.includes("--write");
 
 const SHOWREEL_40S = "ProjectHelp_Showreel_40s_Slow.mp4";
 const SHOWREEL_V8 = "ProjectHelp_Showreel_v8_Light.mp4";
+const ABOUT_FILM = "ProjectHelp_About_v4.mp4";
 
 const JOBS = [
   {
@@ -93,6 +98,26 @@ const JOBS = [
     posterAt: "00:00:03",
     posterWidth: 1280,
   },
+  {
+    out: "about-film.mp4",
+    src: ABOUT_FILM,
+    // The about film is played by the scrollbar, not by a play button, so this
+    // one is encoded for SEEKING rather than for playback. A keyframe every
+    // four frames means an arbitrary jump decodes three frames at worst instead
+    // of up to two seconds of them, which is the whole difference between a
+    // scrub that follows the cursor and one that moves in visible steps.
+    //
+    // That costs size — dense keyframes are the expensive kind — so the pixels
+    // and the quality both come down to pay for it, and the audio goes entirely:
+    // a film scrubbed backwards and forwards has no use for a soundtrack.
+    filter: "scale=1280:-2",
+    crf: 32,
+    gop: 4,
+    audio: false,
+    poster: "about-film-poster.webp",
+    posterAt: "00:00:01",
+    posterWidth: 1280,
+  },
 ];
 
 const mb = (bytes) => `${(bytes / 1048576).toFixed(2)} MB`;
@@ -128,8 +153,13 @@ for (const job of JOBS) {
     "-preset", "slow",
     "-profile:v", "high",
     "-pix_fmt", "yuv420p",
-    // Two seconds between keyframes, so seeking in the lightbox lands quickly.
-    "-g", "60",
+    // Two seconds between keyframes, so seeking in the lightbox lands quickly —
+    // or far closer together for a film that is scrubbed rather than played.
+    "-g", String(job.gop ?? 60),
+    // Without this, x264 is free to place keyframes on its own schedule and a
+    // small -g becomes a suggestion rather than a floor.
+    "-keyint_min", String(job.gop ?? 25),
+    ...(job.gop && job.gop < 12 ? ["-sc_threshold", "0"] : []),
     // Puts the moov atom first: the browser can start playing before the whole
     // file has arrived, which is the difference between a video that starts and
     // one that waits for the last byte.
