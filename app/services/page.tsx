@@ -33,7 +33,9 @@ export default function ServicesPage() {
       <Header activeLabel="SERVICES" />
       <main id="main">
         <ServicesHero />
-        <Services spacingClassName="py-[80px] lg:pb-[374px] lg:pt-[127px]" />
+        {/* The 374px of bottom padding this used to carry was room for the
+            stack's last card to finish unsticking. There is no stack now. */}
+        <Services spacingClassName="py-[80px] lg:pb-[150px] lg:pt-[127px]" />
         {/* Straight after the cards: what we build, then how the building is
             run. It answers the question the cards raise rather than pre-empting
             it, and it is still far above the footer. */}
