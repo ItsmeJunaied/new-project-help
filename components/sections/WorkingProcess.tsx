@@ -5,18 +5,26 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
 
-type Stage = {
+type Node = {
   id: string;
-  number: string;
+  /** Null for the parallel track, which is not a numbered step of its own. */
+  number: string | null;
   title: string;
   copy: string;
-  /** How long this stage runs — the question every scope call opens with. */
   span: string;
-  /** What you are holding at the end of it. */
   output: string;
+  /** Where it sits on the four-by-four canvas. Ignored once the cards stack. */
+  place: string;
 };
 
-const STAGES: Stage[] = [
+/**
+ * Seven nodes, not six: the environments track is real work that happens beside
+ * the design, and drawing it is what makes this a flow rather than a queue.
+ *
+ * DOM order is reading order — which is also the order the cards stack in below
+ * the breakpoint, where the graph collapses to a single chain.
+ */
+const NODES: Node[] = [
   {
     id: "discovery",
     number: "01",
@@ -24,92 +32,113 @@ const STAGES: Stage[] = [
     copy: "Your users, your deadline and your budget — before anybody names a technology.",
     span: "One call",
     output: "Discovery notes",
+    place: "lg:col-start-1 lg:row-start-2",
   },
   {
     id: "scope",
     number: "02",
     title: "Scope & Architecture",
-    copy: "A written scope, wireframes, the stack, and a fixed price and timeline to sign off.",
+    copy: "A written scope, wireframes and the stack, at a fixed price and timeline to sign off.",
     span: "1–2 weeks",
     output: "Signed scope",
+    place: "lg:col-start-2 lg:row-start-2",
   },
   {
     id: "design",
     number: "03",
     title: "Design & Prototype",
-    copy: "Screens and a clickable prototype, reviewed with you while changing them is still cheap.",
+    copy: "Screens and a clickable prototype, reviewed while changing them is still cheap.",
     span: "2–3 weeks",
     output: "Approved UI",
+    place: "lg:col-start-3 lg:row-start-1",
+  },
+  {
+    id: "envs",
+    number: null,
+    title: "Environments & CI",
+    copy: "Repos, staging and pipelines standing before the first sprint opens.",
+    span: "In parallel",
+    output: "Staging + CI",
+    place: "lg:col-start-3 lg:row-start-3",
   },
   {
     id: "build",
     number: "04",
     title: "Sprint Build",
-    copy: "Two-week slices. A standup every morning, a demo at the end, and a backlog you help order.",
+    copy: "Two-week slices. A standup every morning, a demo at the end of each one.",
     span: "The bulk of it",
     output: "Working software",
+    place: "lg:col-start-4 lg:row-start-2",
   },
   {
     id: "launch",
     number: "05",
     title: "QA & Go-Live",
-    copy: "Tested on staging, accepted by you, then a rehearsed release with a way back out of it.",
+    copy: "Tested on staging, accepted by you, then a rehearsed release with a way back.",
     span: "1 week",
     output: "Live system",
+    place: "lg:col-start-2 lg:row-start-4",
   },
   {
     id: "support",
     number: "06",
     title: "Support & Iterate",
-    copy: "Six to twelve months of fixes on us, monitoring in place, and the next slice already scoped.",
+    copy: "Six to twelve months of fixes on us, monitoring, and the next slice scoped.",
     span: "6–12 months",
     output: "Roadmap",
+    place: "lg:col-start-1 lg:row-start-4",
   },
 ];
-
-type Side = "top" | "right" | "bottom" | "left";
 
 type Edge = {
   from: string;
   to: string;
   /**
-   * How the wire leaves and enters on the three-column layout. `across` is the
-   * long return run between the two rows — out of the bottom of the last card in
-   * row one, along the gap, and into the top of the first card in row two.
+   * `along` leaves the right-hand side and enters the left — it handles a change
+   * of row on its own, which is what draws the fork and the join. `across` drops
+   * out of the bottom and comes back down into the top. `loop` is the sprint
+   * repeating, and goes up and around rather than anywhere new.
    */
-  route: "along" | "across" | "under";
-  /** The iteration edge is not a step forward, so it is drawn as one that isn't. */
+  route: "along" | "across" | "loop";
   dashed?: boolean;
-  /** Dropped when the cards stack and there is no room beside them. */
-  wideOnly?: boolean;
 };
 
+/**
+ * The graph. Two edges leave `scope` and two arrive at `build`: design and the
+ * environments track run beside each other, and the sprint cannot open until
+ * both have landed. That fork and join is the shape of the thing.
+ */
 const EDGES: Edge[] = [
   { from: "discovery", to: "scope", route: "along" },
   { from: "scope", to: "design", route: "along" },
-  { from: "design", to: "build", route: "across" },
-  { from: "build", to: "launch", route: "along" },
+  { from: "scope", to: "envs", route: "along" },
+  { from: "design", to: "build", route: "along" },
+  { from: "envs", to: "build", route: "along" },
+  { from: "build", to: "build", route: "loop", dashed: true },
+  { from: "build", to: "launch", route: "across" },
   { from: "launch", to: "support", route: "along" },
-  { from: "support", to: "build", route: "under", dashed: true, wideOnly: true },
 ];
 
-/** Corner radius on the wires. Generous, because these are the visual. */
-const WIRE_RADIUS = 22;
+/** Enough groups for the widest of the two layouts. */
+const WIRE_SLOTS = EDGES.length;
 
-/** How far below the cards the iteration wire is routed. */
-const UNDER_OUTSET = 34;
+const WIRE_RADIUS = 20;
+
+/** How far above a destination the long return run travels. */
+const LANE_ABOVE = 38;
+
+/** How far outside the card the sprint loop swings. */
+const LOOP_OUTSET = 26;
 
 type Point = { x: number; y: number };
 
 /**
  * An orthogonal polyline with its corners rounded off.
  *
- * Straight-line SVG elbows read as a wiring diagram; rounded ones read as the
- * reference this section was drawn from. Each corner is cut back by the radius
- * along both of its legs and bridged with a quadratic whose control point is the
- * corner itself, which is exactly a circular-ish fillet and costs one command.
- *
- * The radius is clamped to half the shorter leg so a tight corner narrows its
+ * Square elbows read as a wiring diagram; rounded ones read as the flow charts
+ * this was drawn from. Each corner is cut back by the radius along both of its
+ * legs and bridged with a quadratic whose control point is the corner itself.
+ * The radius is clamped to half the shorter leg, so a tight corner narrows its
  * own fillet instead of overshooting into the next one.
  */
 function roundedPath(points: Point[], radius: number) {
@@ -135,6 +164,8 @@ function roundedPath(points: Point[], radius: number) {
 
     const inLength = Math.hypot(corner.x - previous.x, corner.y - previous.y);
     const outLength = Math.hypot(next.x - corner.x, next.y - corner.y);
+    if (!inLength || !outLength) continue;
+
     const r = Math.min(radius, inLength / 2, outLength / 2);
 
     const entry = {
@@ -155,19 +186,18 @@ function roundedPath(points: Point[], radius: number) {
 }
 
 /**
- * The delivery process, drawn as a node graph that lights itself up.
+ * The delivery process, drawn as a flow graph that runs itself.
  *
- * Six stages on a three-by-two canvas, wired with rounded orthogonal
- * connectors. A GSAP timeline then walks the graph in order: a stage comes up,
- * the wire out of it draws itself towards the next stage, that stage comes up,
- * and so on to the end — so the diagram explains the sequence by performing it
- * rather than by numbering it.
+ * Nodes are laid out by CSS grid; the wiring between them is MEASURED from
+ * where the browser actually put them and drawn as rounded orthogonal SVG. A
+ * timeline then walks the graph — a node lights, the wire out of it draws
+ * itself with a pulse running ahead of the light, the next node lights — so the
+ * sequence is explained by being performed.
  *
- * The wires are SVG because they turn corners, and their geometry is MEASURED
- * rather than declared: the cards are laid out by CSS grid, and the connectors
- * are computed from where the browser actually put them. A hand-written viewBox
- * would need `preserveAspectRatio="none"` to stretch, which would make the
- * stroke thicker horizontally than vertically and the corners visibly oval.
+ * Measuring rather than declaring the geometry is what lets the same component
+ * serve a four-column graph and a single stacked chain: below the breakpoint
+ * the cards fall into one column and the edge list collapses to a chain through
+ * them, and every path is simply recomputed from the new positions.
  */
 export default function WorkingProcess() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -201,12 +231,24 @@ export default function WorkingProcess() {
         scrollTrigger: trigger,
       });
 
+      gsap.from(".process-guide", {
+        scaleY: 0,
+        opacity: 0,
+        duration: 1.1,
+        ease: "power2.out",
+        stagger: 0.07,
+        transformOrigin: "top center",
+        scrollTrigger: reveal(sectionRef.current?.querySelector(".process-flow") ?? null, {
+          start: "top 88%",
+        }),
+      });
+
       gsap.from(".process-card", {
-        y: 30,
+        y: 26,
         opacity: 0,
         duration: 0.7,
         ease: "power3.out",
-        stagger: 0.07,
+        stagger: 0.06,
         scrollTrigger: reveal(sectionRef.current?.querySelector(".process-flow") ?? null, {
           start: "top 85%",
         }),
@@ -215,21 +257,13 @@ export default function WorkingProcess() {
     { scope: sectionRef },
   );
 
-  /**
-   * The wiring, and the light that runs it.
-   *
-   * Rebuilt whole on resize rather than patched: the cards move to a different
-   * grid at the breakpoint, every waypoint changes with them, and a path whose
-   * `d` is recomputed needs its dash lengths recomputed too. Tearing the
-   * timeline down and drawing it again is both simpler and correct.
-   */
   useGSAP(
     () => {
       const flow = sectionRef.current?.querySelector<HTMLElement>(".process-flow");
       const svg = flow?.querySelector<SVGSVGElement>(".process-wires");
       if (!flow || !svg) return;
 
-      const cardOf = (id: string) => flow.querySelector<HTMLElement>(`[data-stage="${id}"]`);
+      const cardOf = (id: string) => flow.querySelector<HTMLElement>(`[data-node="${id}"]`);
       const reduced = prefersReducedMotion();
 
       let timeline: gsap.core.Timeline | null = null;
@@ -254,10 +288,8 @@ export default function WorkingProcess() {
          *
          * The cards are under an entrance tween when this first runs, and a
          * bounding rect includes that tween's transform: measured there, every
-         * wire would be pinned to where its card was passing through rather than
-         * to where it comes to rest, and the whole diagram would sit thirty
-         * pixels low once the cards settled. Offsets are the untransformed
-         * layout, which is what the wires actually have to meet.
+         * wire would be pinned to where its card was passing through rather
+         * than to where it comes to rest.
          */
         const frame = (element: HTMLElement) => {
           let x = 0;
@@ -273,7 +305,7 @@ export default function WorkingProcess() {
           return { x, y, w: element.offsetWidth, h: element.offsetHeight };
         };
 
-        const anchor = (element: HTMLElement, side: Side): Point => {
+        const anchor = (element: HTMLElement, side: "top" | "right" | "bottom" | "left"): Point => {
           const f = frame(element);
           if (side === "right") return { x: f.x + f.w, y: f.y + f.h / 2 };
           if (side === "left") return { x: f.x, y: f.y + f.h / 2 };
@@ -281,44 +313,74 @@ export default function WorkingProcess() {
           return { x: f.x + f.w / 2, y: f.y };
         };
 
-        // Below the breakpoint the cards are one per row, so every wire is a
-        // simple drop from the card above into the one below whatever the edge
-        // asked for on the wide layout.
         const stacked = !window.matchMedia("(min-width: 1024px)").matches;
+
+        /**
+         * Stacked, the graph has nowhere to branch: one column of cards, so the
+         * only honest drawing is a chain through them in the order they are
+         * read. The fork and the sprint loop are wide-layout ideas and are left
+         * out rather than folded into a line where they would read as mistakes.
+         */
+        const active: Edge[] = stacked
+          ? NODES.slice(0, -1).map((node, i) => ({
+              from: node.id,
+              to: NODES[i + 1].id,
+              route: "across" as const,
+            }))
+          : EDGES;
 
         const drawn: { edge: Edge; lights: SVGPathElement[] }[] = [];
 
-        EDGES.forEach((edge, index) => {
-          const group = svg.querySelector<SVGGElement>(`[data-edge="${index}"]`);
-          const from = cardOf(edge.from);
-          const to = cardOf(edge.to);
-          if (!group || !from || !to) return;
+        for (let slot = 0; slot < WIRE_SLOTS; slot += 1) {
+          const group = svg.querySelector<SVGGElement>(`[data-wire="${slot}"]`);
+          if (!group) continue;
 
-          if (stacked && edge.wideOnly) {
+          const edge = active[slot];
+          const from = edge ? cardOf(edge.from) : null;
+          const to = edge ? cardOf(edge.to) : null;
+
+          if (!edge || !from || !to) {
             group.setAttribute("opacity", "0");
-            return;
+            continue;
           }
           group.removeAttribute("opacity");
 
-          const route = stacked ? "across" : edge.route;
           let points: Point[] = [];
 
-          if (route === "along") {
-            const start = anchor(from, "right");
-            const end = anchor(to, "left");
+          if (edge.route === "loop") {
+            // An arc standing on the card's own top edge — out of it and back
+            // into it — which is the sprint repeating rather than going
+            // anywhere new. Deliberately kept inside the card's own width: the
+            // gap on either side is where the two joining wires run, and a loop
+            // swung out into it would be drawn on top of them.
+            const f = frame(from);
+            const centre = f.x + f.w / 2;
+            const lift = f.y - LOOP_OUTSET;
+            points = [
+              { x: centre + 40, y: f.y },
+              { x: centre + 40, y: lift },
+              { x: centre - 40, y: lift },
+              { x: centre - 40, y: f.y },
+            ];
+          } else if (edge.route === "along") {
+            // Which way round the row runs. The canvas snakes — row four reads
+            // right to left — and taken as always left-to-right, a wire would
+            // leave the far side of its own card and be drawn straight through
+            // the one it was heading for.
+            const rightwards = frame(to).x >= frame(from).x;
+            const start = anchor(from, rightwards ? "right" : "left");
+            const end = anchor(to, rightwards ? "left" : "right");
             const midX = (start.x + end.x) / 2;
             points = [start, { x: midX, y: start.y }, { x: midX, y: end.y }, end];
-          } else if (route === "across") {
+          } else {
             const start = anchor(from, "bottom");
             const end = anchor(to, "top");
-            const midY = (start.y + end.y) / 2;
-            points = [start, { x: start.x, y: midY }, { x: end.x, y: midY }, end];
-          } else {
-            // Out of the bottom of one card, along beneath both, and back up
-            // into the bottom of the other.
-            const start = anchor(from, "bottom");
-            const end = anchor(to, "bottom");
-            const lane = Math.max(start.y, end.y) + UNDER_OUTSET;
+            // Deliberately not the midpoint: on the wide layout the midpoint
+            // lands in the row the parallel track occupies and the wire would
+            // be drawn straight through that card. Running just above the
+            // destination clears it, and still sits between the two when the
+            // cards are stacked.
+            const lane = Math.max(start.y + 22, end.y - LANE_ABOVE);
             points = [start, { x: start.x, y: lane }, { x: end.x, y: lane }, end];
           }
 
@@ -328,17 +390,38 @@ export default function WorkingProcess() {
           group.querySelectorAll<SVGPathElement>("path").forEach((path) => {
             path.setAttribute("d", d);
 
-            if (!path.classList.contains("process-wire-light")) return;
+            if (path.classList.contains("process-wire-base")) {
+              if (edge.dashed) path.setAttribute("stroke-dasharray", "5 7");
+              else path.removeAttribute("stroke-dasharray");
+              return;
+            }
 
             const length = path.getTotalLength();
+
+            if (path.classList.contains("process-wire-pulse")) {
+              // A zero-length dash with a round cap is a dot. Shifting the
+              // pattern forward by the whole length walks it along the path.
+              gsap.set(path, { strokeDasharray: `0.1 ${length}`, strokeDashoffset: 0 });
+              return;
+            }
+
             gsap.set(path, { strokeDasharray: length, strokeDashoffset: length });
             lights.push(path);
           });
 
+          // The little rings where a wire meets a card.
+          const ends = [points[0], points[points.length - 1]];
+          group.querySelectorAll<SVGCircleElement>("circle").forEach((dot, i) => {
+            const at = ends[i] ?? ends[0];
+            dot.setAttribute("cx", at.x.toFixed(1));
+            dot.setAttribute("cy", at.y.toFixed(1));
+          });
+
           drawn.push({ edge, lights });
-        });
+        }
 
         gsap.set(".process-card", { "--lit": 0 });
+        gsap.set(".process-wire-pulse", { opacity: 0 });
 
         if (reduced) {
           // The whole graph on, at rest. The information is the wiring, not the
@@ -348,42 +431,53 @@ export default function WorkingProcess() {
           return;
         }
 
-        const run = gsap.timeline({ repeat: -1, repeatDelay: 1.4, paused: true });
+        const run = gsap.timeline({ repeat: -1, repeatDelay: 1.5, paused: true });
 
-        // The first stage has no wire into it, so it lights on its own.
-        const first = cardOf(STAGES[0].id);
+        const first = cardOf(active[0]?.from ?? NODES[0].id);
         if (first) run.to(first, { "--lit": 1, duration: 0.4, ease: "power2.out" });
 
         drawn.forEach(({ edge, lights }) => {
-          // The iteration wire loops back to a stage that is already lit, so it
-          // draws without claiming to activate anything.
-          const target = edge.dashed ? null : cardOf(edge.to);
+          const group = lights[0]?.closest("g");
+          const pulse = group?.querySelector<SVGPathElement>(".process-wire-pulse");
+          const duration = edge.route === "across" ? 1 : 0.72;
+          const at = `>-${Math.min(0.2, duration / 4)}`;
 
-          run.to(lights, {
-            strokeDashoffset: 0,
-            duration: edge.route === "across" ? 1.1 : 0.8,
-            ease: "power1.inOut",
-          });
+          run.to(lights, { strokeDashoffset: 0, duration, ease: "power1.inOut" }, at);
 
-          if (target) {
-            run.to(target, { "--lit": 1, duration: 0.35, ease: "power2.out" }, "-=0.22");
+          if (pulse) {
+            const length = pulse.getTotalLength();
+            run.set(pulse, { opacity: 1 }, "<");
+            run.to(
+              pulse,
+              { strokeDashoffset: -length, duration, ease: "power1.inOut" },
+              "<",
+            );
+            run.set(pulse, { opacity: 0, strokeDashoffset: 0 }, ">");
           }
+
+          // A self-loop returns to a node that is already lit, so it draws
+          // without claiming to activate anything.
+          if (edge.from === edge.to) return;
+
+          const target = cardOf(edge.to);
+          if (target) run.to(target, { "--lit": 1, duration: 0.35, ease: "power2.out" }, "-=0.2");
         });
 
-        // Held at full, then wiped back to nothing before it runs again, so the
-        // reset reads as deliberate rather than as a jump cut.
-        run.to({}, { duration: 1.6 });
+        // Held at full, then wiped back before it runs again, so the reset
+        // reads as deliberate rather than as a jump cut.
+        run.to({}, { duration: 1.7 });
         run.to(
           drawn.flatMap(({ lights }) => lights),
-          { strokeDashoffset: (i, target: SVGPathElement) => target.getTotalLength(), duration: 0.5, ease: "power2.in" },
+          {
+            strokeDashoffset: (i, target: SVGPathElement) => target.getTotalLength(),
+            duration: 0.55,
+            ease: "power2.in",
+          },
         );
-        run.to(".process-card", { "--lit": 0, duration: 0.4 }, "<");
+        run.to(".process-card", { "--lit": 0, duration: 0.45 }, "<");
 
         timeline = run;
-        release = whileVisible(flow, {
-          on: () => run.play(),
-          off: () => run.pause(),
-        });
+        release = whileVisible(flow, { on: () => run.play(), off: () => run.pause() });
       };
 
       build();
@@ -410,60 +504,75 @@ export default function WorkingProcess() {
     <section
       ref={sectionRef}
       data-node-id="156:8025"
-      className="w-full overflow-x-clip bg-black py-[80px] lg:py-[120px]"
+      className="w-full overflow-x-clip bg-bg py-[80px] lg:py-[120px]"
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="flex w-full flex-col items-start gap-6 lg:flex-row lg:gap-[204px]">
-          <p className="process-meta shrink-0 font-body text-[18px] font-medium leading-[18px] tracking-[-0.25px] text-ash-muted">
+          <p className="process-meta shrink-0 font-body text-[18px] font-medium leading-[18px] tracking-[-0.25px] text-[#111]">
             [ Working Process ]
           </p>
           <div className="w-full">
-            <h2 className="font-display text-[clamp(2.25rem,4.4vw,64px)] font-medium leading-[1.1] tracking-[-1.5px] text-white">
+            <h2 className="font-display text-[clamp(2.25rem,4.4vw,64px)] font-medium leading-[1.1] tracking-[-1.5px] text-black">
               <span className="block overflow-hidden">
                 <span className="process-heading-inner block">Our proven delivery</span>
               </span>
               <span className="block overflow-hidden">
-                <span className="process-heading-inner block">Process</span>
+                <span className="process-heading-inner block text-ash-muted">Process</span>
               </span>
             </h2>
           </div>
         </div>
 
-        <div className="process-divider mt-[32px] h-px w-full bg-[#313131] lg:mt-[48px]" />
+        <div className="process-divider mt-[32px] h-px w-full bg-black/10 lg:mt-[48px]" />
 
         <div className="mt-[32px] flex w-full flex-col items-start justify-between gap-[24px] lg:mt-[40px] lg:flex-row lg:items-end">
-          <p className="process-meta max-w-[560px] font-display text-[20px] leading-[1.3] tracking-[-0.25px] text-ash-muted">
+          <p className="process-meta max-w-[560px] font-display text-[20px] leading-[1.3] tracking-[-0.25px] text-ash-dark">
             A clear, collaborative process that turns a vague idea into software
-            running in production — six stages, wired end to end.
+            running in production — six stages and one parallel track, wired end
+            to end.
           </p>
 
           <div className="process-meta flex items-end gap-[20px]">
-            <p className="max-w-[220px] font-display text-[16px] leading-[1.35] tracking-[-0.2px] text-ash-muted">
+            <p className="max-w-[220px] font-display text-[16px] leading-[1.35] tracking-[-0.2px] text-neutral-paragraph">
               Two-week slices, from first call to live system
             </p>
-            <p className="font-display text-[clamp(3.5rem,7vw,104px)] font-medium uppercase leading-[0.82] tracking-[-0.0625em] text-white">
+            <p className="font-display text-[clamp(3.5rem,7vw,104px)] font-medium uppercase leading-[0.82] tracking-[-0.0625em] text-black">
               06
             </p>
           </div>
         </div>
 
-        {/* The canvas. Cards are grid children; the wires are an overlay sized to
-            the same box, drawn from where the grid actually put them. */}
-        <div className="process-flow relative mt-[56px] w-full pb-[56px] lg:mt-[88px] lg:pb-[64px]">
+        {/* The canvas. Engineering paper, dashed column guides, then the wiring
+            overlay, then the cards — each layer sitting above the last. */}
+        <div className="process-flow relative mt-[48px] w-full pb-[26px] lg:mt-[76px] lg:pb-[34px]">
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -inset-x-6 -inset-y-[40px] [background-image:radial-gradient(circle,rgba(21,21,21,0.085)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_82%_70%_at_50%_50%,black,transparent)]"
+          />
+
+          <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 right-0 hidden lg:block">
+            {["25%", "50%", "75%"].map((left) => (
+              <span
+                key={left}
+                style={{ left }}
+                className="process-guide absolute -top-[30px] bottom-[-30px] w-px border-l border-dashed border-black/[0.10]"
+              />
+            ))}
+          </div>
+
           <svg
             aria-hidden
             className="process-wires pointer-events-none absolute inset-0 size-full overflow-visible"
             preserveAspectRatio="none"
             fill="none"
           >
-            {EDGES.map((edge, index) => (
-              <g key={`${edge.from}-${edge.to}`} data-edge={index}>
+            {Array.from({ length: WIRE_SLOTS }, (_, slot) => (
+              <g key={slot} data-wire={slot}>
                 <path
                   className="process-wire-base"
-                  stroke="rgba(255,255,255,0.13)"
+                  stroke="rgba(21,21,21,0.15)"
                   strokeWidth={1}
                   strokeLinecap="round"
-                  strokeDasharray={edge.dashed ? "5 7" : undefined}
                 />
                 {/* Halo first, hairline over it: together they read as a lit
                     filament rather than as a green line. */}
@@ -472,7 +581,7 @@ export default function WorkingProcess() {
                   stroke="var(--color-primary-green)"
                   strokeWidth={7}
                   strokeLinecap="round"
-                  opacity={0.16}
+                  opacity={0.2}
                 />
                 <path
                   className="process-wire-light"
@@ -480,104 +589,128 @@ export default function WorkingProcess() {
                   strokeWidth={1.6}
                   strokeLinecap="round"
                 />
+                {/* Rides ahead of the light. A zero-length round-capped dash. */}
+                <path
+                  className="process-wire-pulse"
+                  stroke="var(--color-primary-green)"
+                  strokeWidth={6}
+                  strokeLinecap="round"
+                />
+                <circle r={3} fill="var(--color-bg)" stroke="rgba(21,21,21,0.2)" strokeWidth={1} />
+                <circle r={3} fill="var(--color-bg)" stroke="rgba(21,21,21,0.2)" strokeWidth={1} />
               </g>
             ))}
           </svg>
 
-          {/* The column gap is the length of the wires between neighbours, so it
-              is wide enough for a light to visibly travel one rather than blink
-              across a stub. */}
-          <ol className="relative grid w-full grid-cols-1 gap-y-[64px] lg:grid-cols-3 lg:gap-x-[92px] lg:gap-y-[150px]">
-            {STAGES.map((stage) => (
-              <li key={stage.id} className="relative flex">
+          <ol className="relative grid w-full grid-cols-1 gap-y-[54px] lg:grid-cols-4 lg:gap-x-[54px] lg:gap-y-[58px]">
+            {NODES.map((node) => (
+              <li key={node.id} className={`relative flex ${node.place}`}>
                 <article
-                  data-stage={stage.id}
+                  data-node={node.id}
                   style={{ "--lit": 0 } as CSSProperties}
-                  className="process-card group relative flex w-full flex-col gap-[14px] rounded-[18px] border bg-[#0b0b0b] p-[22px] will-change-transform"
+                  className={
+                    "process-card relative flex w-full flex-col gap-[11px] rounded-[16px] bg-white p-[18px] " +
+                    "shadow-[0_1px_2px_rgba(21,21,21,0.05),0_18px_32px_-26px_rgba(21,21,21,0.55)] " +
+                    "will-change-transform"
+                  }
                 >
-                  {/* Border and fill both read off the one lit value. */}
+                  {/* Border and wash both read off the one lit value. Drawn as
+                      an overlay so neither disturbs the card's own box. */}
                   <span
                     aria-hidden
                     style={{
                       borderColor:
-                        "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 62%), rgba(255,255,255,0.11))",
+                        "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 72%), rgba(21,21,21,0.08))",
                     }}
-                    className="pointer-events-none absolute inset-0 rounded-[18px] border"
+                    className="pointer-events-none absolute inset-0 rounded-[16px] border"
                   />
                   <span
                     aria-hidden
                     style={{ opacity: "var(--lit)" }}
-                    className="pointer-events-none absolute inset-0 rounded-[18px] bg-[radial-gradient(130%_110%_at_50%_0%,rgba(134,213,42,0.15),transparent_72%)]"
+                    className="pointer-events-none absolute -inset-[3px] rounded-[19px] bg-[radial-gradient(60%_70%_at_50%_50%,rgba(134,213,42,0.22),transparent_75%)] blur-[3px]"
                   />
 
                   <div className="relative flex items-center justify-between gap-[10px]">
-                    <span className="flex items-center gap-[9px]">
-                      <span
-                        aria-hidden
-                        className="relative flex size-[9px] items-center justify-center"
-                      >
+                    <span className="flex items-center gap-[8px]">
+                      <span aria-hidden className="relative flex size-[8px] items-center justify-center">
                         <span
                           style={{
                             opacity: "var(--lit)",
-                            transform: "scale(calc(0.7 + var(--lit) * 0.8))",
+                            transform: "scale(calc(0.7 + var(--lit) * 0.9))",
                           }}
-                          className="absolute inset-[-6px] rounded-full bg-[radial-gradient(circle,rgba(134,213,42,0.6),transparent_70%)]"
+                          className="absolute inset-[-6px] rounded-full bg-[radial-gradient(circle,rgba(134,213,42,0.55),transparent_70%)]"
                         />
                         <span
                           style={{
                             backgroundColor:
-                              "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 100%), #3d3d3d)",
+                              "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 100%), #c9c9c9)",
                           }}
-                          className="size-[7px] rounded-full"
+                          className="size-[6px] rounded-full"
                         />
                       </span>
                       <span
                         style={{
                           color:
-                            "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 100%), #6a6a6a)",
+                            "color-mix(in srgb, #4d7d13 calc(var(--lit) * 100%), #a3a3a3)",
                         }}
-                        className="font-mono text-[11px] leading-none tracking-[1px]"
+                        className="font-mono text-[10.5px] uppercase leading-none tracking-[1px]"
                       >
-                        {stage.number}
+                        {node.number ?? "//"}
                       </span>
                     </span>
 
-                    <span className="font-mono text-[10px] uppercase leading-none tracking-[0.6px] text-[#5e5e5e]">
-                      {stage.span}
+                    <span className="font-mono text-[9.5px] uppercase leading-none tracking-[0.6px] text-[#a3a3a3]">
+                      {node.span}
                     </span>
                   </div>
 
-                  <h3 className="relative font-display text-[20px] font-medium leading-[1.16] tracking-[-0.4px] text-white">
-                    {stage.title}
+                  <h3 className="relative font-display text-[17px] font-semibold leading-[1.18] tracking-[-0.35px] text-black">
+                    {node.title}
                   </h3>
 
-                  <p className="relative font-body text-[13px] leading-[20px] tracking-[-0.1px] text-[#8f8f8f]">
-                    {stage.copy}
+                  <p className="relative font-body text-[12.5px] leading-[19px] tracking-[-0.1px] text-neutral-paragraph">
+                    {node.copy}
                   </p>
 
-                  <p className="relative mt-auto flex items-center gap-[7px] border-t border-white/[0.08] pt-[13px] font-body text-[12px] leading-none tracking-[-0.1px] text-ash-muted">
+                  <p className="relative mt-auto flex items-center gap-[7px] border-t border-black/[0.07] pt-[11px] font-body text-[11.5px] leading-none tracking-[-0.1px] text-ash-dark">
                     <span
                       aria-hidden
                       style={{
                         backgroundColor:
-                          "color-mix(in srgb, var(--color-primary-green) calc(22% + var(--lit) * 78%), transparent)",
+                          "color-mix(in srgb, var(--color-primary-green) calc(25% + var(--lit) * 75%), transparent)",
                       }}
                       className="size-[4px] shrink-0 rounded-full"
                     />
-                    {stage.output}
+                    {node.output}
                   </p>
                 </article>
               </li>
             ))}
           </ol>
+        </div>
 
-          {/* Sits ON the iteration wire, masking it with its own background, so
-              the caption labels that wire rather than floating under it. The
-              offset is the container's bottom padding less UNDER_OUTSET — which
-              is where the wire's lane lands. */}
-          <p className="process-meta pointer-events-none absolute bottom-[30px] left-1/2 hidden -translate-x-1/2 translate-y-1/2 bg-black px-[10px] font-mono text-[10px] uppercase leading-none tracking-[0.6px] text-[#5e5e5e] lg:block">
-            ↺ the next slice re-enters the sprint
-          </p>
+        <div className="process-meta mt-[30px] flex w-full flex-wrap items-center gap-x-[22px] gap-y-[10px] lg:mt-[38px]">
+          <span className="flex items-center gap-[7px]">
+            <span aria-hidden className="size-[6px] rounded-full bg-primary-green" />
+            <span className="font-mono text-[10.5px] uppercase leading-none tracking-[0.7px] text-ash-dark">
+              Sequential stage
+            </span>
+          </span>
+          <span className="flex items-center gap-[7px]">
+            <span aria-hidden className="h-px w-[18px] bg-black/25" />
+            <span className="font-mono text-[10.5px] uppercase leading-none tracking-[0.7px] text-neutral-paragraph">
+              Runs in parallel
+            </span>
+          </span>
+          <span className="flex items-center gap-[7px]">
+            <span
+              aria-hidden
+              className="h-px w-[18px] border-t border-dashed border-black/30 bg-transparent"
+            />
+            <span className="font-mono text-[10.5px] uppercase leading-none tracking-[0.7px] text-neutral-paragraph">
+              Repeats every two weeks
+            </span>
+          </span>
         </div>
       </div>
     </section>
