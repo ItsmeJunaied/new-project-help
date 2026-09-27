@@ -16,9 +16,25 @@ type Node = {
   output: string;
   /** What is actually open on a screen during this stage. */
   tools: TechName[];
-  /** Where it sits on the four-by-four canvas. Ignored once the cards stack. */
+  /** This node's own colour. See ACCENTS. */
+  accent: Accent;
+  /** Where it sits on the six-by-three canvas. Ignored once the cards stack. */
   place: string;
 };
+
+/**
+ * A colour per node.
+ *
+ * Seven cards in one neutral palette is a diagram you have to read to follow.
+ * Giving each node its own hue means the eye can track a single stage across
+ * the canvas, and the wire arriving at a node carries that node's colour — so
+ * the light changing colour IS the handover from one stage to the next.
+ *
+ * `line` is the saturated value the wire and the dot are drawn in, `tint` the
+ * card's ground, `ink` a value dark enough to set type on the tint. The brand
+ * green belongs to Sprint Build, which is where most of the work happens.
+ */
+type Accent = { line: string; tint: string; ink: string };
 
 /**
  * Seven nodes, not six: the environments track is real work that happens beside
@@ -27,78 +43,167 @@ type Node = {
  * DOM order is reading order — which is also the order the cards stack in below
  * the breakpoint, where the graph collapses to a single chain.
  */
+/*
+ * THE PREVIOUS NODE LIST — four-by-four canvas, no colour.
+ *
+ * Kept commented at your request. Git has it at commit 2425525, so this
+ * block can be deleted whenever you are happy with what replaced it.
+ *
+ * const NODES: Node[] = [
+ *   {
+ *     id: "discovery",
+ *     number: "01",
+ *     title: "Discovery",
+ *     copy: "Your users, your deadline and your budget — before anybody names a technology.",
+ *     span: "One call",
+ *     output: "Discovery notes",
+ *     tools: ["figma", "github"],
+ *     place: "lg:col-start-1 lg:row-start-2",
+ *   },
+ *   {
+ *     id: "scope",
+ *     number: "02",
+ *     title: "Scope & Architecture",
+ *     copy: "A written scope, wireframes and the stack, at a fixed price and timeline to sign off.",
+ *     span: "1–2 weeks",
+ *     output: "Signed scope",
+ *     tools: ["figma", "postgres", "docker"],
+ *     place: "lg:col-start-2 lg:row-start-2",
+ *   },
+ *   {
+ *     id: "design",
+ *     number: "03",
+ *     title: "Design & Prototype",
+ *     copy: "Screens and a clickable prototype, reviewed while changing them is still cheap.",
+ *     span: "2–3 weeks",
+ *     output: "Approved UI",
+ *     tools: ["figma", "framer"],
+ *     place: "lg:col-start-3 lg:row-start-1",
+ *   },
+ *   {
+ *     id: "envs",
+ *     number: null,
+ *     title: "Environments & CI",
+ *     copy: "Repos, staging and pipelines standing before the first sprint opens.",
+ *     span: "In parallel",
+ *     output: "Staging + CI",
+ *     tools: ["github", "docker", "terraform", "vercel"],
+ *     place: "lg:col-start-3 lg:row-start-3",
+ *   },
+ *   {
+ *     id: "build",
+ *     number: "04",
+ *     title: "Sprint Build",
+ *     copy: "Two-week slices. A standup every morning, a demo at the end of each one.",
+ *     span: "The bulk of it",
+ *     output: "Working software",
+ *     tools: ["react", "nextjs", "typescript", "laravel", "dotnet"],
+ *     place: "lg:col-start-4 lg:row-start-2",
+ *   },
+ *   {
+ *     id: "launch",
+ *     number: "05",
+ *     title: "QA & Go-Live",
+ *     copy: "Tested on staging, accepted by you, then a rehearsed release with a way back.",
+ *     span: "1 week",
+ *     output: "Live system",
+ *     tools: ["github", "docker", "grafana"],
+ *     place: "lg:col-start-2 lg:row-start-4",
+ *   },
+ *   {
+ *     id: "support",
+ *     number: "06",
+ *     title: "Support & Iterate",
+ *     copy: "Six to twelve months of fixes on us, monitoring, and the next slice scoped.",
+ *     span: "6–12 months",
+ *     output: "Roadmap",
+ *     tools: ["grafana", "n8n", "github"],
+ *     place: "lg:col-start-1 lg:row-start-4",
+ *   },
+ * ];
+ */
 const NODES: Node[] = [
   {
     id: "discovery",
     number: "01",
     title: "Discovery",
-    copy: "Your users, your deadline and your budget — before anybody names a technology.",
+    copy: "Your users, your deadline, your budget.",
     span: "One call",
     output: "Discovery notes",
     tools: ["figma", "github"],
+    accent: { line: "#3b6ef5", tint: "#eff4ff", ink: "#2b4fd0" },
     place: "lg:col-start-1 lg:row-start-2",
   },
   {
     id: "scope",
     number: "02",
     title: "Scope & Architecture",
-    copy: "A written scope, wireframes and the stack, at a fixed price and timeline to sign off.",
+    copy: "A written scope at a fixed price.",
     span: "1–2 weeks",
     output: "Signed scope",
     tools: ["figma", "postgres", "docker"],
+    accent: { line: "#7c5cf5", tint: "#f4f0ff", ink: "#5b3fd0" },
     place: "lg:col-start-2 lg:row-start-2",
   },
   {
     id: "design",
     number: "03",
     title: "Design & Prototype",
-    copy: "Screens and a clickable prototype, reviewed while changing them is still cheap.",
+    copy: "Screens and a clickable prototype.",
     span: "2–3 weeks",
     output: "Approved UI",
     tools: ["figma", "framer"],
+    accent: { line: "#e0409a", tint: "#fdf0f8", ink: "#c02682" },
     place: "lg:col-start-3 lg:row-start-1",
   },
   {
     id: "envs",
     number: null,
     title: "Environments & CI",
-    copy: "Repos, staging and pipelines standing before the first sprint opens.",
+    copy: "Repos, staging and pipelines standing.",
     span: "In parallel",
     output: "Staging + CI",
     tools: ["github", "docker", "terraform", "vercel"],
+    accent: { line: "#0ea5b7", tint: "#e9f8fa", ink: "#0a7d8b" },
     place: "lg:col-start-3 lg:row-start-3",
   },
   {
     id: "build",
     number: "04",
     title: "Sprint Build",
-    copy: "Two-week slices. A standup every morning, a demo at the end of each one.",
+    copy: "Two-week slices. Standup daily, demo at the end.",
     span: "The bulk of it",
     output: "Working software",
-    tools: ["react", "nextjs", "typescript", "laravel", "dotnet"],
+    tools: ["react", "nextjs", "typescript", "laravel"],
+    accent: { line: "var(--color-primary-green)", tint: "#f4fbe9", ink: "#4d7d13" },
     place: "lg:col-start-4 lg:row-start-2",
   },
   {
     id: "launch",
     number: "05",
     title: "QA & Go-Live",
-    copy: "Tested on staging, accepted by you, then a rehearsed release with a way back.",
+    copy: "Tested on staging, then a rehearsed release.",
     span: "1 week",
     output: "Live system",
     tools: ["github", "docker", "grafana"],
-    place: "lg:col-start-2 lg:row-start-4",
+    accent: { line: "#f0910c", tint: "#fff7e9", ink: "#b0590a" },
+    place: "lg:col-start-5 lg:row-start-2",
   },
   {
     id: "support",
     number: "06",
     title: "Support & Iterate",
-    copy: "Six to twelve months of fixes on us, monitoring, and the next slice scoped.",
+    copy: "Fixes, monitoring, and the next slice scoped.",
     span: "6–12 months",
     output: "Roadmap",
     tools: ["grafana", "n8n", "github"],
-    place: "lg:col-start-1 lg:row-start-4",
+    accent: { line: "#f2643a", tint: "#fff1ec", ink: "#c0431b" },
+    place: "lg:col-start-6 lg:row-start-2",
   },
 ];
+
+/** Looked up by id when the wires are coloured. */
+const ACCENT_OF = Object.fromEntries(NODES.map((n) => [n.id, n.accent])) as Record<string, Accent>;
 
 type Edge = {
   from: string;
@@ -125,7 +230,10 @@ const EDGES: Edge[] = [
   { from: "design", to: "build", route: "along" },
   { from: "envs", to: "build", route: "along" },
   { from: "build", to: "build", route: "loop", dashed: true },
-  { from: "build", to: "launch", route: "across" },
+  // Was `across` — a long return run down and back across the canvas — when the
+  // graph wrapped onto a second band. On the six-column canvas the whole flow
+  // reads left to right in one line, so this is an ordinary step sideways.
+  { from: "build", to: "launch", route: "along" },
   { from: "launch", to: "support", route: "along" },
 ];
 
@@ -491,8 +599,18 @@ export default function WorkingProcess() {
           const d = roundedPath(points, WIRE_RADIUS);
           const lights: SVGPathElement[] = [];
 
+          // The wire wears the colour of the node it is arriving at, so the
+          // light changing colour as it crosses the canvas IS the handover from
+          // one stage to the next. A self-loop arrives where it left, so it
+          // keeps its own.
+          const stroke = (ACCENT_OF[edge.to] ?? ACCENT_OF[edge.from])?.line ?? "currentColor";
+
           group.querySelectorAll<SVGPathElement>("path").forEach((path) => {
             path.setAttribute("d", d);
+
+            if (!path.classList.contains("process-wire-base")) {
+              path.setAttribute("stroke", stroke);
+            }
 
             if (path.classList.contains("process-wire-base")) {
               if (edge.dashed) path.setAttribute("stroke-dasharray", "5 7");
@@ -513,12 +631,14 @@ export default function WorkingProcess() {
             lights.push(path);
           });
 
-          // The little rings where a wire meets a card.
+          // The little rings where a wire meets a card, ringed in the same
+          // colour as the wire that passes through them.
           const ends = [points[0], points[points.length - 1]];
           group.querySelectorAll<SVGCircleElement>("circle").forEach((dot, i) => {
             const at = ends[i] ?? ends[0];
             dot.setAttribute("cx", at.x.toFixed(1));
             dot.setAttribute("cy", at.y.toFixed(1));
+            dot.setAttribute("stroke", stroke);
           });
 
           drawn.push({ edge, lights });
@@ -608,17 +728,26 @@ export default function WorkingProcess() {
     <section
       ref={sectionRef}
       data-node-id="156:8025"
-      className="w-full overflow-x-clip bg-bg py-[80px] lg:py-[120px]"
+      // One screen, on a wide window: the diagram only says what it says if the
+      // whole of it is in front of you at once, so the section takes a viewport
+      // and centres itself in it. `svh` rather than `vh` — on a phone `vh` is
+      // the height with the browser chrome retracted, which is taller than what
+      // anybody is actually looking at. Stacked, the cards are taller than any
+      // screen and `min-h` simply stops binding.
+      className="w-full overflow-x-clip bg-bg py-[72px] lg:flex lg:min-h-[100svh] lg:flex-col lg:justify-center lg:py-[40px]"
     >
       <TechMarkSprite names={SPRITE_MARKS} />
 
       <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
-        <div className="flex w-full flex-col items-start gap-6 lg:flex-row lg:gap-[204px]">
-          <p className="process-meta shrink-0 font-body text-[18px] font-medium leading-[18px] tracking-[-0.25px] text-[#111]">
-            [ Working Process ]
-          </p>
-          <div className="w-full">
-            <h2 className="font-display text-[clamp(2.25rem,4.4vw,64px)] font-medium leading-[1.1] tracking-[-1.5px] text-black">
+        {/* The head is compressed against the wide layout — label, heading,
+            one line and the count all on one row — because every pixel it
+            takes is a pixel the diagram below does not get. */}
+        <div className="flex w-full flex-col items-start gap-5 lg:flex-row lg:items-end lg:justify-between lg:gap-[48px]">
+          <div className="flex w-full flex-col items-start gap-[14px] lg:w-auto">
+            <p className="process-meta font-body text-[15px] font-medium leading-none tracking-[-0.25px] text-[#111]">
+              [ Working Process ]
+            </p>
+            <h2 className="font-display text-[clamp(2rem,3.4vw,46px)] font-medium leading-[1.06] tracking-[-1.2px] text-black">
               <span className="block overflow-hidden">
                 <span className="process-heading-inner block">Our proven delivery</span>
               </span>
@@ -627,30 +756,23 @@ export default function WorkingProcess() {
               </span>
             </h2>
           </div>
-        </div>
 
-        <div className="process-divider mt-[32px] h-px w-full bg-black/10 lg:mt-[48px]" />
-
-        <div className="mt-[32px] flex w-full flex-col items-start justify-between gap-[24px] lg:mt-[40px] lg:flex-row lg:items-end">
-          <p className="process-meta max-w-[560px] font-display text-[20px] leading-[1.3] tracking-[-0.25px] text-ash-dark">
-            A clear, collaborative process that turns a vague idea into software
-            running in production — six stages and one parallel track, wired end
-            to end.
-          </p>
-
-          <div className="process-meta flex items-end gap-[20px]">
-            <p className="max-w-[220px] font-display text-[16px] leading-[1.35] tracking-[-0.2px] text-neutral-paragraph">
-              Two-week slices, from first call to live system
+          <div className="process-meta flex items-end gap-[18px]">
+            <p className="max-w-[320px] font-display text-[14px] leading-[1.4] tracking-[-0.2px] text-neutral-paragraph">
+              Six stages and one parallel track, wired end to end — two-week
+              slices from first call to live system.
             </p>
-            <p className="font-display text-[clamp(3.5rem,7vw,104px)] font-medium uppercase leading-[0.82] tracking-[-0.0625em] text-black">
+            <p className="font-display text-[clamp(3rem,5vw,74px)] font-medium uppercase leading-[0.8] tracking-[-0.0625em] text-black">
               06
             </p>
           </div>
         </div>
 
+        <div className="process-divider mt-[18px] h-px w-full bg-black/10 lg:mt-[20px]" />
+
         {/* The canvas. Engineering paper, dashed column guides, then the wiring
             overlay, then the cards — each layer sitting above the last. */}
-        <div className="process-flow relative mt-[48px] w-full pb-[26px] [perspective:1600px] lg:mt-[76px] lg:pb-[34px]">
+        <div className="process-flow relative mt-[24px] w-full pb-[18px] [perspective:1600px] lg:mt-[34px] lg:pb-[22px]">
           <div
             aria-hidden
             className="pointer-events-none absolute -inset-x-6 -inset-y-[40px] [background-image:radial-gradient(circle,rgba(21,21,21,0.085)_1px,transparent_1px)] [background-size:22px_22px] [mask-image:radial-gradient(ellipse_82%_70%_at_50%_50%,black,transparent)]"
@@ -708,111 +830,219 @@ export default function WorkingProcess() {
             ))}
           </svg>
 
-          <ol className="relative grid w-full grid-cols-1 gap-y-[54px] lg:grid-cols-4 lg:gap-x-[54px] lg:gap-y-[58px]">
+          {/*
+            THE PREVIOUS CARD — four columns, one neutral palette, a copy
+            paragraph and a 42px block. Kept commented at your request; git
+            has it at commit 2425525.
+
+            <ol className="relative grid w-full grid-cols-1 gap-y-[54px] lg:grid-cols-4 lg:gap-x-[54px] lg:gap-y-[58px]">
+            {NODES.map((node) => (
+            <li key={node.id} className={`relative flex ${node.place}`}>
+            <article
+            data-node={node.id}
+            style={{ "--lit": 0 } as CSSProperties}
+            className={
+            "process-card relative flex w-full flex-col gap-[11px] rounded-[16px] bg-white p-[18px] " +
+            "shadow-[0_1px_2px_rgba(21,21,21,0.05),0_18px_32px_-26px_rgba(21,21,21,0.55)] " +
+            "[transform-style:preserve-3d] will-change-transform"
+            }
+            >
+            {/ * Border and wash both read off the one lit value. Drawn as
+            an overlay so neither disturbs the card's own box. * /}
+            <span
+            aria-hidden
+            style={{
+            borderColor:
+            "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 72%), rgba(21,21,21,0.08))",
+            }}
+            className="pointer-events-none absolute inset-0 rounded-[16px] border"
+            />
+            <span
+            aria-hidden
+            style={{ opacity: "var(--lit)" }}
+            className="pointer-events-none absolute -inset-[3px] rounded-[19px] bg-[radial-gradient(60%_70%_at_50%_50%,rgba(134,213,42,0.22),transparent_75%)] blur-[3px]"
+            />
+
+            <div className="relative flex items-center justify-between gap-[10px]">
+            <span className="flex items-center gap-[8px]">
+            <span aria-hidden className="relative flex size-[8px] items-center justify-center">
+            <span
+            style={{
+            opacity: "var(--lit)",
+            transform: "scale(calc(0.7 + var(--lit) * 0.9))",
+            }}
+            className="absolute inset-[-6px] rounded-full bg-[radial-gradient(circle,rgba(134,213,42,0.55),transparent_70%)]"
+            />
+            <span
+            style={{
+            backgroundColor:
+            "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 100%), #c9c9c9)",
+            }}
+            className="size-[6px] rounded-full"
+            />
+            </span>
+            <span
+            style={{
+            color:
+            "color-mix(in srgb, #4d7d13 calc(var(--lit) * 100%), #a3a3a3)",
+            }}
+            className="font-mono text-[10.5px] uppercase leading-none tracking-[1px]"
+            >
+            {node.number ?? "//"}
+            </span>
+            </span>
+
+            <span className="font-mono text-[9.5px] uppercase leading-none tracking-[0.6px] text-[#a3a3a3]">
+            {node.span}
+            </span>
+            </div>
+
+            <div className="relative flex items-start gap-[12px]">
+            <IsoBlock className="process-block mt-[1px] size-[42px] shrink-0" />
+            <h3 className="font-display text-[17px] font-semibold leading-[1.18] tracking-[-0.35px] text-black">
+            {node.title}
+            </h3>
+            </div>
+
+            <p className="relative font-body text-[12.5px] leading-[19px] tracking-[-0.1px] text-neutral-paragraph">
+            {node.copy}
+            </p>
+
+            {/ * What is actually open during this stage. Real marks, from
+            the same sprite the engineering-stack section draws. * /}
+            <div className="relative flex flex-wrap items-center gap-[6px]">
+            <span
+            style={{
+            borderColor:
+            "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 45%), rgba(21,21,21,0.09))",
+            backgroundColor:
+            "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 12%), var(--color-bg))",
+            }}
+            className="rounded-full border px-[8px] py-[4px] font-mono text-[9px] uppercase leading-none tracking-[0.5px] text-ash-dark"
+            >
+            Tools
+            </span>
+            {node.tools.map((tool) => (
+            <span
+            key={tool}
+            title={techLabel(tool)}
+            className="flex size-[26px] items-center justify-center rounded-[8px] border border-black/[0.07] bg-white shadow-[0_1px_2px_rgba(21,21,21,0.06)]"
+            >
+            <TechMark name={tool} className="size-[15px]" />
+            <span className="sr-only">{techLabel(tool)}</span>
+            </span>
+            ))}
+            </div>
+
+            <p className="relative mt-auto flex items-center gap-[7px] border-t border-black/[0.07] pt-[11px] font-body text-[11.5px] leading-none tracking-[-0.1px] text-ash-dark">
+            <span
+            aria-hidden
+            style={{
+            backgroundColor:
+            "color-mix(in srgb, var(--color-primary-green) calc(25% + var(--lit) * 75%), transparent)",
+            }}
+            className="size-[4px] shrink-0 rounded-full"
+            />
+            {node.output}
+            </p>
+            </article>
+            </li>
+            ))}
+            </ol>
+          */}
+
+          {/* Six across, three deep — the whole graph on one screen. The
+              middle column carries the fork: design above the line, the
+              environments track below it, both rejoining at the sprint. */}
+          <ol className="relative grid w-full grid-cols-1 gap-y-[38px] lg:grid-cols-6 lg:gap-x-[42px] lg:gap-y-[24px]">
             {NODES.map((node) => (
               <li key={node.id} className={`relative flex ${node.place}`}>
                 <article
                   data-node={node.id}
-                  style={{ "--lit": 0 } as CSSProperties}
+                  style={
+                    {
+                      "--lit": 0,
+                      "--accent": node.accent.line,
+                      backgroundColor: node.accent.tint,
+                    } as CSSProperties
+                  }
                   className={
-                    "process-card relative flex w-full flex-col gap-[11px] rounded-[16px] bg-white p-[18px] " +
-                    "shadow-[0_1px_2px_rgba(21,21,21,0.05),0_18px_32px_-26px_rgba(21,21,21,0.55)] " +
+                    "process-card relative flex w-full flex-col gap-[7px] rounded-[14px] p-[12px] " +
+                    "shadow-[0_1px_2px_rgba(21,21,21,0.05),0_14px_26px_-22px_rgba(21,21,21,0.5)] " +
                     "[transform-style:preserve-3d] will-change-transform"
                   }
                 >
-                  {/* Border and wash both read off the one lit value. Drawn as
-                      an overlay so neither disturbs the card's own box. */}
+                  {/* Border and glow both read off the one lit value, in this
+                      node's own colour rather than in one shared accent. */}
                   <span
                     aria-hidden
                     style={{
                       borderColor:
-                        "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 72%), rgba(21,21,21,0.08))",
+                        "color-mix(in srgb, var(--accent) calc(18% + var(--lit) * 62%), rgba(21,21,21,0.06))",
                     }}
-                    className="pointer-events-none absolute inset-0 rounded-[16px] border"
+                    className="pointer-events-none absolute inset-0 rounded-[14px] border"
                   />
                   <span
                     aria-hidden
-                    style={{ opacity: "var(--lit)" }}
-                    className="pointer-events-none absolute -inset-[3px] rounded-[19px] bg-[radial-gradient(60%_70%_at_50%_50%,rgba(134,213,42,0.22),transparent_75%)] blur-[3px]"
+                    style={{
+                      opacity: "var(--lit)",
+                      background:
+                        "radial-gradient(70%_70%_at_50%_0%, color-mix(in srgb, var(--accent) 26%, transparent), transparent 72%)",
+                    }}
+                    className="pointer-events-none absolute -inset-[3px] rounded-[17px] blur-[3px]"
                   />
 
-                  <div className="relative flex items-center justify-between gap-[10px]">
-                    <span className="flex items-center gap-[8px]">
-                      <span aria-hidden className="relative flex size-[8px] items-center justify-center">
-                        <span
-                          style={{
-                            opacity: "var(--lit)",
-                            transform: "scale(calc(0.7 + var(--lit) * 0.9))",
-                          }}
-                          className="absolute inset-[-6px] rounded-full bg-[radial-gradient(circle,rgba(134,213,42,0.55),transparent_70%)]"
-                        />
-                        <span
-                          style={{
-                            backgroundColor:
-                              "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 100%), #c9c9c9)",
-                          }}
-                          className="size-[6px] rounded-full"
-                        />
-                      </span>
+                  <div className="relative flex items-center justify-between gap-[8px]">
+                    <span className="flex items-center gap-[7px]">
+                      <IsoBlock className="process-block size-[24px] shrink-0" />
                       <span
                         style={{
                           color:
-                            "color-mix(in srgb, #4d7d13 calc(var(--lit) * 100%), #a3a3a3)",
+                            "color-mix(in srgb, var(--accent) calc(55% + var(--lit) * 45%), #9a9a9a)",
                         }}
-                        className="font-mono text-[10.5px] uppercase leading-none tracking-[1px]"
+                        className="font-mono text-[10px] font-semibold uppercase leading-none tracking-[0.9px]"
                       >
                         {node.number ?? "//"}
                       </span>
                     </span>
 
-                    <span className="font-mono text-[9.5px] uppercase leading-none tracking-[0.6px] text-[#a3a3a3]">
+                    <span className="font-mono text-[8.5px] uppercase leading-none tracking-[0.5px] text-[#9a9a9a]">
                       {node.span}
                     </span>
                   </div>
 
-                  <div className="relative flex items-start gap-[12px]">
-                    <IsoBlock className="process-block mt-[1px] size-[42px] shrink-0" />
-                    <h3 className="font-display text-[17px] font-semibold leading-[1.18] tracking-[-0.35px] text-black">
-                      {node.title}
-                    </h3>
-                  </div>
+                  <h3 className="relative font-display text-[14.5px] font-semibold leading-[1.16] tracking-[-0.3px] text-black">
+                    {node.title}
+                  </h3>
 
-                  <p className="relative font-body text-[12.5px] leading-[19px] tracking-[-0.1px] text-neutral-paragraph">
+                  <p className="relative font-body text-[11px] leading-[15px] tracking-[-0.1px] text-neutral-paragraph">
                     {node.copy}
                   </p>
 
                   {/* What is actually open during this stage. Real marks, from
                       the same sprite the engineering-stack section draws. */}
-                  <div className="relative flex flex-wrap items-center gap-[6px]">
-                    <span
-                      style={{
-                        borderColor:
-                          "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 45%), rgba(21,21,21,0.09))",
-                        backgroundColor:
-                          "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 12%), var(--color-bg))",
-                      }}
-                      className="rounded-full border px-[8px] py-[4px] font-mono text-[9px] uppercase leading-none tracking-[0.5px] text-ash-dark"
-                    >
-                      Tools
-                    </span>
+                  <div className="relative flex flex-wrap items-center gap-[4px]">
                     {node.tools.map((tool) => (
                       <span
                         key={tool}
                         title={techLabel(tool)}
-                        className="flex size-[26px] items-center justify-center rounded-[8px] border border-black/[0.07] bg-white shadow-[0_1px_2px_rgba(21,21,21,0.06)]"
+                        className="flex size-[22px] items-center justify-center rounded-[6px] border border-black/[0.06] bg-white shadow-[0_1px_2px_rgba(21,21,21,0.05)]"
                       >
-                        <TechMark name={tool} className="size-[15px]" />
+                        <TechMark name={tool} className="size-[13px]" />
                         <span className="sr-only">{techLabel(tool)}</span>
                       </span>
                     ))}
                   </div>
 
-                  <p className="relative mt-auto flex items-center gap-[7px] border-t border-black/[0.07] pt-[11px] font-body text-[11.5px] leading-none tracking-[-0.1px] text-ash-dark">
+                  <p
+                    style={{ borderColor: "color-mix(in srgb, var(--accent) 22%, transparent)" }}
+                    className="relative mt-auto flex items-center gap-[6px] border-t pt-[8px] font-body text-[10.5px] leading-none tracking-[-0.1px] text-ash-dark"
+                  >
                     <span
                       aria-hidden
                       style={{
                         backgroundColor:
-                          "color-mix(in srgb, var(--color-primary-green) calc(25% + var(--lit) * 75%), transparent)",
+                          "color-mix(in srgb, var(--accent) calc(35% + var(--lit) * 65%), transparent)",
                       }}
                       className="size-[4px] shrink-0 rounded-full"
                     />

@@ -1,11 +1,32 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, type CSSProperties } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
 import ParallaxImage from "@/components/ui/ParallaxImage";
+
+/**
+ * Each card's own colour. Four services that look identical are four things a
+ * reader has to tell apart by reading; four tints are four things they can tell
+ * apart at a glance, and the stack below gains an edge to separate its cards on
+ * as well.
+ *
+ * Held to one family per service — a pale ground, a slightly stronger chip, and
+ * an ink dark enough to read on both. The brand green is not among them on
+ * purpose: it is the CTA's colour on this page, and a card tinted with it would
+ * compete with its own button.
+ */
+type Accent = {
+  /** The card's ground. */
+  tint: string;
+  /** Chips and the index plate. */
+  chip: string;
+  /** Type and rules drawn on the two above. */
+  ink: string;
+  edge: string;
+};
 
 type ServiceCardData = {
   id: string;
@@ -13,6 +34,7 @@ type ServiceCardData = {
   title: string;
   description: string;
   items: string[];
+  accent: Accent;
   image: { src: string; alt: string };
 };
 
@@ -29,6 +51,12 @@ const SERVICES: ServiceCardData[] = [
       "Role-based access control",
       "Analytics dashboards",
     ],
+    accent: {
+      tint: "#f1f5ff",
+      chip: "#dde6ff",
+      ink: "#2f4fd1",
+      edge: "rgba(47,79,209,0.18)",
+    },
     image: {
       src: "/images/service-01-uiux.webp",
       alt: "SaaS platform dashboard on a dark surface",
@@ -46,6 +74,12 @@ const SERVICES: ServiceCardData[] = [
       "Payment & wallet integration",
       "Inventory & order management",
     ],
+    accent: {
+      tint: "#f0faf3",
+      chip: "#d8f2e1",
+      ink: "#1c7a45",
+      edge: "rgba(28,122,69,0.18)",
+    },
     image: {
       src: "/images/service-02-webflow.webp",
       alt: "eCommerce storefront and merchandising screens",
@@ -63,6 +97,12 @@ const SERVICES: ServiceCardData[] = [
       "Docker & Kubernetes",
       "Monitoring & alerting",
     ],
+    accent: {
+      tint: "#f7f2fe",
+      chip: "#eae0fd",
+      ink: "#6a3fc4",
+      edge: "rgba(106,63,196,0.18)",
+    },
     image: {
       src: "/images/service-03-uiux.webp",
       alt: "Cloud infrastructure and deployment pipeline view",
@@ -80,6 +120,12 @@ const SERVICES: ServiceCardData[] = [
       "Computer vision",
       "Data pipelines & BI",
     ],
+    accent: {
+      tint: "#fff7ec",
+      chip: "#fce7ce",
+      ink: "#b0590a",
+      edge: "rgba(176,89,10,0.2)",
+    },
     image: {
       src: "/images/service-04-brand.webp",
       alt: "Analytics and machine-learning model output",
@@ -103,23 +149,138 @@ const REST = [
   "top-[49px] lg:top-[106px]",
 ];
 
+/*
+ * THE PREVIOUS CARD, kept commented at your request.
+ *
+ * It was the same anatomy in a single neutral palette: a white ground, a
+ * hairline border, a green dot on the index and outlined chips. What replaced
+ * it below is that card with a colour per service, which is the only real
+ * difference — the layout, the stacking and the GSAP hooks are unchanged.
+ *
+ * Git has it too, at commit 2425525, so this block can be deleted whenever
+ * you are happy with the new one.
+ *
+ * function ServiceCard({ card }: { card: ServiceCardData }) {
+ *   return (
+ *     <article
+ *       className={
+ *         // Rounded, bordered and opaque, all three because of the stacking: a
+ *         // flat white card with square corners cannot be told from the one it is
+ *         // sliding over, and a transparent one would show it straight through.
+ *         "service-card relative flex w-full flex-col overflow-hidden rounded-[24px] border border-black/[0.09] bg-white " +
+ *         "shadow-[0_2px_2px_-1px_rgba(21,21,21,0.06),0_34px_64px_-44px_rgba(21,21,21,0.5)] " +
+ *         "will-change-transform lg:h-[560px] lg:flex-row"
+ *       }
+ *     >
+ *       <div className="flex w-full flex-col gap-[32px] p-6 sm:p-[40px] lg:w-[calc(100%-608px)] lg:justify-between lg:gap-[40px] lg:p-[48px]">
+ *         <div className="flex w-full flex-col items-start gap-[22px]">
+ *           <span className="service-card-meta inline-flex items-center gap-[8px] rounded-full border border-black/10 bg-bg px-[13px] py-[6px]">
+ *             <span aria-hidden className="size-[5px] rounded-full bg-primary-green" />
+ *             <span className="font-mono text-[11px] uppercase leading-none tracking-[0.7px] text-ash-dark">
+ *               {card.index}
+ *             </span>
+ *           </span>
+ *
+ *           <h3 className="service-card-title w-full font-display text-[clamp(1.75rem,3vw,42px)] font-medium leading-[1.04] tracking-[-1.2px] text-pure-black">
+ *             <Link href={`/services/${card.id}`} className="transition-opacity hover:opacity-70">
+ *               {card.title}
+ *             </Link>
+ *           </h3>
+ *
+ *           <p className="service-card-copy w-full font-body text-[15px] leading-[25px] tracking-[-0.16px] text-neutral-paragraph lg:text-[16px] lg:leading-[26px]">
+ *             {card.description}
+ *           </p>
+ *         </div>
+ *
+ *         <div className="flex w-full flex-col gap-[26px]">
+ *           <ul className="flex w-full flex-wrap gap-[7px]">
+ *             {card.items.map((item) => (
+ *               <li
+ *                 key={item}
+ *                 className="service-card-item rounded-full border border-black/10 bg-bg px-[12px] py-[7px] font-body text-[12.5px] leading-[1.3] tracking-[-0.1px] text-ash-deep"
+ *               >
+ *                 {item}
+ *               </li>
+ *             ))}
+ *           </ul>
+ *
+ *           <Link
+ *             href={`/services/${card.id}`}
+ *             className="group inline-flex w-fit items-center gap-[9px] rounded-[100px] bg-black px-[22px] py-[12px] transition-colors duration-300 hover:bg-primary-green"
+ *           >
+ *             <span className="font-body text-[15px] font-medium leading-[22px] tracking-[-0.2px] text-white transition-colors duration-300 group-hover:text-black">
+ *               Explore this service
+ *             </span>
+ *             <svg
+ *               width="14"
+ *               height="14"
+ *               viewBox="0 0 15 15"
+ *               fill="none"
+ *               aria-hidden="true"
+ *               className="shrink-0 text-white transition-[transform,color] duration-300 group-hover:translate-x-[3px] group-hover:text-black"
+ *             >
+ *               <path
+ *                 d="M3 12 12 3M4.6 3H12v7.4"
+ *                 stroke="currentColor"
+ *                 strokeWidth="1.6"
+ *                 strokeLinecap="round"
+ *                 strokeLinejoin="round"
+ *               />
+ *             </svg>
+ *           </Link>
+ *         </div>
+ *       </div>
+ *
+ *       <div className="w-full shrink-0 px-6 pb-6 sm:px-[40px] sm:pb-[40px] lg:w-[608px] lg:p-[20px] lg:pl-0">
+ *         <ParallaxImage
+ *           src={card.image.src}
+ *           alt={card.image.alt}
+ *           sizes="(max-width: 1023px) 100vw, 588px"
+ *           className="relative h-[240px] w-full rounded-[14px] sm:h-[320px] lg:h-full"
+ *         />
+ *       </div>
+ *     </article>
+ *   );
+ * }
+ */
 function ServiceCard({ card }: { card: ServiceCardData }) {
+  const { accent } = card;
+  const number = card.index.replace(/\D/g, "") || card.index;
+
   return (
     <article
+      // The ground, the border and the button's hover colour all come off the
+      // service's own accent. Set as inline values rather than classes because
+      // they are data: a fifth service brings its own colour with it.
+      style={
+        {
+          backgroundColor: accent.tint,
+          borderColor: accent.edge,
+          "--cta": accent.ink,
+        } as CSSProperties
+      }
       className={
         // Rounded, bordered and opaque, all three because of the stacking: a
-        // flat white card with square corners cannot be told from the one it is
+        // flat card with square corners cannot be told from the one it is
         // sliding over, and a transparent one would show it straight through.
-        "service-card relative flex w-full flex-col overflow-hidden rounded-[24px] border border-black/[0.09] bg-white " +
+        "service-card relative flex w-full flex-col overflow-hidden rounded-[24px] border " +
         "shadow-[0_2px_2px_-1px_rgba(21,21,21,0.06),0_34px_64px_-44px_rgba(21,21,21,0.5)] " +
         "will-change-transform lg:h-[560px] lg:flex-row"
       }
     >
-      <div className="flex w-full flex-col gap-[32px] p-6 sm:p-[40px] lg:w-[calc(100%-608px)] lg:justify-between lg:gap-[40px] lg:p-[48px]">
-        <div className="flex w-full flex-col items-start gap-[22px]">
-          <span className="service-card-meta inline-flex items-center gap-[8px] rounded-full border border-black/10 bg-bg px-[13px] py-[6px]">
-            <span aria-hidden className="size-[5px] rounded-full bg-primary-green" />
-            <span className="font-mono text-[11px] uppercase leading-none tracking-[0.7px] text-ash-dark">
+      <div className="flex w-full flex-col gap-[30px] p-6 sm:p-[40px] lg:w-[calc(100%-608px)] lg:justify-between lg:gap-[36px] lg:p-[48px]">
+        <div className="flex w-full flex-col items-start gap-[20px]">
+          <span className="service-card-meta inline-flex items-center gap-[10px]">
+            <span
+              style={{ backgroundColor: accent.chip, color: accent.ink }}
+              className="flex size-[32px] items-center justify-center rounded-[10px] font-mono text-[12px] font-semibold leading-none"
+            >
+              {number}
+            </span>
+            <span
+              style={{ color: accent.ink }}
+              className="font-mono text-[11px] uppercase leading-none tracking-[0.7px]"
+            >
               {card.index}
             </span>
           </span>
@@ -130,17 +291,18 @@ function ServiceCard({ card }: { card: ServiceCardData }) {
             </Link>
           </h3>
 
-          <p className="service-card-copy w-full font-body text-[15px] leading-[25px] tracking-[-0.16px] text-neutral-paragraph lg:text-[16px] lg:leading-[26px]">
+          <p className="service-card-copy w-full font-body text-[15px] leading-[25px] tracking-[-0.16px] text-ash-dark lg:text-[16px] lg:leading-[26px]">
             {card.description}
           </p>
         </div>
 
-        <div className="flex w-full flex-col gap-[26px]">
+        <div className="flex w-full flex-col gap-[24px]">
           <ul className="flex w-full flex-wrap gap-[7px]">
             {card.items.map((item) => (
               <li
                 key={item}
-                className="service-card-item rounded-full border border-black/10 bg-bg px-[12px] py-[7px] font-body text-[12.5px] leading-[1.3] tracking-[-0.1px] text-ash-deep"
+                style={{ backgroundColor: accent.chip, color: accent.ink }}
+                className="service-card-item rounded-full px-[12px] py-[7px] font-body text-[12.5px] font-medium leading-[1.3] tracking-[-0.1px]"
               >
                 {item}
               </li>
@@ -149,9 +311,9 @@ function ServiceCard({ card }: { card: ServiceCardData }) {
 
           <Link
             href={`/services/${card.id}`}
-            className="group inline-flex w-fit items-center gap-[9px] rounded-[100px] bg-black px-[22px] py-[12px] transition-colors duration-300 hover:bg-primary-green"
+            className="group inline-flex w-fit items-center gap-[9px] rounded-[100px] bg-black px-[22px] py-[12px] transition-colors duration-300 hover:bg-[var(--cta)]"
           >
-            <span className="font-body text-[15px] font-medium leading-[22px] tracking-[-0.2px] text-white transition-colors duration-300 group-hover:text-black">
+            <span className="font-body text-[15px] font-medium leading-[22px] tracking-[-0.2px] text-white">
               Explore this service
             </span>
             <svg
@@ -160,7 +322,7 @@ function ServiceCard({ card }: { card: ServiceCardData }) {
               viewBox="0 0 15 15"
               fill="none"
               aria-hidden="true"
-              className="shrink-0 text-white transition-[transform,color] duration-300 group-hover:translate-x-[3px] group-hover:text-black"
+              className="shrink-0 text-white transition-transform duration-300 group-hover:translate-x-[3px]"
             >
               <path
                 d="M3 12 12 3M4.6 3H12v7.4"
@@ -175,12 +337,19 @@ function ServiceCard({ card }: { card: ServiceCardData }) {
       </div>
 
       <div className="w-full shrink-0 px-6 pb-6 sm:px-[40px] sm:pb-[40px] lg:w-[608px] lg:p-[20px] lg:pl-0">
-        <ParallaxImage
-          src={card.image.src}
-          alt={card.image.alt}
-          sizes="(max-width: 1023px) 100vw, 588px"
-          className="relative h-[240px] w-full rounded-[14px] sm:h-[320px] lg:h-full"
-        />
+        {/* Ringed in the card's own colour so the screenshot reads as part of
+            the card rather than as a picture dropped onto it. */}
+        <div
+          style={{ boxShadow: `0 0 0 1px ${accent.edge}` }}
+          className="h-full w-full overflow-hidden rounded-[14px]"
+        >
+          <ParallaxImage
+            src={card.image.src}
+            alt={card.image.alt}
+            sizes="(max-width: 1023px) 100vw, 588px"
+            className="relative h-[240px] w-full sm:h-[320px] lg:h-full"
+          />
+        </div>
       </div>
     </article>
   );
