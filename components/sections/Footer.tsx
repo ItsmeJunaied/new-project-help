@@ -12,6 +12,7 @@ import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
 import { SERVICES } from "@/lib/services";
 import { siteConfig } from "@/lib/site";
+import { COMPANY_PROFILE_HREF, PROFILE_EDITION } from "@/lib/company-profile";
 
 const MENUS = [
   {
@@ -23,6 +24,10 @@ const MENUS = [
       { label: "Case Studies", href: "/case-study" },
       { label: "Career", href: "/career" },
       { label: "Blog", href: "/blog" },
+      // The profile is the one page a prospect is sent rather than finds, so
+      // it sits where a visitor already looks for "the PDF" — and takes its
+      // path from the module that owns it, not from a string written twice.
+      { label: `Company Profile ${PROFILE_EDITION}`, href: COMPANY_PROFILE_HREF },
     ],
   },
   {

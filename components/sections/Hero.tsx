@@ -1,11 +1,13 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/anim";
 import AutoVideo from "@/components/ui/AutoVideo";
+import { COMPANY_PROFILE_HREF, PROFILE_EDITION } from "@/lib/company-profile";
 
 /**
  * Real client marks, supplied by the clients themselves.
@@ -217,7 +219,31 @@ export default function Hero() {
             shipped on time.
           </p>
 
-          <div className="mt-[32px] flex flex-wrap items-center gap-x-[24px] gap-y-4 lg:mt-[clamp(16px,3.4svh,44px)]">
+          {/* Its own row, hard against the left gutter. Set beside the tagline
+              it runs out over the showreel — the text block is 860 wide and the
+              film starts 540 in from the right, so from about 1360px down the
+              two overlap. Tolerable for a paragraph that never fills its
+              measure; not for something a visitor is meant to click. */}
+          <div className="mt-[26px] lg:mt-[clamp(14px,2.6svh,30px)]">
+            <Link
+              href={COMPANY_PROFILE_HREF}
+              className="hero-reveal group inline-flex items-center gap-[10px] rounded-[100px] border border-black/15 px-[20px] py-[11px] font-body text-[15px] font-semibold leading-[22px] tracking-[-0.2px] text-black transition-colors hover:border-black/45"
+            >
+              <span
+                aria-hidden
+                className="size-[7px] shrink-0 rounded-full bg-primary-green"
+              />
+              Company Profile {PROFILE_EDITION}
+              <span
+                aria-hidden
+                className="transition-transform duration-300 group-hover:translate-x-[3px]"
+              >
+                &rarr;
+              </span>
+            </Link>
+          </div>
+
+          <div className="mt-[28px] flex flex-wrap items-center gap-x-[24px] gap-y-4 lg:mt-[clamp(14px,2.6svh,32px)]">
             <p className="hero-brand font-body text-[16px] leading-[1.6] tracking-[-0.48px] text-black">
               Trusted by 28+ teams worldwide :
             </p>

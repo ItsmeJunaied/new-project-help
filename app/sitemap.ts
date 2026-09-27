@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { allTags, getPosts, tagSlug } from "@/lib/blog";
 import { CASE_STUDY_SLUGS } from "@/lib/case-studies";
+import { COMPANY_PROFILE_HREF } from "@/lib/company-profile";
 import { JOBS } from "@/lib/careers";
 import { SERVICE_SLUGS } from "@/lib/services";
 import { siteConfig } from "@/lib/site";
@@ -41,6 +42,7 @@ const STATIC_ROUTES: Entry[] = [
     priority: 0.5,
   })),
   { path: "/contact", changeFrequency: "monthly", priority: 0.7 },
+  { path: COMPANY_PROFILE_HREF, changeFrequency: "monthly", priority: 0.7 },
   { path: "/privacy-policy", changeFrequency: "yearly", priority: 0.3 },
   { path: "/terms-of-service", changeFrequency: "yearly", priority: 0.3 },
 ];
