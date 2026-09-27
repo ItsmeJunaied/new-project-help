@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useLayoutEffect, useRef, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { useGSAP } from "@gsap/react";
 import { gsap, ScrollTrigger } from "@/lib/gsap";
@@ -17,6 +17,15 @@ import { prefersReducedMotion } from "@/lib/anim";
  * Deliberately entrance-only: an exit animation would mean holding the old page
  * while the new one loads, which makes every link feel slower than it is.
  */
+/**
+ * A layout effect in the browser, a no-op on the server.
+ *
+ * The scroll reset below has to run in the same commit as the new page, before
+ * the browser paints it — a plain `useEffect` is a frame too late — and React
+ * warns about `useLayoutEffect` during server rendering, where it never runs.
+ */
+const useIsomorphicLayoutEffect = typeof window !== "undefined" ? useLayoutEffect : useEffect;
+
 export default function RouteTransition({ children }: { children: ReactNode }) {
   const wrapperRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
@@ -50,8 +59,16 @@ export default function RouteTransition({ children }: { children: ReactNode }) {
    * is right: a reload or a step back through history should return to where it
    * was, not to the top. An address ending in a fragment belongs to that
    * fragment.
+   *
+   * A LAYOUT effect, not a plain one. As a plain effect this ran a frame after
+   * the new page had already been painted, so following a link from deep in a
+   * long page showed the new page at the old offset — the middle of it, or its
+   * footer — and only then jumped to the top. Measured at 12290px of scroll,
+   * the correction was landing somewhere after 120ms and before 720ms, which is
+   * several frames of the wrong thing. A layout effect runs in the same commit
+   * as the new DOM, so there is no painted frame to catch.
    */
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (scrolledPath.current === pathname) return;
     scrolledPath.current = pathname;
     if (window.location.hash) return;

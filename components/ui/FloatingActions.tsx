@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
@@ -36,8 +37,24 @@ const LINKS = [
  */
 export default function FloatingActions() {
   const barRef = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const [deep, setDeep] = useState(false);
+
+  /**
+   * A dock link pointing at the page you are already on.
+   *
+   * The router has nothing to do — the path does not change — so the scroll
+   * reset that runs on a route change never fires and the click reads as
+   * broken: you press "Services" while halfway down /services and stay exactly
+   * where you were. Here it means the obvious thing instead, which is to go
+   * back to the top of what you are reading.
+   */
+  const goToTopIfHere = (href: string) => (event: React.MouseEvent) => {
+    if (pathname !== href) return;
+    event.preventDefault();
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
+  };
 
   useEffect(() => {
     const onScroll = () => {
@@ -99,6 +116,7 @@ export default function FloatingActions() {
               <Link
                 key={link.href}
                 href={link.href}
+                onClick={goToTopIfHere(link.href)}
                 className="rounded-full px-[14px] py-[9px] font-body text-[14px] font-medium leading-none tracking-[-0.2px] text-white/70 transition-colors duration-200 hover:bg-white/[0.07] hover:text-white"
               >
                 {link.label}
@@ -108,7 +126,10 @@ export default function FloatingActions() {
 
           <Link
             href="/contact"
-            onClick={() => trackLead("dock_contact")}
+            onClick={(event) => {
+              trackLead("dock_contact");
+              goToTopIfHere("/contact")(event);
+            }}
             className="group flex items-center gap-[7px] rounded-[999px] bg-primary-green px-[16px] py-[10px] shadow-[0_6px_18px_-6px_rgba(134,213,42,0.8)] transition-[transform,box-shadow] duration-300 hover:scale-[1.03] sm:px-[18px]"
           >
             <span className="whitespace-nowrap font-body text-[14px] font-semibold leading-none tracking-[-0.2px] text-black">
