@@ -1,260 +1,268 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { useRef, type CSSProperties } from "react";
+import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { reveal } from "@/lib/anim";
-import ParallaxImage from "@/components/ui/ParallaxImage";
+import { SERVICE_IMAGE_ALT } from "@/lib/service-image-alt";
 
 /**
- * Each card's own colour.
+ * How much of the twelve-column row a card takes, and where its artwork sits.
  *
- * Used on the lead badge, the index plate and the button's hover — NOT on the
- * card's ground. The reference keeps every card on one near-white grey and lets
- * the colour come from the badges and the artwork. Tinting the whole card,
- * which is what this section did before, puts a colour behind a screenshot that
- * already has its own.
+ * `wide` runs the copy down the left with the artwork beside it; `tall` stacks
+ * the copy over artwork that fills the foot of the card. Alternating the two
+ * across the rows is what gives the section its rhythm — seven equal cards in a
+ * plain grid read as a list, and this is meant to read as a shelf.
  */
-type Accent = {
-  /** The lead badge and the index plate. */
-  chip: string;
-  /** Type set on `chip`, and the button's hover. */
-  ink: string;
-};
+type Shape = "wide" | "tall" | "banner";
 
 type ServiceCardData = {
   id: string;
   index: string;
   title: string;
-  description: string;
-  items: string[];
-  accent: Accent;
-  image: { src: string; alt: string };
+  copy: string;
+  shape: Shape;
 };
 
+/**
+ * The seven services, in the order they are sold.
+ *
+ * The copy here is card copy — one line, the thing a reader needs to know
+ * before deciding whether to open the page. The full description, the stack and
+ * what each engagement delivers all live on the service's own page; repeating
+ * any of it here only makes seven cards nobody finishes reading.
+ *
+ * Artwork is built from assets/ by `npm run build:service-images`, which also
+ * writes the alt text these cards import.
+ */
 const SERVICES: ServiceCardData[] = [
   {
     id: "saas-platform-development",
     index: "01",
     title: "SaaS Platform Development",
-    description:
-      "Multi-tenant Software-as-a-Service platforms with subscription billing, usage metering and cloud-native architecture — built for recurring revenue and self-serve growth.",
-    items: [
-      "Multi-tenant architecture",
-      "Subscription billing",
-      "Role-based access control",
-      "Analytics dashboards",
-    ],
-    accent: { chip: "#dde6ff", ink: "#2f4fd1" },
-    image: {
-      src: "/images/service-01-uiux.webp",
-      alt: "SaaS platform dashboard on a dark surface",
-    },
+    copy: "Multi-tenant platforms with subscription billing, usage metering and the tenancy model settled before the first feature.",
+    shape: "wide",
   },
   {
     id: "ecommerce-digital-commerce",
     index: "02",
     title: "eCommerce & Commerce",
-    description:
-      "B2B and B2C storefronts, multi-vendor marketplaces, payment gateways and inventory systems — high-performance stores that hold up on campaign day.",
-    items: [
-      "B2C & B2B storefronts",
-      "Multi-vendor marketplaces",
-      "Payment & wallet integration",
-      "Inventory & order management",
-    ],
-    accent: { chip: "#d8f2e1", ink: "#1c7a45" },
-    image: {
-      src: "/images/service-02-webflow.webp",
-      alt: "eCommerce storefront and merchandising screens",
-    },
+    copy: "Storefronts, marketplaces and payment flows that hold up on campaign day.",
+    shape: "tall",
   },
   {
     id: "devops-cloud-infrastructure",
     index: "03",
     title: "DevOps & Cloud",
-    description:
-      "CI/CD pipelines, infrastructure as code and container orchestration on AWS, Azure or Google Cloud — with monitoring, rollback plans and cost control from day one.",
-    items: [
-      "CI/CD pipelines",
-      "Infrastructure as code",
-      "Docker & Kubernetes",
-      "Monitoring & alerting",
-    ],
-    accent: { chip: "#eae0fd", ink: "#6a3fc4" },
-    image: {
-      src: "/images/service-03-uiux.webp",
-      alt: "Cloud infrastructure and deployment pipeline view",
-    },
+    copy: "Pipelines, infrastructure as code and monitoring on AWS, Azure or Google Cloud.",
+    shape: "tall",
   },
   {
     id: "ai-ml-data-analytics",
     index: "04",
-    title: "AI/ML & Data",
-    description:
-      "Predictive models, document extraction, recommendation engines and LLM integration over your own data — turning what you already collect into decisions.",
-    items: [
-      "Predictive analytics",
-      "LLM & RAG integration",
-      "Computer vision",
-      "Data pipelines & BI",
-    ],
-    accent: { chip: "#fce7ce", ink: "#b0590a" },
-    image: {
-      src: "/images/service-04-brand.webp",
-      alt: "Analytics and machine-learning model output",
-    },
+    title: "AI/ML & Data Analytics",
+    copy: "Models, agents and LLM integration over your own data — turning what you already collect into decisions.",
+    shape: "wide",
+  },
+  {
+    id: "technology-consulting",
+    index: "05",
+    title: "Technology Consulting",
+    copy: "Architecture reviews, technical due diligence and a roadmap you can budget against.",
+    shape: "wide",
+  },
+  {
+    id: "mobile-app-development",
+    index: "06",
+    title: "Mobile App Development",
+    copy: "Native and cross-platform apps, shipped to both stores.",
+    shape: "tall",
+  },
+  {
+    id: "cybersecurity-data-protection",
+    index: "07",
+    title: "Cybersecurity & Data Protection",
+    copy: "Penetration testing, hardening and compliance work, with the findings written up in language your board can act on.",
+    shape: "banner",
   },
 ];
 
-/**
- * How many cards run full width before the rest fall into two columns.
- *
- * Straight from the reference: the first products get a whole row each, with
- * their artwork beside the copy, and everything after them is a two-up grid
- * with the artwork underneath. It gives the top of the section weight without
- * every card shouting at the same volume.
- */
-const WIDE_COUNT = 2;
+const SPAN: Record<Shape, string> = {
+  wide: "lg:col-span-7",
+  tall: "lg:col-span-5",
+  banner: "lg:col-span-12",
+};
 
-/** The badges. The first carries the card's colour; the rest stay quiet. */
-function Badges({ card, compact }: { card: ServiceCardData; compact?: boolean }) {
-  const size = compact ? "px-[9px] py-[5px] text-[11px]" : "px-[11px] py-[6px] text-[12px]";
+/** White, a hairline, and enough shadow to lift it off the page. */
+const SHELL =
+  "service-card group relative overflow-hidden rounded-[24px] border border-black/[0.07] bg-white " +
+  "shadow-[0_1px_2px_rgba(0,0,0,0.04),0_18px_44px_-28px_rgba(0,0,0,0.30)] " +
+  "transition-shadow duration-500 hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_30px_60px_-30px_rgba(0,0,0,0.38)]";
 
+function Copy({ card, large }: { card: ServiceCardData; large?: boolean }) {
   return (
-    <ul className={`flex w-full flex-wrap ${compact ? "gap-[5px]" : "gap-[6px]"}`}>
-      {card.items.map((item, index) => (
-        <li
-          key={item}
-          style={
-            index === 0 ? { backgroundColor: card.accent.chip, color: card.accent.ink } : undefined
-          }
-          className={
-            index === 0
-              ? `service-card-item rounded-full font-body font-medium leading-[1.3] tracking-[-0.1px] ${size}`
-              : `service-card-item rounded-full border border-black/[0.11] bg-white font-body leading-[1.3] tracking-[-0.1px] text-ash-dark ${size}`
-          }
-        >
-          {item}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-function Cta({ card, compact }: { card: ServiceCardData; compact?: boolean }) {
-  return (
-    <Link
-      href={`/services/${card.id}`}
-      style={{ "--cta": card.accent.ink } as CSSProperties}
-      className={`group inline-flex w-fit items-center gap-[8px] rounded-[100px] bg-black transition-colors duration-300 hover:bg-[var(--cta)] ${
-        compact ? "px-[18px] py-[10px]" : "px-[22px] py-[12px]"
-      }`}
-    >
-      <span
-        className={`font-body font-medium leading-[20px] tracking-[-0.2px] text-white ${
-          compact ? "text-[13.5px]" : "text-[15px]"
-        }`}
-      >
-        Explore this service
-      </span>
-      <svg
-        width={compact ? "13" : "14"}
-        height={compact ? "13" : "14"}
-        viewBox="0 0 15 15"
-        fill="none"
-        aria-hidden="true"
-        className="shrink-0 text-white transition-transform duration-300 group-hover:translate-x-[3px]"
-      >
-        <path
-          d="M3 12 12 3M4.6 3H12v7.4"
-          stroke="currentColor"
-          strokeWidth="1.6"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </Link>
-  );
-}
-
-function IndexPlate({ card }: { card: ServiceCardData }) {
-  return (
-    <span className="service-card-meta flex items-center gap-[8px]">
-      <span
-        style={{ backgroundColor: card.accent.chip, color: card.accent.ink }}
-        className="flex size-[28px] items-center justify-center rounded-[9px] font-mono text-[11px] font-semibold leading-none"
-      >
+    <>
+      <span className="service-card-meta font-mono text-[11px] font-semibold leading-none tracking-[0.08em] text-ash-muted">
         {card.index}
       </span>
-    </span>
+
+      <h3
+        className={`service-card-title w-full font-display font-semibold leading-[1.04] tracking-[-0.03em] text-pure-black ${
+          large ? "text-[clamp(1.9rem,3.4vw,44px)]" : "text-[clamp(1.5rem,2.3vw,30px)]"
+        }`}
+      >
+        <Link href={`/services/${card.id}`} className="transition-opacity hover:opacity-70">
+          {card.title}
+        </Link>
+      </h3>
+
+      <p
+        className={`service-card-copy w-full font-body leading-[1.55] tracking-[-0.16px] text-neutral-paragraph ${
+          large ? "max-w-[460px] text-[15px]" : "max-w-[420px] text-[14px]"
+        }`}
+      >
+        {card.copy}
+      </p>
+
+      {/* A text link rather than a filled button: seven buttons down one page
+          is seven things shouting, and the card itself is the target. */}
+      <Link
+        href={`/services/${card.id}`}
+        className="service-card-cta group/cta mt-[2px] inline-flex items-center gap-[8px] font-body text-[14px] font-medium leading-none tracking-[-0.2px] text-pure-black"
+      >
+        <span className="border-b border-primary-green pb-[3px] transition-colors duration-300 group-hover/cta:border-pure-black">
+          Know more
+        </span>
+        <svg
+          width="15"
+          height="15"
+          viewBox="0 0 15 15"
+          fill="none"
+          aria-hidden="true"
+          className="shrink-0 transition-transform duration-300 group-hover/cta:translate-x-[4px]"
+        >
+          <path
+            d="M3 7.5h9M8.4 3.6 12.3 7.5 8.4 11.4"
+            stroke="currentColor"
+            strokeWidth="1.6"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </Link>
+    </>
   );
 }
 
-/** A whole row to itself: copy on the left, artwork filling the right. */
-function WideCard({ card }: { card: ServiceCardData }) {
+/**
+ * The artwork, on a plane turned away from the reader.
+ *
+ * These are screenshots and product renders — flat rectangles — and a flat
+ * rectangle dropped into a white card reads as a thumbnail. Turning it a few
+ * degrees in perspective, giving it a real shadow and letting it run off the
+ * card's edge is what makes it read as an object on a surface instead. The
+ * tilt eases back towards square on hover, so the card has somewhere to go.
+ *
+ * `sizes` is the card's widest rendered width, not the artwork's own: the
+ * plane is deliberately larger than the opening it shows through.
+ */
+function Art({
+  card,
+  plane,
+  turn,
+  sizes,
+}: {
+  card: ServiceCardData;
+  /** Where the plane sits in the card, including the edge it runs past. */
+  plane: string;
+  /** Its resting angle, and the angle it eases to under the cursor. */
+  turn: string;
+  sizes: string;
+}) {
   return (
-    <article className="service-card relative grid w-full overflow-hidden rounded-[22px] bg-[#f4f4f1] lg:grid-cols-[minmax(0,44%)_minmax(0,56%)]">
-      <div className="flex flex-col items-start gap-[18px] p-[28px] sm:p-[38px] lg:justify-center lg:gap-[20px] lg:p-[48px]">
-        <IndexPlate card={card} />
+    <div className={`absolute [perspective:1600px] ${plane}`}>
+      <div
+        className={`relative size-full overflow-hidden rounded-[14px] bg-[#f2f2f0] shadow-[0_30px_64px_-30px_rgba(0,0,0,0.55)] transition-transform duration-[900ms] ease-out ${turn}`}
+      >
+        <Image
+          src={`/images/services/${card.id}.webp`}
+          alt={SERVICE_IMAGE_ALT[card.id]}
+          fill
+          sizes={sizes}
+          className="object-cover object-left-top transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
+        />
+      </div>
+    </div>
+  );
+}
 
-        <h3 className="service-card-title w-full font-display text-[clamp(1.6rem,2.6vw,36px)] font-semibold leading-[1.06] tracking-[-1px] text-pure-black">
-          <Link href={`/services/${card.id}`} className="transition-opacity hover:opacity-70">
-            {card.title}
-          </Link>
-        </h3>
+/**
+ * Where each shape's plane sits inside its card.
+ *
+ * Every one of them runs past an edge — the right on the two side-by-side
+ * shapes, the bottom on the stacked one — which is the whole point: the card is
+ * a window onto something larger, not a frame around a picture.
+ */
+/**
+ * Below `lg` every card is a single column, so every plane is the stacked one —
+ * copy above, artwork running off the foot of the card. Turning a plane sideways
+ * inside a 375px column throws away most of what it is showing.
+ */
+const STACKED_PLANE = "left-[22px] right-[22px] top-[6px] bottom-[-50px]";
+const STACKED_TURN = "[transform:rotateX(9deg)]";
 
-        <p className="service-card-copy w-full max-w-[520px] font-body text-[14.5px] leading-[24px] tracking-[-0.16px] text-neutral-paragraph">
-          {card.description}
-        </p>
+const PLANE = {
+  wide: `${STACKED_PLANE} lg:left-[10px] lg:right-[-70px] lg:top-[28px] lg:bottom-[28px]`,
+  tall: `${STACKED_PLANE} lg:left-[26px] lg:right-[26px] lg:bottom-[-56px]`,
+  banner: `${STACKED_PLANE} lg:left-[10px] lg:right-[-80px] lg:top-[36px] lg:bottom-[36px]`,
+} as const;
 
-        <Badges card={card} />
-        <Cta card={card} />
+const TURN = {
+  wide: `${STACKED_TURN} lg:[transform:rotateY(-13deg)_rotateX(3deg)] lg:group-hover:[transform:rotateY(-7deg)_rotateX(1deg)]`,
+  tall: `${STACKED_TURN} lg:[transform:rotateX(10deg)] lg:group-hover:[transform:rotateX(5deg)]`,
+  banner: `${STACKED_TURN} lg:[transform:rotateY(-11deg)_rotateX(2deg)] lg:group-hover:[transform:rotateY(-6deg)_rotateX(1deg)]`,
+} as const;
+
+function WideCard({ card }: { card: ServiceCardData }) {
+  const banner = card.shape === "banner";
+
+  return (
+    <article
+      className={`${SHELL} ${SPAN[card.shape]} grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]`}
+    >
+      <div
+        className={`flex flex-col items-start justify-center gap-[14px] p-[26px] sm:p-[34px] lg:p-[44px] ${
+          banner ? "lg:gap-[18px] lg:p-[56px]" : ""
+        }`}
+      >
+        <Copy card={card} large={banner} />
       </div>
 
-      {/* Runs out to the card's own edges, the way the reference lets each
-          product's artwork fill its panel rather than sit inside a margin. */}
-      <div className="relative min-h-[260px] w-full sm:min-h-[320px] lg:min-h-[400px]">
-        <ParallaxImage
-          src={card.image.src}
-          alt={card.image.alt}
-          sizes="(max-width: 1023px) 100vw, 760px"
-          className="absolute inset-0 size-full"
+      <div
+        className={`relative min-h-[260px] sm:min-h-[300px] ${banner ? "lg:min-h-[420px]" : "lg:min-h-[380px]"}`}
+      >
+        <Art
+          card={card}
+          plane={banner ? PLANE.banner : PLANE.wide}
+          turn={banner ? TURN.banner : TURN.wide}
+          sizes="(max-width: 1023px) 100vw, 780px"
         />
       </div>
     </article>
   );
 }
 
-/** Two up: copy on top, artwork inset underneath. */
-function GridCard({ card }: { card: ServiceCardData }) {
+function TallCard({ card }: { card: ServiceCardData }) {
   return (
-    <article className="service-card relative flex w-full flex-col overflow-hidden rounded-[22px] bg-[#f4f4f1]">
-      <div className="flex flex-col items-start gap-[15px] p-[28px] sm:p-[34px]">
-        <IndexPlate card={card} />
-
-        <h3 className="service-card-title w-full font-display text-[clamp(1.45rem,2.1vw,28px)] font-semibold leading-[1.08] tracking-[-0.8px] text-pure-black">
-          <Link href={`/services/${card.id}`} className="transition-opacity hover:opacity-70">
-            {card.title}
-          </Link>
-        </h3>
-
-        <p className="service-card-copy w-full font-body text-[13.5px] leading-[22px] tracking-[-0.16px] text-neutral-paragraph">
-          {card.description}
-        </p>
-
-        <Badges card={card} compact />
-        <Cta card={card} compact />
+    <article className={`${SHELL} ${SPAN[card.shape]} flex flex-col`}>
+      <div className="flex flex-col items-start gap-[13px] p-[26px] sm:p-[34px] lg:p-[40px]">
+        <Copy card={card} />
       </div>
 
-      <div className="mt-auto w-full px-[28px] pb-[28px] sm:px-[34px] sm:pb-[34px]">
-        <ParallaxImage
-          src={card.image.src}
-          alt={card.image.alt}
-          sizes="(max-width: 1023px) 100vw, 620px"
-          className="relative h-[220px] w-full rounded-[14px] sm:h-[250px]"
-        />
+      <div className="relative mt-auto min-h-[230px] w-full sm:min-h-[260px] lg:min-h-[250px]">
+        <Art card={card} plane={PLANE.tall} turn={TURN.tall} sizes="(max-width: 1023px) 100vw, 560px" />
       </div>
     </article>
   );
@@ -288,10 +296,6 @@ export default function Services({
         scrollTrigger: reveal(sectionRef.current, { start: "top 90%" }),
       });
 
-      // Each card rises as it arrives and its own contents follow it in. The
-      // scrubbed recede that used to be here is gone with the stack it served:
-      // it dimmed a card as the next one climbed over it, and nothing climbs
-      // over anything any more.
       gsap.utils.toArray<HTMLElement>(".service-card").forEach((card) => {
         gsap.from(card, {
           y: 48,
@@ -302,39 +306,25 @@ export default function Services({
         });
 
         gsap.from(
-          card.querySelectorAll(".service-card-meta, .service-card-title, .service-card-copy"),
+          card.querySelectorAll(
+            ".service-card-meta, .service-card-title, .service-card-copy, .service-card-cta",
+          ),
           {
-            y: 20,
+            y: 18,
             opacity: 0,
             duration: 0.7,
             ease: "power2.out",
-            stagger: 0.1,
+            stagger: 0.08,
             scrollTrigger: reveal(card, { start: "top 82%" }),
           },
         );
-
-        gsap.from(card.querySelectorAll(".service-card-item"), {
-          y: 16,
-          opacity: 0,
-          duration: 0.5,
-          ease: "power2.out",
-          stagger: 0.06,
-          scrollTrigger: reveal(card, { start: "top 76%" }),
-        });
       });
     },
     { scope: sectionRef },
   );
 
-  const wide = SERVICES.slice(0, WIDE_COUNT);
-  const grid = SERVICES.slice(WIDE_COUNT);
-
   return (
-    <section
-      ref={sectionRef}
-      data-node-id="156:7010"
-      className={`w-full bg-bg ${spacingClassName}`}
-    >
+    <section ref={sectionRef} data-node-id="156:7010" className={`w-full bg-bg ${spacingClassName}`}>
       <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-[40px]">
         <div className="flex w-full flex-col gap-[8px]">
           <div className="services-meta flex w-full items-center justify-between text-[18px] leading-[25.714px] text-black">
@@ -347,23 +337,18 @@ export default function Services({
           <div className="services-meta-rule h-px w-full bg-black/20" />
         </div>
 
-        {/* Two full-width cards, then the rest two up. Nothing is sticky any
-            more: this was a stack of four cards that halted one over another,
-            and it is now a grid that simply scrolls. The `REST` offsets and the
-            `.service-slot` wrappers that made the stack work are gone with it —
-            git has them at commit ec1ea9d. */}
-        <div className="mt-[36px] flex w-full flex-col gap-[20px] lg:mt-[64px] lg:gap-[24px]">
-          {wide.map((card) => (
-            <WideCard key={card.id} card={card} />
-          ))}
-
-          {grid.length ? (
-            <div className="grid w-full gap-[20px] lg:grid-cols-2 lg:gap-[24px]">
-              {grid.map((card) => (
-                <GridCard key={card.id} card={card} />
-              ))}
-            </div>
-          ) : null}
+        {/* One twelve-column grid rather than hand-built rows: the spans add up
+            to twelve three times over and then a full-width card, so the
+            browser flows the rows and every card in a row is the height of its
+            tallest neighbour without anything being measured. */}
+        <div className="mt-[36px] grid w-full gap-[16px] lg:mt-[64px] lg:grid-cols-12 lg:gap-[20px]">
+          {SERVICES.map((card) =>
+            card.shape === "tall" ? (
+              <TallCard key={card.id} card={card} />
+            ) : (
+              <WideCard key={card.id} card={card} />
+            ),
+          )}
         </div>
       </div>
     </section>
