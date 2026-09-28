@@ -109,6 +109,9 @@ export default function Header({ activeLabel = "HOME" }: HeaderProps) {
     <>
       <header
         ref={navRef}
+        // The dock at the foot of the page watches this element: it arrives the
+        // moment the nav leaves the screen and stands down when it comes back.
+        data-site-header
         className="relative z-30 mx-auto flex w-full max-w-[1440px] items-center justify-between gap-6 px-6 pt-6 lg:px-[40px] lg:pt-[24px]"
       >
         {/* The lockup is stacked — mark over wordmark, about 1.8:1 — so it is

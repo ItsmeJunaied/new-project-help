@@ -31,9 +31,10 @@ const LINKS = [
  * left, the call to action in the middle carrying the only colour, the WhatsApp
  * thread and the way back to the top on the right.
  *
- * It arrives once the visitor is past the first screen. Nothing floats over a
- * hero someone is still reading, and the header's own CTA is still on screen
- * up there — the dock is what replaces it once it has scrolled away.
+ * It is the header's replacement, so it hands over where the header leaves off:
+ * in the moment the nav scrolls off the top it slides up from the bottom, and it
+ * drops away again when the nav comes back. Nothing floats over a header that is
+ * still on screen carrying the same call to action.
  */
 export default function FloatingActions() {
   const barRef = useRef<HTMLDivElement>(null);
@@ -56,17 +57,42 @@ export default function FloatingActions() {
     window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" });
   };
 
+  /**
+   * The dock stands in for the header, so it arrives the moment the header
+   * leaves the screen and stands down as soon as it scrolls back in.
+   *
+   * That moment is watched on the header element itself rather than guessed at
+   * a fraction of the window. The gate used to be six tenths of a screen, which
+   * on a laptop is some four hundred pixels after the nav had already gone: by
+   * the time the dock turned up there had been nothing to reach for for a while.
+   * A route change remounts the page under a dock that never unmounts, so the
+   * element is looked up again each time the path changes.
+   */
   useEffect(() => {
+    const header = document.querySelector("[data-site-header]");
+
     const onScroll = () => {
-      setVisible(window.scrollY > window.innerHeight * 0.6);
       // Back to top only appears deep enough in the page to be worth its width.
       setDeep(window.scrollY > window.innerHeight * 2.5);
+
+      // Every page carries a header. If one ever does not, the dock is the only
+      // way back from the foot of it, so it falls in at a header's own height.
+      if (!header) setVisible(window.scrollY > 88);
     };
 
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
+
+    if (!header) return () => window.removeEventListener("scroll", onScroll);
+
+    const watcher = new IntersectionObserver(([entry]) => setVisible(!entry.isIntersecting));
+    watcher.observe(header);
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      watcher.disconnect();
+    };
+  }, [pathname]);
 
   useGSAP(
     () => {
@@ -75,12 +101,16 @@ export default function FloatingActions() {
         return;
       }
 
+      // Longer coming in than going out, and overwriting rather than queueing:
+      // a fast flick across the header's edge would otherwise run both
+      // directions one after the other and the dock would arrive twice.
       gsap.to(barRef.current, {
         autoAlpha: visible ? 1 : 0,
         y: visible ? 0 : 22,
         scale: visible ? 1 : 0.97,
-        duration: 0.5,
-        ease: "power3.out",
+        duration: visible ? 0.55 : 0.3,
+        ease: visible ? "power3.out" : "power2.in",
+        overwrite: true,
       });
     },
     { dependencies: [visible] },
