@@ -14,9 +14,26 @@ export const siteConfig = {
   founded: "2021",
   /** 30-minute intro call. Same link the current live site books against. */
   calendlyUrl: `https://calendly.com/hello-projecthelpbd/30min?primary_color=${BRAND_GREEN.replace("#", "").toLowerCase()}`,
-  /** Google Maps embed for the office, carried over from the live site. */
+  /**
+   * The office in Google Maps proper, by coordinate rather than by name: a
+   * search on "Codesk" can land on any of them, and the pair below is the one
+   * the embed above is already centred on.
+   */
+  mapsHref: "https://www.google.com/maps/search/?api=1&query=23.7902366%2C90.4101466",
+  directionsHref:
+    "https://www.google.com/maps/dir/?api=1&destination=23.7902366%2C90.4101466",
+  /**
+   * The office as a plain map view, by coordinate.
+   *
+   * The embed this replaces was built around the Codesk listing, and a listing
+   * embed brings Google's own furniture with it: a place card over the top-left
+   * corner and a marker of its own. The contact page draws both itself, so this
+   * one asks for the view and nothing else — same centre, same zoom, no
+   * chrome. Google issues this form itself when you ask maps.google.com for
+   * `?ll=<lat>,<lng>&z=16&output=embed`.
+   */
   mapEmbedSrc:
-    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7301.5943081938485!2d90.41014659999999!3d23.790236600000004!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c7302532b98d%3A0x2ae0056ef129cb1f!2sCodesk!5e0!3m2!1sen!2sbd!4v1785401887802!5m2!1sen!2sbd",
+    "https://www.google.com/maps/embed?pb=!1m10!1m8!1m3!1d7301.5940937088581!2d90.4101466!3d23.7902366!3m2!1i1024!2i768!4f13.1!6i16!3m1!1sen!5m1!1sen",
   address: {
     street: "3rd Floor, House 76/A, Road 11, Banani",
     locality: "Dhaka",

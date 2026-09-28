@@ -99,10 +99,25 @@ body {
   }
 }
 
+/* The ring that leaves the office marker on the contact map. It ends fully
+   transparent rather than looping back, so the ring reads as one departing
+   pulse instead of something breathing in place. */
+@keyframes map-ping {
+  0% {
+    transform: translate(-50%, -50%) scale(0.35);
+    opacity: 0.55;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   [style*="bob"],
   [style*="blink"],
-  [style*="pulse"] {
+  [style*="pulse"],
+  [style*="map-ping"] {
     animation: none !important;
   }
 }
