@@ -21,10 +21,6 @@
  * film needs no such split: it runs full-bleed, so the inline copy is already
  * the good one.
  *
- * The about film is the odd one out: it is not played at all, it is scrubbed by
- * the scrollbar on /about, and so it is encoded for seeking. Its job carries a
- * `gop` of 4 where everything else takes the 60 that suits playback.
- *
  * Poster frames are pulled from the ENCODED file rather than the source, so the
  * still and the first frame of video are the same picture and there is nothing
  * to see at the handover.
@@ -50,7 +46,6 @@ const write = process.argv.includes("--write");
 
 const SHOWREEL_40S = "ProjectHelp_Showreel_40s_Slow.mp4";
 const SHOWREEL_V8 = "ProjectHelp_Showreel_v8_Light.mp4";
-const ABOUT_FILM = "ProjectHelp_About_v4.mp4";
 
 const JOBS = [
   {
@@ -90,32 +85,12 @@ const JOBS = [
     out: "showreel-v8.mp4",
     src: SHOWREEL_V8,
     // Runs full-bleed below About and doubles as its own lightbox source, so it
-    // gets the most pixels of the five and keeps its audio.
+    // gets the most pixels of the four and keeps its audio.
     filter: "scale=1600:-2",
     crf: 31,
     audio: true,
     poster: "showreel-v8-poster.webp",
     posterAt: "00:00:03",
-    posterWidth: 1280,
-  },
-  {
-    out: "about-film.mp4",
-    src: ABOUT_FILM,
-    // The about film is played by the scrollbar, not by a play button, so this
-    // one is encoded for SEEKING rather than for playback. A keyframe every
-    // four frames means an arbitrary jump decodes three frames at worst instead
-    // of up to two seconds of them, which is the whole difference between a
-    // scrub that follows the cursor and one that moves in visible steps.
-    //
-    // That costs size — dense keyframes are the expensive kind — so the pixels
-    // and the quality both come down to pay for it, and the audio goes entirely:
-    // a film scrubbed backwards and forwards has no use for a soundtrack.
-    filter: "scale=1280:-2",
-    crf: 32,
-    gop: 4,
-    audio: false,
-    poster: "about-film-poster.webp",
-    posterAt: "00:00:01",
     posterWidth: 1280,
   },
 ];

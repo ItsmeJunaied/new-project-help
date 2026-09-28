@@ -4,7 +4,6 @@ import JsonLd from "@/components/JsonLd";
 import Header from "@/components/sections/Header";
 import AboutHero from "@/components/sections/AboutHero";
 import ServicesIntro from "@/components/sections/ServicesIntro";
-import AboutFilm from "@/components/sections/AboutFilm";
 import AboutApproach from "@/components/sections/AboutApproach";
 import AboutCapabilities from "@/components/sections/AboutCapabilities";
 import TechStack from "@/components/sections/TechStack";
@@ -40,10 +39,6 @@ export default function AboutPage() {
       <main id="main">
         <AboutHero />
         <ServicesIntro lines={STATEMENT_LINES} id="approach" nodeId="156:8682" />
-        <AboutFilm
-          src="/videos/about-film.mp4"
-          poster="/images/about-film-poster.webp"
-        />
         <AboutApproach />
         <AboutCapabilities />
         <TechStack />
