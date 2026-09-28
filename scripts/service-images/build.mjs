@@ -79,6 +79,49 @@ const MARKS = [
     source: "cybersecurity.webp",
     alt: "A security operations dashboard on a monitor",
   },
+
+  // The kinds of work that have no page of their own. They appear on the rail
+  // under All Services, so they need artwork on the same footing as the seven.
+  {
+    slug: "custom-software",
+    source: "custom-software.webp",
+    alt: "A clinical scheduling and consultation system",
+  },
+  {
+    slug: "web-applications",
+    source: "web-applications.webp",
+    alt: "A project and staffing console in the browser",
+  },
+  {
+    slug: "erp-systems",
+    source: "erp.webp",
+    alt: "An ERP users and access screen",
+  },
+  {
+    slug: "crm-systems",
+    source: "crm.webp",
+    alt: "A pipeline board with reporting above it",
+  },
+  {
+    slug: "enterprise-software",
+    source: "enterprise.webp",
+    alt: "An internal finance platform on a dark theme",
+  },
+  {
+    slug: "api-development",
+    source: "api.webp",
+    alt: "Sequence and flow diagrams for an API",
+  },
+  {
+    slug: "microservices",
+    source: "microservice.webp",
+    alt: "Services wired to a message bus",
+  },
+  {
+    slug: "business-automation",
+    source: "business-automation.webp",
+    alt: "An automation dashboard running on a monitor",
+  },
 ];
 
 const write = process.argv.includes("--write");

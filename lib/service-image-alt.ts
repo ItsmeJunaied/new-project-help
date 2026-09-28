@@ -11,4 +11,12 @@ export const SERVICE_IMAGE_ALT: Record<string, string> = {
   "technology-consulting": "Strategy and advisory pages for a consulting practice",
   "mobile-app-development": "A trading app running on a phone",
   "cybersecurity-data-protection": "A security operations dashboard on a monitor",
+  "custom-software": "A clinical scheduling and consultation system",
+  "web-applications": "A project and staffing console in the browser",
+  "erp-systems": "An ERP users and access screen",
+  "crm-systems": "A pipeline board with reporting above it",
+  "enterprise-software": "An internal finance platform on a dark theme",
+  "api-development": "Sequence and flow diagrams for an API",
+  "microservices": "Services wired to a message bus",
+  "business-automation": "An automation dashboard running on a monitor",
 };
