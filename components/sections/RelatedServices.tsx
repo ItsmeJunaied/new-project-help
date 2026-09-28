@@ -11,17 +11,20 @@ import { SERVICES, WORK_DOMAINS } from "@/lib/services";
 /**
  * The rail's card.
  *
- * Portrait and a little over one by two, which is the shape the parts want: a
- * headline across the top with one phrase struck through in marker, a line of
- * grey under it, and the work itself tilted at the foot of the card with a
- * pencil doodle behind it.
+ * Portrait and a little over one by two, which is what the two parts want: a
+ * headline across the top with its last phrase struck in marker, and a handset
+ * under it running off the bottom edge.
  *
- * Every card is white. The alternating black one is gone — the reference runs
- * one ground and lets the highlight and the artwork carry the colour, and a
- * black card in a row of white ones was reading as a state rather than a
- * choice.
+ * Every card is white on a saturated band. The alternating black card is gone —
+ * the reference runs one ground and lets the marker and the screen carry the
+ * colour, and a black card in a row of white ones read as a state rather than
+ * a choice.
+ *
+ * The height has to hold a whole handset: the phone is 70% of the card's width
+ * at a real handset's ratio, which is 1.52 times the card's width tall. Much
+ * shorter than this and the screen's tab bar is cut off with it.
  */
-const CARD = "h-[500px] w-[268px] lg:h-[560px] lg:w-[300px]";
+const CARD = "h-[520px] w-[268px] lg:h-[600px] lg:w-[300px]";
 const CARD_GAP = "mr-[16px]";
 
 /**
@@ -88,111 +91,117 @@ function splitTitle(title: string) {
   return { lead: words.slice(0, -1).join(" "), mark: words[words.length - 1] };
 }
 
-/* ----------------------------------------------------------------- doodles */
+/* ------------------------------------------------------------------ phone */
 
 /**
- * Pencil line-art, drawn rather than sourced.
+ * A handset, drawn.
  *
- * The reference scatters hand-drawn marks around each scene — a dashed flight
- * path, a mountain range, a couple of birds. They are what keep the white half
- * of the card from being empty, and they are all stroke, so they cost a few
- * hundred bytes each and take their colour from the card.
+ * The reference's cards are each a photograph of a phone running the product,
+ * and nothing about that needs a photograph: a black rounded frame, a cut-out
+ * for the island, and a screen laid out like an app screen gets there in divs.
+ * Drawing it also means the screen can carry OUR content rather than a stock
+ * one — the title, the artwork and the first things the engagement includes.
  *
- * Four of them, cycled by position, so no two neighbours carry the same mark.
+ * The one thing it must not do is squeeze a landscape screenshot into a
+ * portrait screen. So the screenshot goes in where a real app would put a
+ * picture: a wide card near the top, under the greeting.
  */
-const DOODLES = [
-  // A dashed flight path with a paper plane at the end of it.
-  <g key="flight">
-    <path
-      d="M4 96C22 58 58 22 104 16c26-3 44 6 52 20"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeDasharray="4 7"
-    />
-    <path
-      d="M150 24l24 10-24 12 4-11-4-11z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-  </g>,
+function Phone({ card }: { card: Card }) {
+  return (
+    // Width is a share of the card so the whole thing scales with it, and the
+    // aspect ratio is a real handset's, so nothing has to be measured twice.
+    <div className="pointer-events-none absolute inset-x-0 bottom-[-26px] flex justify-center">
+      <div className="relative aspect-[9/19.5] w-[70%] rounded-[30px] bg-[#101010] p-[6px] shadow-[0_22px_44px_-16px_rgba(0,0,0,0.45)]">
+        <div className="relative flex size-full flex-col overflow-hidden rounded-[25px] bg-white">
+          {/* The island, sitting over the screen the way the real one does. */}
+          <span className="absolute left-1/2 top-[7px] z-10 h-[13px] w-[42px] -translate-x-1/2 rounded-full bg-[#101010]" />
 
-  // A ridge line with two birds over it.
-  <g key="peaks">
-    <path
-      d="M2 108l34-46 22 28 26-40 30 40 24-24 32 42"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M112 26c4-5 8-5 11 0 3-5 7-5 11 0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-    />
-    <path
-      d="M140 44c3-4 6-4 8 0 3-4 6-4 8 0"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-    />
-  </g>,
+          {/* Status bar. Signal, wifi and battery as three plain shapes —
+              at this size anything more literal is mud. */}
+          <div className="flex items-center justify-between px-[11px] pt-[7px]">
+            <span className="font-body text-[7px] font-bold leading-none text-black">9:41</span>
+            <span aria-hidden className="flex items-center gap-[2.5px]">
+              <span className="h-[5px] w-[6px] rounded-[1px] bg-black/75" />
+              <span className="h-[5px] w-[6px] rounded-[1px] bg-black/55" />
+              <span className="h-[5px] w-[9px] rounded-[1.5px] border border-black/60" />
+            </span>
+          </div>
 
-  // A dotted orbit with a four-point spark in it.
-  <g key="orbit">
-    <circle
-      cx="96"
-      cy="60"
-      r="52"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeDasharray="2 8"
-    />
-    <circle cx="96" cy="60" r="30" fill="none" stroke="currentColor" strokeWidth="1.6" />
-    <path
-      d="M40 20c0 9 4 13 13 13-9 0-13 4-13 13 0-9-4-13-13-13 9 0 13-4 13-13z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-  </g>,
+          <div className="flex min-h-0 flex-1 flex-col gap-[7px] px-[10px] pt-[9px]">
+            <p className="font-display text-[10px] font-bold leading-[1.12] tracking-[-0.02em] text-pure-black">
+              {card.title}
+            </p>
 
-  // A route between two pins.
-  <g key="route">
-    <path
-      d="M16 92c30 10 44-16 70-10s34 24 66 8"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinecap="round"
-      strokeDasharray="5 6"
-    />
-    <path
-      d="M16 92c0-14-9-18-9-28a9 9 0 1 1 18 0c0 10-9 14-9 28z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-    <path
-      d="M152 90c0-14-9-18-9-28a9 9 0 1 1 18 0c0 10-9 14-9 28z"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.6"
-      strokeLinejoin="round"
-    />
-  </g>,
-];
+            {/* Where a real app would put its picture. The screenshot is
+                landscape, and this is a landscape slot, so it arrives the right
+                way up instead of being cropped to a sliver. */}
+            <div className="relative aspect-[4/3] w-full shrink-0 overflow-hidden rounded-[8px] bg-[#f1f1ee]">
+              <Image
+                src={`/images/services/${card.image}.webp`}
+                alt=""
+                fill
+                sizes="220px"
+                className="object-cover object-top"
+              />
+              <span className="absolute bottom-[5px] left-[5px] rounded-full bg-primary-green px-[5px] py-[2px] font-mono text-[5.5px] font-bold uppercase leading-none tracking-[0.5px] text-black">
+                Live
+              </span>
+            </div>
+
+            <p className="line-clamp-3 font-body text-[6.5px] leading-[9px] text-black/55">
+              {card.line}
+            </p>
+
+            {/* Two rows, the way every app lists the next thing to do. The
+                bars are decoration; the tick is what makes them read as done. */}
+            {[0, 1, 2, 3].map((row) => (
+              <span
+                key={row}
+                className="flex items-center gap-[6px] rounded-[7px] bg-[#f4f4f1] px-[6px] py-[5px]"
+              >
+                <span className="flex size-[11px] shrink-0 items-center justify-center rounded-full bg-primary-green">
+                  <svg viewBox="0 0 10 10" className="size-[6px]" aria-hidden>
+                    <path
+                      d="M2 5.2 4 7.2 8 3"
+                      fill="none"
+                      stroke="#0b0b0b"
+                      strokeWidth="1.6"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-[3px]">
+                  <span
+                    className="h-[3px] rounded-full bg-black/20"
+                    style={{ width: ["74%", "58%", "66%", "52%"][row] }}
+                  />
+                  <span
+                    className="h-[3px] rounded-full bg-black/10"
+                    style={{ width: ["46%", "62%", "38%", "70%"][row] }}
+                  />
+                </span>
+              </span>
+            ))}
+          </div>
+
+          {/* The tab bar, held clear of the card's bottom edge so the cut does
+              not take it with it. */}
+          <div className="mt-auto flex items-center justify-center gap-[5px] px-[10px] pb-[26px] pt-[9px]">
+            <span className="flex items-center gap-[3px] rounded-full bg-[#101010] px-[8px] py-[4px]">
+              <span className="size-[5px] rounded-[1px] bg-white" />
+              <span className="font-body text-[6px] font-semibold leading-none text-white">
+                Home
+              </span>
+            </span>
+            <span className="size-[5px] rounded-[1px] bg-black/25" />
+            <span className="size-[5px] rounded-full bg-black/25" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 /* -------------------------------------------------------------------- rail */
 
@@ -203,64 +212,36 @@ const DOODLES = [
  * contents to loop, and duplicating a list of links would put every service in
  * the tab order twice and read it out twice. The clones are inert.
  */
-function RailCard({ card, index, clone }: { card: Card; index: number; clone?: boolean }) {
+function RailCard({ card, clone }: { card: Card; clone?: boolean }) {
   const { lead, mark } = splitTitle(card.title);
 
   const body = (
     <>
-      {/* Behind everything, up in the empty corner the headline leaves. */}
-      <svg
-        aria-hidden
-        viewBox="0 0 190 120"
-        className="pointer-events-none absolute right-[-16px] top-[92px] w-[196px] text-black/[0.17]"
-      >
-        {DOODLES[index % DOODLES.length]}
-      </svg>
-
+      {/* Graph paper, barely there. The reference rules its cards faintly and
+          it is what keeps a white panel from being a blank. */}
       <span
         aria-hidden
-        className="relative font-mono text-[10px] uppercase leading-none tracking-[1px] text-black/35"
-      >
-        {String(index + 1).padStart(2, "0")}
-      </span>
+        className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgba(0,0,0,0.06)_1px,transparent_1px),linear-gradient(to_bottom,rgba(0,0,0,0.06)_1px,transparent_1px)] bg-[size:26px_26px]"
+      />
 
       {/* The marker. A padded background on the words themselves rather than a
           box positioned behind them, so it follows the text when it wraps and
           when the type scale changes. `box-decoration-clone` keeps both halves
           of a wrapped phrase padded instead of leaving one end open. */}
-      <h3 className="relative mt-[16px] font-display text-[clamp(1.55rem,2.05vw,31px)] font-semibold leading-[1.18] tracking-[-0.03em] text-pure-black">
+      <h3 className="relative font-display text-[clamp(1.55rem,2.05vw,30px)] font-bold leading-[1.16] tracking-[-0.035em] text-pure-black">
         {lead ? `${lead} ` : ""}
-        <span className="box-decoration-clone rounded-[3px] bg-primary-green px-[7px] py-[2px]">
+        <span className="box-decoration-clone rounded-[2px] bg-[#dff25c] px-[7px] py-[2px]">
           {mark}
         </span>
       </h3>
 
-      <p className="relative mt-[12px] line-clamp-3 font-body text-[12.5px] leading-[18px] tracking-[-0.1px] text-neutral-paragraph">
-        {card.line}
-      </p>
-
-      {/* The work itself, tilted and running off the foot of the card.
-          A screenshot laid flat in a box is a thumbnail; the same screenshot in
-          a bezel, turned a few degrees and casting a shadow, is a device
-          sitting on the card. The bezel is drawn — a dark rounded frame — so
-          nothing here needs artwork that we do not already have. */}
-      <div className="pointer-events-none absolute inset-x-[-50px] bottom-[-34px] lg:inset-x-[-56px]">
-        <div className="relative aspect-[4/3] w-full rotate-[-5deg] overflow-hidden rounded-[20px] border-[6px] border-[#101010] bg-[#101010] shadow-[0_26px_50px_-20px_rgba(0,0,0,0.55)] transition-transform duration-[900ms] ease-out group-hover:rotate-[-2deg]">
-          <Image
-            src={`/images/services/${card.image}.webp`}
-            alt=""
-            fill
-            sizes="(max-width: 1023px) 368px, 412px"
-            className="object-cover object-top"
-          />
-        </div>
-      </div>
+      <Phone card={card} />
     </>
   );
 
   const shell =
-    "related-card group relative shrink-0 overflow-hidden rounded-[24px] bg-white p-[24px] " +
-    "shadow-[0_2px_4px_rgba(0,0,0,0.04),0_26px_52px_-30px_rgba(0,0,0,0.42)] " +
+    "related-card group relative shrink-0 overflow-hidden rounded-[20px] bg-white p-[22px] " +
+    "shadow-[0_2px_4px_rgba(0,0,0,0.05),0_20px_40px_-26px_rgba(0,0,0,0.35)] " +
     `lg:p-[26px] ${CARD} ${CARD_GAP}`;
 
   if (clone) {
@@ -296,8 +277,8 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
   const services = SERVICES.filter((service) => service.slug !== currentSlug).map((service) => ({
     key: service.slug,
     title: service.shortTitle,
-    // Three of the four things the engagement includes. One of them on its own
-    // was a fragment under a headline; three read as the shape of the work.
+    // Three of the four things the engagement includes. One of them alone was
+    // a fragment; three read as the shape of the work.
     line: service.included.slice(0, 3).join(", "),
     image: service.slug,
     href: `/services/${service.slug}`,
@@ -402,19 +383,18 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
   const copies = still ? 1 : railCopies(cards.length);
 
   return (
-    // A grey band, not the page's own paper. White cards on near-white read as
-    // panels ruled onto the page; on grey they read as objects lying on a
-    // surface, which is the whole of why the reference sits on grey.
+    // The band is the brand green, which is the reference's move: one saturated
+    // ground, white cards lying on it, and the only other colour a marker.
     <section
       ref={sectionRef}
-      className="w-full overflow-hidden bg-[#eceae4] pb-[80px] pt-[72px] lg:pb-[110px] lg:pt-[100px]"
+      className="w-full overflow-hidden bg-primary-green pb-[84px] pt-[76px] lg:pb-[110px] lg:pt-[100px]"
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="related-head flex w-full flex-wrap items-end justify-between gap-[14px]">
-          <h2 className="font-display text-[clamp(1.75rem,3vw,38px)] font-semibold leading-[1.15] tracking-[-0.8px] text-black">
+          <h2 className="font-display text-[clamp(1.75rem,3vw,38px)] font-bold leading-[1.1] tracking-[-0.03em] text-pure-black">
             {currentSlug ? "Other Services" : "All Services"}
           </h2>
-          <p className="font-mono text-[11px] uppercase leading-none tracking-[0.8px] text-neutral-paragraph">
+          <p className="font-mono text-[11px] uppercase leading-none tracking-[0.8px] text-black/55">
             {String(cards.length).padStart(2, "0")}
             {currentSlug ? " more" : " kinds of work"}
           </p>
@@ -435,8 +415,8 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
       >
         <div className="related-rail-track flex w-max pl-6 lg:pl-[40px]">
           {Array.from({ length: copies }, (_, copy) =>
-            cards.map((card, index) => (
-              <RailCard key={`${copy}-${card.key}`} card={card} index={index} clone={copy > 0} />
+            cards.map((card) => (
+              <RailCard key={`${copy}-${card.key}`} card={card} clone={copy > 0} />
             )),
           )}
         </div>
