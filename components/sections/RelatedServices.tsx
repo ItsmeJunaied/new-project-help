@@ -1,20 +1,20 @@
 "use client";
 
 import Link from "next/link";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
 import { SERVICES, WORK_DOMAINS } from "@/lib/services";
 
 /**
- * Deep grounds, one family.
+ * Two grounds, alternating.
  *
- * This went pale for a pass and lost its weight — the cards sat within a hair
- * of the page's own paper and the board stopped being a thing you look at. It
- * is back on the deep values that worked: graphite, the brand green at full
- * strength, a forest for variation, and paper used sparingly as punctuation
- * rather than as the rule.
+ * This board used to run four deep grounds — graphite, lime, forest and paper
+ * — across a bento grid. It is a rail now, and a rail is read left to right:
+ * four colours cycling past is a pattern to decode rather than a set of cards.
+ * So white, with ink every third card as punctuation, and the brand green as
+ * the single accent inside either of them.
  */
 type Scheme = {
   ground: string;
@@ -29,66 +29,62 @@ type Scheme = {
   glow: number;
 };
 
-const GRAPHITE: Scheme = {
-  ground: "linear-gradient(152deg, #262626 0%, #0b0b0b 100%)",
-  ink: "#ffffff",
-  title: "#ffffff",
-  muted: "rgba(255,255,255,0.58)",
-  accent: "var(--color-primary-green)",
-  edge: "rgba(255,255,255,0.1)",
-  glow: 30,
+const PAPER: Scheme = {
+  ground: "#ffffff",
+  ink: "#151515",
+  title: "#0b0b0b",
+  muted: "rgba(21,21,21,0.56)",
+  // A deeper green than the brand token: the brand value is tuned to sit on
+  // black, and on white it is barely type.
+  accent: "#4d7d13",
+  edge: "rgba(21,21,21,0.10)",
+  glow: 10,
 };
 
-const LIME: Scheme = {
-  ground:
-    "linear-gradient(152deg, var(--color-primary-green) 0%, color-mix(in srgb, var(--color-primary-green) 52%, #12300a) 100%)",
-  ink: "#0d2004",
-  title: "#0d2004",
-  muted: "rgba(13,32,4,0.66)",
-  accent: "#0d2004",
-  edge: "rgba(13,32,4,0.18)",
-  glow: 14,
-};
-
-const FOREST: Scheme = {
-  ground: "linear-gradient(152deg, #1d3a17 0%, #08170a 100%)",
+const INK: Scheme = {
+  ground: "linear-gradient(168deg, #1e1e1e 0%, #070707 100%)",
   ink: "#ffffff",
   title: "#ffffff",
   muted: "rgba(255,255,255,0.56)",
   accent: "var(--color-primary-green)",
-  edge: "rgba(255,255,255,0.1)",
-  glow: 30,
+  edge: "rgba(255,255,255,0.09)",
+  glow: 26,
 };
 
-const PAPER: Scheme = {
-  ground: "linear-gradient(152deg, #f6f4ec 0%, #e6e3d8 100%)",
-  ink: "#151515",
-  title: "#151515",
-  muted: "rgba(21,21,21,0.58)",
-  accent: "#4d7d13",
-  edge: "rgba(21,21,21,0.13)",
-  glow: 12,
-};
-
-/** Paper twice in six, so the deep cards have something to breathe against. */
-const SCHEMES = [GRAPHITE, LIME, FOREST, PAPER, GRAPHITE, PAPER];
+/** Ink every third card, the way the reference punctuates a row of white. */
+const SCHEMES = [PAPER, INK, PAPER];
 
 /**
- * Six cards fill twelve cells — a big square, two tall panels beside it, then a
- * row of one-plus-two-plus-one. Repeating that block tiles any multiple of six
- * exactly, and fifteen is two blocks plus a half that also lands flush.
+ * The rail's card: portrait, because the artwork wants the whole foot of it and
+ * the title wants the whole head, with nothing competing across the middle.
  */
-const PATTERN = [
-  "lg:col-span-2 lg:row-span-2",
-  "lg:row-span-2",
-  "lg:row-span-2",
-  "",
-  "lg:col-span-2",
-  "",
-];
+const CARD = "h-[418px] w-[258px] lg:h-[476px] lg:w-[300px]";
 
-/** Positions whose screen is big enough to break the corner. */
-const LARGE = new Set([0, 6, 12]);
+/**
+ * How many times the rail repeats itself.
+ *
+ * It scrolls back to the start after exactly one copy, which lands on an
+ * identical frame and so has no seam. For that to be reachable the copies
+ * BEHIND the first have to cover the window — otherwise the rail hits the end
+ * of its own scroll and stops dead before it comes round.
+ *
+ * Fifteen cards is 4,710px, so two copies cover any window worth designing for.
+ * Six — the sibling row on a service page — is only 1,884px, and two copies
+ * would strand a 1,920px monitor; three carry it to 3,768px.
+ *
+ * It is also why the space between cards is a margin on the card rather than
+ * `gap` on the row: with `gap` the row is one gap short of whole copies, and
+ * the loop jumps that gap every time it comes round.
+ */
+const railCopies = (count: number) => (count >= 10 ? 2 : 3);
+const CARD_GAP = "mr-[14px]";
+
+/**
+ * Pixels a second. Slow enough to read a card as it passes, and stated as a
+ * rate rather than a duration so the six-card row on a service page drifts at
+ * the same speed as the fifteen-card one on /services.
+ */
+const RAIL_SPEED = 26;
 
 type Card = {
   key: string;
@@ -495,10 +491,98 @@ function Art({ id, ink, accent }: { id: string; ink: string; accent: string }) {
   }
 }
 
-/* ------------------------------------------------------------------ board */
+/* ------------------------------------------------------------------- rail */
+
+/**
+ * One card on the rail.
+ *
+ * `clone` is the copies behind the first: the rail has to be twice as long as
+ * its contents to loop, and duplicating a list of links would put every service
+ * into the tab order twice and read it out twice. The clones are inert.
+ */
+function RailCard({ card, index, clone }: { card: Card; index: number; clone?: boolean }) {
+  const scheme = SCHEMES[index % SCHEMES.length];
+
+  const body = (
+    <>
+      <span
+        aria-hidden
+        style={{
+          backgroundImage: `radial-gradient(72% 46% at 50% 88%, color-mix(in srgb, ${scheme.accent} ${scheme.glow}%, transparent), transparent 74%)`,
+        }}
+        className="pointer-events-none absolute inset-0"
+      />
+
+      <span
+        aria-hidden
+        style={{ color: scheme.accent }}
+        className="relative font-mono text-[10px] uppercase leading-none tracking-[1px]"
+      >
+        {String(index + 1).padStart(2, "0")}
+      </span>
+
+      <h3
+        style={{ color: scheme.title }}
+        className="relative mt-[14px] font-display text-[clamp(1.45rem,1.9vw,29px)] font-semibold leading-[1.04] tracking-[-0.03em]"
+      >
+        {card.title}
+      </h3>
+
+      <p
+        style={{ color: scheme.muted }}
+        className="relative mt-[10px] line-clamp-3 font-body text-[12.5px] leading-[17px] tracking-[-0.1px]"
+      >
+        {card.line}
+      </p>
+
+      {/* The screen fills the foot of the card and runs past both sides, which
+          is what the card is clipped for. No height on it: an svg with a
+          viewBox and a definite width takes its height from the ratio, so the
+          artwork keeps its proportions whatever the card is doing. */}
+      <svg
+        viewBox="0 0 160 120"
+        aria-hidden
+        className="related-art pointer-events-none absolute bottom-[-18px] left-[-30px] right-[-30px] transition-transform duration-500 group-hover:scale-[1.03]"
+      >
+        <Art id={card.art} ink={scheme.ink} accent={scheme.accent} />
+      </svg>
+    </>
+  );
+
+  const shell = `related-card group relative shrink-0 overflow-hidden rounded-[26px] border p-[22px] lg:p-[26px] ${CARD} ${CARD_GAP}`;
+  const style = { backgroundImage: scheme.ground, borderColor: scheme.edge };
+
+  if (clone) {
+    return (
+      <div aria-hidden style={style} className={shell}>
+        {body}
+      </div>
+    );
+  }
+
+  return card.href ? (
+    <Link href={card.href} style={style} className={shell}>
+      {body}
+    </Link>
+  ) : (
+    <div style={style} className={shell}>
+      {body}
+    </div>
+  );
+}
 
 export default function RelatedServices({ currentSlug }: { currentSlug: string }) {
   const sectionRef = useRef<HTMLElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
+
+  /** Set while the cursor or the keyboard is inside the rail. */
+  const held = useRef(false);
+
+  /**
+   * Reduced motion drops the duplicate copy along with the drift: nothing is
+   * looping, so there is nothing for the second copy to cover.
+   */
+  const [still, setStill] = useState(false);
 
   const services = SERVICES.filter((service) => service.slug !== currentSlug).map((service) => ({
     key: service.slug,
@@ -509,7 +593,7 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
   }));
 
   // On a detail page this is the sibling row. On /services it is the whole
-  // offering, so the work that has no page of its own is on the board too.
+  // offering, so the work that has no page of its own is on the rail too.
   const domains: Card[] = currentSlug
     ? []
     : WORK_DOMAINS.filter((domain) => !domain.service && DOMAIN_ART[domain.name]).map((domain) => ({
@@ -532,18 +616,13 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
         scrollTrigger: reveal(sectionRef.current, { start: "top 86%" }),
       });
 
-      gsap.from(".related-card", {
+      gsap.from(".related-rail", {
         y: 30,
         opacity: 0,
-        duration: 0.65,
+        duration: 0.8,
         ease: "power3.out",
-        stagger: 0.045,
-        scrollTrigger: reveal(sectionRef.current?.querySelector(".related-grid") ?? null, {
-          start: "top 90%",
-        }),
+        scrollTrigger: reveal(sectionRef.current, { start: "top 88%" }),
       });
-
-      if (prefersReducedMotion()) return;
 
       gsap.utils.toArray<HTMLElement>(".related-art").forEach((art, index) => {
         gsap.to(art, {
@@ -555,13 +634,74 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
           delay: (index % 7) * 0.16,
         });
       });
+
+      const rail = railRef.current;
+      if (!rail || prefersReducedMotion()) {
+        setStill(true);
+        return;
+      }
+
+      /**
+       * The rail moves by scrolling itself, not by transforming the row inside
+       * it.
+       *
+       * Two reasons. A transformed row of fifteen cards twice over is a single
+       * 9,420px composited layer, where a scroller paints only what is on
+       * screen. And a scroller is something a visitor can push along — which,
+       * paired with the hold below, means hovering the rail stops it and hands
+       * it over rather than just freezing it out of reach.
+       *
+       * One copy's width is measured from the cards themselves — the distance
+       * from the first card to its own duplicate — rather than divided out of
+       * the row. The row carries a left indent so the rail starts on the page
+       * margin, and dividing that in would leave half of it in every lap.
+       */
+      const measure = () => {
+        const drawn = rail.querySelectorAll<HTMLElement>(".related-card");
+        const twin = drawn[cards.length];
+        return twin ? twin.offsetLeft - drawn[0].offsetLeft : 0;
+      };
+
+      let copy = measure();
+      const remeasure = () => {
+        copy = measure();
+      };
+      window.addEventListener("resize", remeasure);
+
+      let last = gsap.ticker.time;
+      const drift = () => {
+        const elapsed = gsap.ticker.time - last;
+        last = gsap.ticker.time;
+        // Held still while somebody is reading it — and while it is held, the
+        // scroll position is theirs to move, which is why this reads it back
+        // rather than keeping its own.
+        if (held.current || copy <= 0) return;
+        rail.scrollLeft = (rail.scrollLeft + RAIL_SPEED * elapsed) % copy;
+      };
+      gsap.ticker.add(drift);
+
+      return () => {
+        gsap.ticker.remove(drift);
+        window.removeEventListener("resize", remeasure);
+      };
     },
-    { scope: sectionRef },
+    { scope: sectionRef, dependencies: [cards.length] },
   );
 
+  // A rail that never stops is a rail you cannot read or click. Hovering it, or
+  // tabbing into it, holds it where it is — and leaves it scrollable by hand.
+  const hold = () => {
+    held.current = true;
+  };
+  const release = () => {
+    held.current = false;
+  };
+
+  const copies = still ? 1 : railCopies(cards.length);
+
   return (
-    <section ref={sectionRef} className="w-full bg-bg px-6 pb-[80px] lg:px-[40px] lg:pb-[120px]">
-      <div className="mx-auto w-full max-w-[1440px]">
+    <section ref={sectionRef} className="w-full overflow-hidden bg-bg pb-[80px] lg:pb-[120px]">
+      <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="related-head flex w-full flex-wrap items-end justify-between gap-[14px]">
           <h2 className="font-display text-[clamp(1.75rem,3vw,38px)] font-semibold leading-[1.15] tracking-[-0.8px] text-black">
             {currentSlug ? "Other Services" : "All Services"}
@@ -571,90 +711,26 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
             {currentSlug ? " more" : " kinds of work"}
           </p>
         </div>
+      </div>
 
-        {/* Shorter rows than before — fifteen cards were taking a screen and a
-            half. Note there is no `overflow-hidden` on a card: the screen on
-            each one breaks its top-right corner, and the 14px it breaks into is
-            the gutter, never a neighbour's box. */}
-        <div className="related-grid mt-[22px] grid w-full grid-cols-1 gap-[12px] sm:grid-cols-2 lg:mt-[30px] lg:auto-rows-[138px] lg:grid-cols-4 lg:gap-[14px]">
-          {cards.map((card, index) => {
-            const scheme = SCHEMES[index % SCHEMES.length];
-            const large = LARGE.has(index);
-
-            const body = (
-              <>
-                <span
-                  aria-hidden
-                  style={{
-                    backgroundImage: `radial-gradient(56% 54% at 74% 26%, color-mix(in srgb, ${scheme.accent} ${scheme.glow}%, transparent), transparent 72%)`,
-                  }}
-                  className="pointer-events-none absolute inset-0 rounded-[16px]"
-                />
-
-                <span
-                  aria-hidden
-                  style={{ color: scheme.accent }}
-                  className="absolute left-[16px] top-[14px] font-mono text-[10px] uppercase leading-none tracking-[1px]"
-                >
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-
-                {/* Anchored top-right and allowed past the corner, which is what
-                    stops fifteen cards reading as fifteen boxes. Offset with
-                    inset values rather than a translate: GSAP owns this
-                    element's transform for the float and would overwrite one. */}
-                <svg
-                  viewBox="0 0 160 120"
-                  aria-hidden
-                  className={`related-art pointer-events-none absolute transition-transform duration-500 group-hover:scale-[1.04] ${
-                    // The large treatment is gated to lg, because below it
-                    // the card is NOT large — it is the same 168px box as every
-                    // other one, and a 130px screen in it runs over the title.
-                    large
-                      ? "-right-[10px] -top-[12px] h-[84px] w-[112px] lg:-right-[12px] lg:-top-[14px] lg:h-[130px] lg:w-[173px]"
-                      : "-right-[10px] -top-[12px] h-[84px] w-[112px]"
-                  }`}
-                >
-                  <Art id={card.art} ink={scheme.ink} accent={scheme.accent} />
-                </svg>
-
-                <div
-                  className={`relative flex max-w-[74%] flex-col gap-[4px] ${large ? "lg:max-w-[62%]" : ""}`}
-                >
-                  <h3
-                    style={{ color: scheme.title }}
-                    className={`font-display font-semibold leading-[1.08] tracking-[-0.4px] ${
-                      large ? "text-[15.5px] lg:text-[clamp(1.25rem,1.8vw,25px)]" : "text-[15.5px]"
-                    }`}
-                  >
-                    {card.title}
-                  </h3>
-                  <p
-                    style={{ color: scheme.muted }}
-                    className="line-clamp-2 font-body text-[11px] leading-[15px] tracking-[-0.1px]"
-                  >
-                    {card.line}
-                  </p>
-                </div>
-              </>
-            );
-
-            const shell = `related-card group relative flex min-h-[168px] flex-col justify-end rounded-[16px] border p-[16px] lg:min-h-0 ${
-              PATTERN[index % PATTERN.length]
-            }`;
-
-            const style = { backgroundImage: scheme.ground, borderColor: scheme.edge };
-
-            return card.href ? (
-              <Link key={card.key} href={card.href} style={style} className={shell}>
-                {body}
-              </Link>
-            ) : (
-              <div key={card.key} style={style} className={shell}>
-                {body}
-              </div>
-            );
-          })}
+      {/* Full bleed, faded to nothing at both ends so the rail reads as part of
+          something longer rather than a strip that stops at the page margin,
+          and a real scroller with its bar hidden: the drift is a scroll, and
+          while it is held a visitor can push it along themselves. */}
+      <div
+        ref={railRef}
+        onMouseEnter={hold}
+        onMouseLeave={release}
+        onFocusCapture={hold}
+        onBlurCapture={release}
+        className="related-rail mt-[22px] w-full overflow-x-auto overscroll-x-contain [-ms-overflow-style:none] [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)] [scrollbar-width:none] lg:mt-[32px] [&::-webkit-scrollbar]:hidden"
+      >
+        <div className="related-rail-track flex w-max pl-6 lg:pl-[40px]">
+          {Array.from({ length: copies }, (_, copy) =>
+            cards.map((card, index) => (
+              <RailCard key={`${copy}-${card.key}`} card={card} index={index} clone={copy > 0} />
+            )),
+          )}
         </div>
       </div>
     </section>
