@@ -63,6 +63,50 @@ body {
   color: var(--color-black);
 }
 
+/* The three motions the drawn service cards use. They live here because
+   keyframes cannot be declared in an inline style, and the cards are built
+   entirely out of inline styles — see components/sections/service-card-art.tsx.
+   All three are decoration on elements that carry no meaning, so reduced
+   motion stops them outright rather than substituting anything. */
+@keyframes bob {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -10px;
+  }
+}
+
+@keyframes blink {
+  0%,
+  93%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.1);
+  }
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [style*="bob"],
+  [style*="blink"],
+  [style*="pulse"] {
+    animation: none !important;
+  }
+}
+
 /* Rich-text blocks authored in the admin's editor arrive as raw HTML, so the
    article page has no class names to hang styling on. These rules give that
    HTML the same type scale the hand-built article uses, and nothing else on the
