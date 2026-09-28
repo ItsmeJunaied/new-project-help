@@ -62,6 +62,7 @@ next-env.d.ts
 /assets/*
 !/assets/case-study-sources/
 !/assets/site-image-sources/
+!/assets/service-image-sources/
 !/assets/client-logo-sources/
 !/assets/brand/
 /assets/brand/*

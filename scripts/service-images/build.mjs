@@ -1,10 +1,11 @@
 /**
  * Builds public/images/services/*.webp from the sources dropped in assets/.
  *
- * The services section shows one piece of artwork per service. The sources are
- * product and interface renders at whatever size they arrived in — one of them
- * a 1504x4625 full-page screenshot — so this is the one place that knows how
- * each is cut down to something a card can draw.
+ * The services section shows one piece of artwork per service. The sources live
+ * in assets/service-image-sources — product and interface renders at whatever
+ * size they arrived in, one of them a 1504x4625 full-page screenshot — so this
+ * is the one place that knows how each is cut down to something a card can
+ * draw. They are committed, so the outputs can always be rebuilt.
  *
  * Deliberately no fixed output ratio: each card crops with object-cover at the
  * size it needs, and cropping twice only throws away pixels the layout might
@@ -19,7 +20,7 @@ import { join } from "node:path";
 import sharp from "sharp";
 
 const ROOT = process.cwd();
-const SRC = join(ROOT, "assets");
+const SRC = join(ROOT, "assets/service-image-sources");
 const OUT = join(ROOT, "public/images/services");
 
 /** The widest any card draws one of these, doubled for retina. */
