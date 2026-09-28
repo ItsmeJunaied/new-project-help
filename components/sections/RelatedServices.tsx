@@ -20,33 +20,45 @@ import { SERVICES, WORK_DOMAINS } from "@/lib/services";
 type Scheme = {
   ground: string;
   title: string;
-  muted: string;
   /** The index plate, and the flat fallback for the gradient word. */
   accent: string;
   /** Painted through the accented word. */
   accentGradient: string;
-  edge: string;
+  /** The orbit rings behind the artwork. */
+  ring: string;
+  /** The chip that carries the supporting line over the artwork. */
+  chip: string;
+  chipInk: string;
+  chipEdge: string;
+  /** No border on this card — it is lifted off the grey ground by shadow. */
+  lift: string;
 };
 
 const PAPER: Scheme = {
   ground: "#ffffff",
   title: "#0b0b0b",
-  muted: "rgba(21,21,21,0.54)",
   // A deeper green than the brand token: the brand value is tuned to sit on
   // black, and on white it is barely type.
   accent: "#4d7d13",
-  accentGradient: "linear-gradient(96deg, #32660c 0%, #6fae1f 58%, #98c93f 100%)",
-  edge: "rgba(21,21,21,0.10)",
+  accentGradient: "linear-gradient(96deg, #2c5c0a 0%, #6fae1f 55%, #a8d94e 100%)",
+  ring: "rgba(21,21,21,0.07)",
+  chip: "rgba(12,12,12,0.86)",
+  chipInk: "#ffffff",
+  chipEdge: "rgba(255,255,255,0.10)",
+  lift: "shadow-[0_2px_4px_rgba(0,0,0,0.04),0_26px_52px_-30px_rgba(0,0,0,0.42)]",
 };
 
 const INK: Scheme = {
   ground: "linear-gradient(168deg, #1e1e1e 0%, #070707 100%)",
   title: "#ffffff",
-  muted: "rgba(255,255,255,0.56)",
   accent: "var(--color-primary-green)",
   accentGradient:
     "linear-gradient(96deg, var(--color-primary-green) 0%, #bdf07e 62%, #e8ffc9 100%)",
-  edge: "rgba(255,255,255,0.09)",
+  ring: "rgba(255,255,255,0.10)",
+  chip: "rgba(255,255,255,0.90)",
+  chipInk: "#0b0b0b",
+  chipEdge: "rgba(12,12,12,0.08)",
+  lift: "shadow-[0_2px_4px_rgba(0,0,0,0.10),0_26px_52px_-30px_rgba(0,0,0,0.62)]",
 };
 
 /** Ink every third card, the way the reference punctuates a row of white. */
@@ -162,6 +174,22 @@ function RailCard({ card, index, clone }: { card: Card; index: number; clone?: b
         />
       </div>
 
+      {/* Faint orbit rings behind the artwork, off the card's top corner. The
+          reference puts concentric rings and dotted paths behind every scene;
+          this is the cheap half of that, and it stops the upper half of the
+          card from being flat colour. */}
+      <svg
+        aria-hidden
+        viewBox="0 0 200 200"
+        className="pointer-events-none absolute -right-[64px] -top-[58px] size-[260px]"
+        style={{ color: scheme.ring }}
+      >
+        {[46, 68, 90].map((r) => (
+          <circle key={r} cx="100" cy="100" r={r} fill="none" stroke="currentColor" strokeWidth="1" />
+        ))}
+        <circle cx="100" cy="100" r="112" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 7" />
+      </svg>
+
       <span
         aria-hidden
         style={{ color: scheme.accent }}
@@ -172,7 +200,7 @@ function RailCard({ card, index, clone }: { card: Card; index: number; clone?: b
 
       <h3
         style={{ color: scheme.title }}
-        className="relative mt-[18px] font-display text-[clamp(2.05rem,2.75vw,40px)] font-semibold leading-[1.0] tracking-[-0.04em]"
+        className="relative mt-[18px] font-display text-[clamp(2.2rem,3vw,45px)] font-bold leading-[0.98] tracking-[-0.045em]"
       >
         {lead ? `${lead} ` : ""}
         <span
@@ -183,17 +211,22 @@ function RailCard({ card, index, clone }: { card: Card; index: number; clone?: b
         </span>
       </h3>
 
-      <p
-        style={{ color: scheme.muted }}
-        className="relative mt-[13px] line-clamp-3 font-body text-[13.5px] leading-[19px] tracking-[-0.1px]"
+      {/* The supporting line rides over the artwork on a chip rather than
+          sitting under the headline as grey body copy — which is what the
+          reference does with "Earn $40–$500 per day" and "Pass once. Get
+          matched to high signal work.", and it gives the headline the whole
+          top of the card. */}
+      <span
+        style={{ backgroundColor: scheme.chip, color: scheme.chipInk, borderColor: scheme.chipEdge }}
+        className="absolute inset-x-[22px] bottom-[22px] rounded-[16px] border px-[16px] py-[12px] font-body text-[12.5px] font-medium leading-[17px] tracking-[-0.1px] shadow-[0_10px_26px_-12px_rgba(0,0,0,0.5)] backdrop-blur-md lg:inset-x-[26px] lg:bottom-[26px]"
       >
         {card.line}
-      </p>
+      </span>
     </>
   );
 
-  const shell = `related-card group relative shrink-0 overflow-hidden rounded-[32px] border p-[26px] lg:p-[30px] ${CARD} ${CARD_GAP}`;
-  const style = { backgroundImage: scheme.ground, borderColor: scheme.edge };
+  const shell = `related-card group relative shrink-0 overflow-hidden rounded-[34px] p-[26px] lg:p-[30px] ${CARD} ${CARD_GAP} ${scheme.lift}`;
+  const style = { backgroundImage: scheme.ground };
 
   if (clone) {
     return (
@@ -334,7 +367,13 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
   const copies = still ? 1 : railCopies(cards.length);
 
   return (
-    <section ref={sectionRef} className="w-full overflow-hidden bg-bg pb-[80px] lg:pb-[120px]">
+    // A grey band, not the page's own paper. White cards on near-white read as
+    // panels ruled onto the page; on grey they read as objects lying on a
+    // surface, which is the whole of why the reference sits on grey.
+    <section
+      ref={sectionRef}
+      className="w-full overflow-hidden bg-[#eceae4] pb-[80px] pt-[72px] lg:pb-[110px] lg:pt-[100px]"
+    >
       <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="related-head flex w-full flex-wrap items-end justify-between gap-[14px]">
           <h2 className="font-display text-[clamp(1.75rem,3vw,38px)] font-semibold leading-[1.15] tracking-[-0.8px] text-black">
