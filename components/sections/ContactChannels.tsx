@@ -161,7 +161,7 @@ export default function ContactChannels() {
             a much larger map, and a card floating on that leaves a frame with
             no map left in it. */}
         <div className="relative w-full">
-          <div className="channel-map relative isolate h-[320px] w-full overflow-hidden rounded-[24px] bg-[#e8e6e2] shadow-[0_50px_90px_-50px_rgba(0,0,0,0.45)] ring-1 ring-black/10 sm:h-[560px] sm:rounded-[28px] lg:h-[640px] lg:rounded-[36px]">
+          <div className="channel-map relative isolate h-[320px] w-full overflow-hidden rounded-[24px] bg-[#0b0b0c] shadow-[0_50px_90px_-50px_rgba(0,0,0,0.55)] ring-1 ring-white/10 sm:h-[560px] sm:rounded-[28px] lg:h-[640px] lg:rounded-[36px]">
             <iframe
               src={siteConfig.mapEmbedSrc}
               title={`${siteConfig.name} office location on Google Maps`}
@@ -169,18 +169,18 @@ export default function ContactChannels() {
               referrerPolicy="no-referrer-when-downgrade"
               tabIndex={-1}
               aria-hidden
-              className="pointer-events-none absolute inset-0 size-full scale-[1.06] border-0 brightness-[1.04] contrast-[1.08] grayscale"
+              className="pointer-events-none absolute inset-0 size-full scale-[1.06] border-0 brightness-[0.74] contrast-[0.86] grayscale invert hue-rotate-180"
             />
 
-            {/* Corners pulled down and, on a wide frame, the left side washed
-                out so the card has a ground of its own to sit on. */}
+            {/* Corners pulled under and, on a wide frame, the left side taken
+                down to black so the card has a ground of its own to sit on. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(125%_95%_at_50%_0%,transparent_38%,rgba(0,0,0,0.2)_100%)]"
+              className="pointer-events-none absolute inset-0 z-10 bg-[radial-gradient(125%_95%_at_50%_0%,transparent_34%,rgba(0,0,0,0.6)_100%)]"
             />
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(255,253,251,0.95)_0%,rgba(255,253,251,0.4)_30%,transparent_58%)] lg:bg-[linear-gradient(102deg,rgba(255,253,251,0.95)_0%,rgba(255,253,251,0.5)_32%,transparent_60%)]"
+              className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_top,rgba(5,5,6,0.96)_0%,rgba(5,5,6,0.45)_30%,transparent_58%)] lg:bg-[linear-gradient(102deg,rgba(5,5,6,0.96)_0%,rgba(5,5,6,0.55)_32%,transparent_60%)]"
             />
 
             {/* Google keeps a "view larger map" link in the top-left corner,
@@ -190,7 +190,7 @@ export default function ContactChannels() {
                 map, which is theirs by right, is left alone. */}
             <div
               aria-hidden
-              className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_bottom,rgba(255,253,251,1)_0px,rgba(255,253,251,0.97)_48px,transparent_112px)] lg:bg-[radial-gradient(260px_140px_at_0%_0%,rgba(255,253,251,0.98)_0%,rgba(255,253,251,0.86)_45%,transparent_80%)]"
+              className="pointer-events-none absolute inset-0 z-10 bg-[linear-gradient(to_bottom,rgba(5,5,6,1)_0px,rgba(5,5,6,0.96)_48px,transparent_112px)] lg:bg-[radial-gradient(280px_150px_at_0%_0%,rgba(5,5,6,0.98)_0%,rgba(5,5,6,0.88)_45%,transparent_82%)]"
             />
 
             <a
@@ -203,10 +203,10 @@ export default function ContactChannels() {
 
             <div aria-hidden className="pointer-events-none absolute left-1/2 top-1/2 z-10">
               <span
-                className="absolute left-0 top-0 size-[150px] rounded-full bg-primary-green/30"
+                className="absolute left-0 top-0 size-[150px] rounded-full bg-primary-green/35"
                 style={{ animation: "map-ping 2.8s cubic-bezier(0, 0, 0.2, 1) infinite" }}
               />
-              <span className="absolute left-0 top-0 size-[52px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-green/25" />
+              <span className="absolute left-0 top-0 size-[52px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary-green/30" />
               <svg
                 width="46"
                 height="58"
@@ -222,7 +222,7 @@ export default function ContactChannels() {
                 />
                 <circle cx="23" cy="21.5" r="7" fill="#ffffff" />
               </svg>
-              <span className="absolute left-0 top-[16px] -translate-x-1/2 whitespace-nowrap rounded-full bg-black/85 px-[12px] py-[7px] font-mono text-[10px] uppercase leading-none tracking-[0.16em] text-white">
+              <span className="absolute left-0 top-[16px] -translate-x-1/2 whitespace-nowrap rounded-full bg-white px-[12px] py-[7px] font-mono text-[10px] uppercase leading-none tracking-[0.16em] text-ink shadow-[0_8px_20px_-8px_rgba(0,0,0,0.8)]">
                 {siteConfig.name}
               </span>
             </div>
@@ -254,7 +254,7 @@ export default function ContactChannels() {
 
             <div
               aria-hidden
-              className="map-chrome pointer-events-none absolute bottom-[28px] right-[28px] z-10 hidden rounded-full bg-black/80 px-[14px] py-[9px] font-mono text-[11px] uppercase leading-none tracking-[0.16em] text-white backdrop-blur lg:block"
+              className="map-chrome pointer-events-none absolute bottom-[28px] right-[28px] z-10 hidden rounded-full bg-white/10 px-[14px] py-[9px] font-mono text-[11px] uppercase leading-none tracking-[0.16em] text-white/85 ring-1 ring-white/15 backdrop-blur-md lg:block"
             >
               23.7902° N · 90.4101° E
             </div>
