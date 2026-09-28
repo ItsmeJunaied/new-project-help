@@ -9,73 +9,20 @@ import { prefersReducedMotion, reveal } from "@/lib/anim";
 import { SERVICES, WORK_DOMAINS } from "@/lib/services";
 
 /**
- * Two grounds, alternating.
- *
- * This board used to run four deep grounds — graphite, lime, forest and paper —
- * across a bento grid. It is a rail now, and a rail is read left to right: four
- * colours cycling past is a pattern to decode rather than a set of cards. So
- * white, with ink every third card as punctuation, and one word of the title
- * carrying a gradient — which is the whole of the reference's colour.
- */
-type Scheme = {
-  ground: string;
-  title: string;
-  /** The index plate, and the flat fallback for the gradient word. */
-  accent: string;
-  /** Painted through the accented word. */
-  accentGradient: string;
-  /** The orbit rings behind the artwork. */
-  ring: string;
-  /** The chip that carries the supporting line over the artwork. */
-  chip: string;
-  chipInk: string;
-  chipEdge: string;
-  /** No border on this card — it is lifted off the grey ground by shadow. */
-  lift: string;
-};
-
-const PAPER: Scheme = {
-  ground: "#ffffff",
-  title: "#0b0b0b",
-  // A deeper green than the brand token: the brand value is tuned to sit on
-  // black, and on white it is barely type.
-  accent: "#4d7d13",
-  accentGradient: "linear-gradient(96deg, #2c5c0a 0%, #6fae1f 55%, #a8d94e 100%)",
-  ring: "rgba(21,21,21,0.07)",
-  chip: "rgba(12,12,12,0.86)",
-  chipInk: "#ffffff",
-  chipEdge: "rgba(255,255,255,0.10)",
-  lift: "shadow-[0_2px_4px_rgba(0,0,0,0.04),0_26px_52px_-30px_rgba(0,0,0,0.42)]",
-};
-
-const INK: Scheme = {
-  ground: "linear-gradient(168deg, #1e1e1e 0%, #070707 100%)",
-  title: "#ffffff",
-  accent: "var(--color-primary-green)",
-  accentGradient:
-    "linear-gradient(96deg, var(--color-primary-green) 0%, #bdf07e 62%, #e8ffc9 100%)",
-  ring: "rgba(255,255,255,0.10)",
-  chip: "rgba(255,255,255,0.90)",
-  chipInk: "#0b0b0b",
-  chipEdge: "rgba(12,12,12,0.08)",
-  lift: "shadow-[0_2px_4px_rgba(0,0,0,0.10),0_26px_52px_-30px_rgba(0,0,0,0.62)]",
-};
-
-/** Ink every third card, the way the reference punctuates a row of white. */
-const SCHEMES = [PAPER, INK, PAPER];
-
-/**
  * The rail's card.
  *
- * Portrait and close to one by two, because that is the shape the reference
- * cards are and the shape the parts want: a headline big enough to be the whole
- * top of the card, and artwork filling everything under it.
+ * Portrait and a little over one by two, which is the shape the parts want: a
+ * headline across the top with one phrase struck through in marker, a line of
+ * grey under it, and the work itself tilted at the foot of the card with a
+ * pencil doodle behind it.
+ *
+ * Every card is white. The alternating black one is gone — the reference runs
+ * one ground and lets the highlight and the artwork carry the colour, and a
+ * black card in a row of white ones was reading as a state rather than a
+ * choice.
  */
-const CARD = "h-[520px] w-[282px] lg:h-[600px] lg:w-[320px]";
+const CARD = "h-[500px] w-[268px] lg:h-[560px] lg:w-[300px]";
 const CARD_GAP = "mr-[16px]";
-
-/** How much of the card's height the artwork takes, from the bottom up. */
-const ART_HEIGHT = "h-[58%]";
 
 /**
  * How many times the rail repeats itself.
@@ -85,9 +32,9 @@ const ART_HEIGHT = "h-[58%]";
  * BEHIND the first have to cover the window — otherwise the rail hits the end
  * of its own scroll and stops dead before it comes round.
  *
- * Fifteen cards is 5,040px, so two copies cover any window worth designing for.
- * Six — the sibling row on a service page — is only 2,016px, and two copies
- * would strand a wide monitor; three carry it past 4,000px.
+ * Fifteen cards is 4,740px, so two copies cover any window worth designing for.
+ * Six — the sibling row on a service page — is only 1,896px, and two copies
+ * would strand a wide monitor; three carry it past 3,700px.
  *
  * It is also why the space between cards is a margin on the card rather than
  * `gap` on the row: with `gap` the row is one gap short of whole copies, and
@@ -130,19 +77,124 @@ const DOMAIN_IMAGE: Record<string, string> = {
 };
 
 /**
- * The last word of a title, which is the one that carries the gradient.
+ * The last word of a title, which is the one that gets the marker.
  *
- * A one-word title gives the gradient the whole word — which is what the
- * reference does with "Cash out" and with "Vetted", and is better than a card
- * with no colour on it at all.
+ * A one-word title gives the marker the whole word, which is better than a card
+ * with nothing struck on it at all.
  */
 function splitTitle(title: string) {
   const words = title.trim().split(" ");
-  if (words.length < 2) return { lead: "", accent: title };
-  return { lead: words.slice(0, -1).join(" "), accent: words[words.length - 1] };
+  if (words.length < 2) return { lead: "", mark: title };
+  return { lead: words.slice(0, -1).join(" "), mark: words[words.length - 1] };
 }
 
-/* ------------------------------------------------------------------- rail */
+/* ----------------------------------------------------------------- doodles */
+
+/**
+ * Pencil line-art, drawn rather than sourced.
+ *
+ * The reference scatters hand-drawn marks around each scene — a dashed flight
+ * path, a mountain range, a couple of birds. They are what keep the white half
+ * of the card from being empty, and they are all stroke, so they cost a few
+ * hundred bytes each and take their colour from the card.
+ *
+ * Four of them, cycled by position, so no two neighbours carry the same mark.
+ */
+const DOODLES = [
+  // A dashed flight path with a paper plane at the end of it.
+  <g key="flight">
+    <path
+      d="M4 96C22 58 58 22 104 16c26-3 44 6 52 20"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeDasharray="4 7"
+    />
+    <path
+      d="M150 24l24 10-24 12 4-11-4-11z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
+  </g>,
+
+  // A ridge line with two birds over it.
+  <g key="peaks">
+    <path
+      d="M2 108l34-46 22 28 26-40 30 40 24-24 32 42"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M112 26c4-5 8-5 11 0 3-5 7-5 11 0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+    />
+    <path
+      d="M140 44c3-4 6-4 8 0 3-4 6-4 8 0"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+    />
+  </g>,
+
+  // A dotted orbit with a four-point spark in it.
+  <g key="orbit">
+    <circle
+      cx="96"
+      cy="60"
+      r="52"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeDasharray="2 8"
+    />
+    <circle cx="96" cy="60" r="30" fill="none" stroke="currentColor" strokeWidth="1.6" />
+    <path
+      d="M40 20c0 9 4 13 13 13-9 0-13 4-13 13 0-9-4-13-13-13 9 0 13-4 13-13z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
+  </g>,
+
+  // A route between two pins.
+  <g key="route">
+    <path
+      d="M16 92c30 10 44-16 70-10s34 24 66 8"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+      strokeDasharray="5 6"
+    />
+    <path
+      d="M16 92c0-14-9-18-9-28a9 9 0 1 1 18 0c0 10-9 14-9 28z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M152 90c0-14-9-18-9-28a9 9 0 1 1 18 0c0 10-9 14-9 28z"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinejoin="round"
+    />
+  </g>,
+];
+
+/* -------------------------------------------------------------------- rail */
 
 /**
  * One card on the rail.
@@ -152,98 +204,79 @@ function splitTitle(title: string) {
  * the tab order twice and read it out twice. The clones are inert.
  */
 function RailCard({ card, index, clone }: { card: Card; index: number; clone?: boolean }) {
-  const scheme = SCHEMES[index % SCHEMES.length];
-  const { lead, accent } = splitTitle(card.title);
+  const { lead, mark } = splitTitle(card.title);
 
   const body = (
     <>
-      {/* The artwork, filling the foot of the card edge to edge and dissolving
-          into the ground rather than starting on a hard line. A straight top
-          edge here reads as a thumbnail pasted into a box; the mask is what
-          makes it the card. */}
-      <div
-        aria-hidden
-        className={`pointer-events-none absolute inset-x-0 bottom-0 ${ART_HEIGHT} [mask-image:linear-gradient(to_bottom,transparent_0%,black_26%)]`}
-      >
-        <Image
-          src={`/images/services/${card.image}.webp`}
-          alt=""
-          fill
-          sizes="(max-width: 1023px) 282px, 320px"
-          className="object-cover object-top transition-transform duration-[900ms] ease-out group-hover:scale-[1.06]"
-        />
-      </div>
-
-      {/* Faint orbit rings behind the artwork, off the card's top corner. The
-          reference puts concentric rings and dotted paths behind every scene;
-          this is the cheap half of that, and it stops the upper half of the
-          card from being flat colour. */}
+      {/* Behind everything, up in the empty corner the headline leaves. */}
       <svg
         aria-hidden
-        viewBox="0 0 200 200"
-        className="pointer-events-none absolute -right-[64px] -top-[58px] size-[260px]"
-        style={{ color: scheme.ring }}
+        viewBox="0 0 190 120"
+        className="pointer-events-none absolute right-[-16px] top-[92px] w-[196px] text-black/[0.17]"
       >
-        {[46, 68, 90].map((r) => (
-          <circle key={r} cx="100" cy="100" r={r} fill="none" stroke="currentColor" strokeWidth="1" />
-        ))}
-        <circle cx="100" cy="100" r="112" fill="none" stroke="currentColor" strokeWidth="1" strokeDasharray="3 7" />
+        {DOODLES[index % DOODLES.length]}
       </svg>
 
       <span
         aria-hidden
-        style={{ color: scheme.accent }}
-        className="relative font-mono text-[10px] uppercase leading-none tracking-[1px]"
+        className="relative font-mono text-[10px] uppercase leading-none tracking-[1px] text-black/35"
       >
         {String(index + 1).padStart(2, "0")}
       </span>
 
-      <h3
-        style={{ color: scheme.title }}
-        className="relative mt-[18px] font-display text-[clamp(2.2rem,3vw,45px)] font-bold leading-[0.98] tracking-[-0.045em]"
-      >
+      {/* The marker. A padded background on the words themselves rather than a
+          box positioned behind them, so it follows the text when it wraps and
+          when the type scale changes. `box-decoration-clone` keeps both halves
+          of a wrapped phrase padded instead of leaving one end open. */}
+      <h3 className="relative mt-[16px] font-display text-[clamp(1.55rem,2.05vw,31px)] font-semibold leading-[1.18] tracking-[-0.03em] text-pure-black">
         {lead ? `${lead} ` : ""}
-        <span
-          style={{ backgroundImage: scheme.accentGradient }}
-          className="bg-clip-text text-transparent"
-        >
-          {accent}
+        <span className="box-decoration-clone rounded-[3px] bg-primary-green px-[7px] py-[2px]">
+          {mark}
         </span>
       </h3>
 
-      {/* The supporting line rides over the artwork on a chip rather than
-          sitting under the headline as grey body copy — which is what the
-          reference does with "Earn $40–$500 per day" and "Pass once. Get
-          matched to high signal work.", and it gives the headline the whole
-          top of the card. */}
-      <span
-        style={{ backgroundColor: scheme.chip, color: scheme.chipInk, borderColor: scheme.chipEdge }}
-        className="absolute inset-x-[22px] bottom-[22px] rounded-[16px] border px-[16px] py-[12px] font-body text-[12.5px] font-medium leading-[17px] tracking-[-0.1px] shadow-[0_10px_26px_-12px_rgba(0,0,0,0.5)] backdrop-blur-md lg:inset-x-[26px] lg:bottom-[26px]"
-      >
+      <p className="relative mt-[12px] line-clamp-3 font-body text-[12.5px] leading-[18px] tracking-[-0.1px] text-neutral-paragraph">
         {card.line}
-      </span>
+      </p>
+
+      {/* The work itself, tilted and running off the foot of the card.
+          A screenshot laid flat in a box is a thumbnail; the same screenshot in
+          a bezel, turned a few degrees and casting a shadow, is a device
+          sitting on the card. The bezel is drawn — a dark rounded frame — so
+          nothing here needs artwork that we do not already have. */}
+      <div className="pointer-events-none absolute inset-x-[-50px] bottom-[-34px] lg:inset-x-[-56px]">
+        <div className="relative aspect-[4/3] w-full rotate-[-5deg] overflow-hidden rounded-[20px] border-[6px] border-[#101010] bg-[#101010] shadow-[0_26px_50px_-20px_rgba(0,0,0,0.55)] transition-transform duration-[900ms] ease-out group-hover:rotate-[-2deg]">
+          <Image
+            src={`/images/services/${card.image}.webp`}
+            alt=""
+            fill
+            sizes="(max-width: 1023px) 368px, 412px"
+            className="object-cover object-top"
+          />
+        </div>
+      </div>
     </>
   );
 
-  const shell = `related-card group relative shrink-0 overflow-hidden rounded-[34px] p-[26px] lg:p-[30px] ${CARD} ${CARD_GAP} ${scheme.lift}`;
-  const style = { backgroundImage: scheme.ground };
+  const shell =
+    "related-card group relative shrink-0 overflow-hidden rounded-[24px] bg-white p-[24px] " +
+    "shadow-[0_2px_4px_rgba(0,0,0,0.04),0_26px_52px_-30px_rgba(0,0,0,0.42)] " +
+    `lg:p-[26px] ${CARD} ${CARD_GAP}`;
 
   if (clone) {
     return (
-      <div aria-hidden style={style} className={shell}>
+      <div aria-hidden className={shell}>
         {body}
       </div>
     );
   }
 
   return card.href ? (
-    <Link href={card.href} style={style} className={shell}>
+    <Link href={card.href} className={shell}>
       {body}
     </Link>
   ) : (
-    <div style={style} className={shell}>
-      {body}
-    </div>
+    <div className={shell}>{body}</div>
   );
 }
 
@@ -263,7 +296,9 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
   const services = SERVICES.filter((service) => service.slug !== currentSlug).map((service) => ({
     key: service.slug,
     title: service.shortTitle,
-    line: service.included[0],
+    // Three of the four things the engagement includes. One of them on its own
+    // was a fragment under a headline; three read as the shape of the work.
+    line: service.included.slice(0, 3).join(", "),
     image: service.slug,
     href: `/services/${service.slug}`,
   }));
@@ -313,7 +348,7 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
        * it.
        *
        * Two reasons. A transformed row of fifteen cards twice over is a single
-       * 10,000px composited layer, where a scroller paints only what is on
+       * 9,500px composited layer, where a scroller paints only what is on
        * screen. And a scroller is something a visitor can push along — which,
        * paired with the hold below, means hovering the rail stops it and hands
        * it over rather than just freezing it out of reach.
