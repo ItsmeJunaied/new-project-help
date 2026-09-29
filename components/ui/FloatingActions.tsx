@@ -125,14 +125,21 @@ export default function FloatingActions() {
 
           The dock has room for a label the length of "Let's talk" and no more,
           so the offer that needs a sentence to explain takes the corner
-          instead. It carries the dock's own material — same black, same
-          hairline, same blur — so the two read as one system rather than as a
-          dock and a pop-up, and it arrives and leaves on the dock's cue.
+          instead — on the right, where nothing else on the page sits.
+
+          Light, where the dock is dark. They are two different offers and the
+          dock's own material would have made them look like one control split
+          in half. White also carries further: the page runs cream through the
+          middle and black at the bands, and a white pill holds its edge on
+          both, where a black one disappears into every dark section it
+          crosses. It still arrives and leaves on the dock's cue.
 
           It stands above the dock until the window is wide enough for the two
-          to sit side by side without touching — which, with the dock carrying
-          its links, is not until xl. Below that they stack. */}
-      <div className="print-hide pointer-events-none fixed bottom-[86px] left-0 z-40 px-4 xl:bottom-[24px] xl:px-[24px]">
+          to sit side by side without touching, and below that they stack. That
+          width is arithmetic rather than a guess: the dock is 594px and
+          centred, this pill is 345px against the right margin, so they touch
+          at 1,380px. 1,400 is the nearest round number clear of it. */}
+      <div className="print-hide pointer-events-none fixed bottom-[92px] right-0 z-40 px-4 min-[1400px]:bottom-[24px] min-[1400px]:px-[24px]">
         <div
           ref={consultRef}
           className="pointer-events-auto relative opacity-0 will-change-transform"
@@ -140,7 +147,7 @@ export default function FloatingActions() {
           {/* As on the dock, the glow sits under the pill rather than on it. */}
           <span
             aria-hidden
-            className="pointer-events-none absolute -inset-x-5 -bottom-4 -top-3 rounded-[999px] bg-[radial-gradient(60%_140%_at_50%_50%,color-mix(in_srgb,var(--color-primary-green)_22%,transparent),transparent_72%)] blur-[14px]"
+            className="pointer-events-none absolute -inset-x-5 -bottom-4 -top-3 rounded-[999px] bg-[radial-gradient(60%_140%_at_50%_50%,color-mix(in_srgb,var(--color-primary-green)_26%,transparent),transparent_72%)] blur-[14px]"
           />
 
           <a
@@ -148,10 +155,10 @@ export default function FloatingActions() {
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackScheduleClick("dock_calendly")}
-            aria-label="Book a free 30-minute consultation with an engineer of twelve years"
-            className="group relative flex items-center gap-[11px] rounded-[999px] border border-white/[0.09] bg-[#0b0b0b]/95 py-[8px] pl-[8px] pr-[18px] shadow-[0_18px_44px_-14px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl transition-[transform,border-color] duration-300 hover:scale-[1.02] hover:border-white/20"
+            aria-label="Book a free consultation with a software engineer of twelve years' experience"
+            className="group relative flex items-center gap-[11px] rounded-[999px] bg-white py-[8px] pl-[8px] pr-[18px] shadow-[0_18px_44px_-16px_rgba(0,0,0,0.45)] ring-1 ring-black/[0.06] transition-[transform,box-shadow] duration-300 hover:scale-[1.02] hover:shadow-[0_22px_50px_-16px_rgba(0,0,0,0.5)]"
           >
-            <span className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-primary-green text-black shadow-[0_6px_18px_-6px_color-mix(in_srgb,var(--color-primary-green)_80%,transparent)]">
+            <span className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-primary-green text-white shadow-[0_6px_18px_-6px_color-mix(in_srgb,var(--color-primary-green)_80%,transparent)]">
               <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
                 <rect
                   x="2.5"
@@ -178,12 +185,20 @@ export default function FloatingActions() {
               </svg>
             </span>
 
+            {/* The second line names the person you get, not the length of
+                the slot — the half hour was never the reason to book it. It is
+                phrased around the experience rather than around the engineer,
+                because "a 12-year engineer" describes someone who is twelve.
+
+                It wraps on a phone and holds one line from sm up, so the pill
+                stays inside a 375px screen without the line being cut short
+                for the sake of the wide case. */}
             <span className="flex flex-col gap-[5px]">
-              <span className="whitespace-nowrap font-body text-[14px] font-semibold leading-none tracking-[-0.2px] text-white">
+              <span className="whitespace-nowrap font-body text-[14px] font-semibold leading-none tracking-[-0.2px] text-ink">
                 Book a free consultation
               </span>
-              <span className="whitespace-nowrap font-body text-[12px] leading-none tracking-[-0.1px] text-white/55">
-                30 minutes with a 12-year engineer
+              <span className="max-w-[200px] font-body text-[12px] leading-[16px] tracking-[-0.1px] text-neutral-paragraph sm:max-w-none sm:whitespace-nowrap">
+                With a software engineer of 12 years&rsquo; experience
               </span>
             </span>
           </a>
