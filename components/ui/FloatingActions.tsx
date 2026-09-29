@@ -38,6 +38,7 @@ const LINKS = [
  */
 export default function FloatingActions() {
   const barRef = useRef<HTMLDivElement>(null);
+  const consultRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const [visible, setVisible] = useState(false);
   const [deep, setDeep] = useState(false);
@@ -97,14 +98,14 @@ export default function FloatingActions() {
   useGSAP(
     () => {
       if (prefersReducedMotion()) {
-        gsap.set(barRef.current, { autoAlpha: visible ? 1 : 0, y: 0 });
+        gsap.set([barRef.current, consultRef.current], { autoAlpha: visible ? 1 : 0, y: 0 });
         return;
       }
 
       // Longer coming in than going out, and overwriting rather than queueing:
       // a fast flick across the header's edge would otherwise run both
       // directions one after the other and the dock would arrive twice.
-      gsap.to(barRef.current, {
+      gsap.to([barRef.current, consultRef.current], {
         autoAlpha: visible ? 1 : 0,
         y: visible ? 0 : 22,
         scale: visible ? 1 : 0.97,
@@ -119,143 +120,185 @@ export default function FloatingActions() {
   const whatsappHref = `${siteConfig.whatsappHref}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
 
   return (
-    // Two elements, deliberately: the outer one is centred with a transform and
-    // the inner one is what GSAP animates. Sharing a node would mean the tween
-    // writing `transform` over the -translate-x-1/2 the first frame it ran, and
-    // the dock would jump to the right-hand half of the window.
-    <div className="print-hide pointer-events-none fixed inset-x-0 bottom-[16px] z-40 flex justify-center px-4 sm:bottom-[24px]">
-      <div ref={barRef} className="pointer-events-auto relative opacity-0 will-change-transform">
-        {/* The glow sits under the bar rather than on it, so the bar's own
-            edge stays a hairline and the colour bleeds onto the page. */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -inset-x-6 -bottom-4 -top-3 rounded-[999px] bg-[radial-gradient(60%_140%_at_50%_50%,rgba(134,213,42,0.24),transparent_72%)] blur-[14px]"
-        />
+    <>
+      {/* Thirty free minutes with a senior engineer, said in words.
 
-        <div className="relative flex items-center gap-[4px] rounded-[999px] border border-white/[0.09] bg-[#0b0b0b]/95 p-[6px] shadow-[0_18px_44px_-14px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl sm:gap-[6px]">
-          <div className="flex items-center pl-[4px] pr-[2px]">
-            <AmbientAudio inline />
-          </div>
+          The dock has room for a label the length of "Let's talk" and no more,
+          so the offer that needs a sentence to explain takes the corner
+          instead. It carries the dock's own material — same black, same
+          hairline, same blur — so the two read as one system rather than as a
+          dock and a pop-up, and it arrives and leaves on the dock's cue.
 
-          <span aria-hidden className="mx-[2px] h-[22px] w-px shrink-0 bg-white/[0.11]" />
-
-          {/* The links are the first thing to go when the window narrows: the
-              header still has them, and the two buttons are what this is for. */}
-          <nav aria-label="Quick links" className="hidden items-center md:flex">
-            {LINKS.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                onClick={goToTopIfHere(link.href)}
-                className="rounded-full px-[14px] py-[9px] font-body text-[14px] font-medium leading-none tracking-[-0.2px] text-white/70 transition-colors duration-200 hover:bg-white/[0.07] hover:text-white"
-              >
-                {link.label}
-              </Link>
-            ))}
-          </nav>
-
-          <Link
-            href="/contact"
-            onClick={(event) => {
-              trackLead("dock_contact");
-              goToTopIfHere("/contact")(event);
-            }}
-            className="group flex items-center gap-[7px] rounded-[999px] bg-primary-green px-[16px] py-[10px] shadow-[0_6px_18px_-6px_rgba(134,213,42,0.8)] transition-[transform,box-shadow] duration-300 hover:scale-[1.03] sm:px-[18px]"
-          >
-            <span className="whitespace-nowrap font-body text-[14px] font-semibold leading-none tracking-[-0.2px] text-black">
-              Let&rsquo;s talk
-            </span>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 15 15"
-              fill="none"
-              aria-hidden="true"
-              className="shrink-0 text-black transition-transform duration-300 group-hover:translate-x-[3px]"
-            >
-              <path
-                d="M3 7.5h9M8.4 3.6 12.3 7.5 8.4 11.4"
-                stroke="currentColor"
-                strokeWidth="1.7"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </Link>
-
-          <a
-            href={whatsappHref}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => trackLead("dock_whatsapp")}
-            aria-label="Chat with us on WhatsApp"
-            title="WhatsApp"
-            className="flex size-[38px] shrink-0 items-center justify-center rounded-full text-white/70 transition-colors duration-200 hover:bg-white/[0.07] hover:text-[#25d366]"
-          >
-            <svg aria-hidden viewBox="0 0 24 24" fill="currentColor" className="size-[19px]">
-              <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884a9.82 9.82 0 0 1 6.988 2.898 9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.82 11.82 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.88 11.88 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.82 11.82 0 0 0 20.464 3.488" />
-            </svg>
-          </a>
+          It stands above the dock until the window is wide enough for the two
+          to sit side by side without touching — which, with the dock carrying
+          its links, is not until xl. Below that they stack. */}
+      <div className="print-hide pointer-events-none fixed bottom-[86px] left-0 z-40 px-4 xl:bottom-[24px] xl:px-[24px]">
+        <div
+          ref={consultRef}
+          className="pointer-events-auto relative opacity-0 will-change-transform"
+        >
+          {/* As on the dock, the glow sits under the pill rather than on it. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -inset-x-5 -bottom-4 -top-3 rounded-[999px] bg-[radial-gradient(60%_140%_at_50%_50%,color-mix(in_srgb,var(--color-primary-green)_22%,transparent),transparent_72%)] blur-[14px]"
+          />
 
           <a
             href={siteConfig.calendlyUrl}
             target="_blank"
             rel="noopener noreferrer"
             onClick={() => trackScheduleClick("dock_calendly")}
-            aria-label="Book a 30-minute call"
-            title="Book a call"
-            className="hidden size-[38px] shrink-0 items-center justify-center rounded-full text-white/70 transition-colors duration-200 hover:bg-white/[0.07] hover:text-white sm:flex"
+            aria-label="Book a free 30-minute consultation with an engineer of twelve years"
+            className="group relative flex items-center gap-[11px] rounded-[999px] border border-white/[0.09] bg-[#0b0b0b]/95 py-[8px] pl-[8px] pr-[18px] shadow-[0_18px_44px_-14px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl transition-[transform,border-color] duration-300 hover:scale-[1.02] hover:border-white/20"
           >
-            <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
-              <rect
-                x="2.5"
-                y="3.8"
-                width="15"
-                height="13.2"
-                rx="3"
-                stroke="currentColor"
-                strokeWidth="1.5"
-              />
-              <path
-                d="M2.5 8h15M6.6 2.4v2.6M13.4 2.4v2.6"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-              />
-              <circle cx="10" cy="12.4" r="1.5" fill="currentColor" />
-            </svg>
-          </a>
-
-          {/* Width rather than unmounting, so the bar grows into the button
-              instead of every item beside it jumping a step across. */}
-          <div
-            className={`overflow-hidden transition-all duration-300 ease-out ${
-              deep ? "w-[38px] opacity-100" : "w-0 opacity-0"
-            }`}
-          >
-            <button
-              type="button"
-              onClick={() =>
-                window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" })
-              }
-              tabIndex={deep ? 0 : -1}
-              aria-label="Back to top"
-              title="Back to top"
-              className="flex size-[38px] shrink-0 items-center justify-center rounded-full text-white/70 transition-colors duration-200 hover:bg-white/[0.07] hover:text-white"
-            >
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+            <span className="flex size-[36px] shrink-0 items-center justify-center rounded-full bg-primary-green text-black shadow-[0_6px_18px_-6px_color-mix(in_srgb,var(--color-primary-green)_80%,transparent)]">
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
+                <rect
+                  x="2.5"
+                  y="3.8"
+                  width="15"
+                  height="13.2"
+                  rx="3"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                />
                 <path
-                  d="M8 13V3.5M3.8 7.7 8 3.4l4.2 4.3"
+                  d="M2.5 8h15M6.6 2.4v2.6M13.4 2.4v2.6"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                />
+                <path
+                  d="m7.3 12.4 1.8 1.8 3.6-3.6"
                   stroke="currentColor"
                   strokeWidth="1.6"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
               </svg>
-            </button>
+            </span>
+
+            <span className="flex flex-col gap-[5px]">
+              <span className="whitespace-nowrap font-body text-[14px] font-semibold leading-none tracking-[-0.2px] text-white">
+                Book a free consultation
+              </span>
+              <span className="whitespace-nowrap font-body text-[12px] leading-none tracking-[-0.1px] text-white/55">
+                30 minutes with a 12-year engineer
+              </span>
+            </span>
+          </a>
+        </div>
+      </div>
+
+      {/* Two elements, deliberately: the outer one is centred with a transform
+          and the inner one is what GSAP animates. Sharing a node would mean the
+          tween writing `transform` over the -translate-x-1/2 the first frame it
+          ran, and the dock would jump to the right-hand half of the window. */}
+      <div className="print-hide pointer-events-none fixed inset-x-0 bottom-[16px] z-40 flex justify-center px-4 sm:bottom-[24px]">
+        <div ref={barRef} className="pointer-events-auto relative opacity-0 will-change-transform">
+          {/* The glow sits under the bar rather than on it, so the bar's own
+              edge stays a hairline and the colour bleeds onto the page. */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute -inset-x-6 -bottom-4 -top-3 rounded-[999px] bg-[radial-gradient(60%_140%_at_50%_50%,rgba(134,213,42,0.24),transparent_72%)] blur-[14px]"
+          />
+
+          <div className="relative flex items-center gap-[4px] rounded-[999px] border border-white/[0.09] bg-[#0b0b0b]/95 p-[6px] shadow-[0_18px_44px_-14px_rgba(0,0,0,0.75),inset_0_1px_0_rgba(255,255,255,0.07)] backdrop-blur-xl sm:gap-[6px]">
+            <div className="flex items-center pl-[4px] pr-[2px]">
+              <AmbientAudio inline />
+            </div>
+
+            <span aria-hidden className="mx-[2px] h-[22px] w-px shrink-0 bg-white/[0.11]" />
+
+            {/* The links are the first thing to go when the window narrows: the
+                header still has them, and the two buttons are what this is for. */}
+            <nav aria-label="Quick links" className="hidden items-center md:flex">
+              {LINKS.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  onClick={goToTopIfHere(link.href)}
+                  className="rounded-full px-[14px] py-[9px] font-body text-[14px] font-medium leading-none tracking-[-0.2px] text-white/70 transition-colors duration-200 hover:bg-white/[0.07] hover:text-white"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+
+            <Link
+              href="/contact"
+              onClick={(event) => {
+                trackLead("dock_contact");
+                goToTopIfHere("/contact")(event);
+              }}
+              className="group flex items-center gap-[7px] rounded-[999px] bg-primary-green px-[16px] py-[10px] shadow-[0_6px_18px_-6px_rgba(134,213,42,0.8)] transition-[transform,box-shadow] duration-300 hover:scale-[1.03] sm:px-[18px]"
+            >
+              <span className="whitespace-nowrap font-body text-[14px] font-semibold leading-none tracking-[-0.2px] text-black">
+                Let&rsquo;s talk
+              </span>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 15 15"
+                fill="none"
+                aria-hidden="true"
+                className="shrink-0 text-black transition-transform duration-300 group-hover:translate-x-[3px]"
+              >
+                <path
+                  d="M3 7.5h9M8.4 3.6 12.3 7.5 8.4 11.4"
+                  stroke="currentColor"
+                  strokeWidth="1.7"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </Link>
+
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackLead("dock_whatsapp")}
+              aria-label="Chat with us on WhatsApp"
+              title="WhatsApp"
+              className="flex size-[38px] shrink-0 items-center justify-center rounded-full text-white/70 transition-colors duration-200 hover:bg-white/[0.07] hover:text-[#25d366]"
+            >
+              <svg aria-hidden viewBox="0 0 24 24" fill="currentColor" className="size-[19px]">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884a9.82 9.82 0 0 1 6.988 2.898 9.82 9.82 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.82 11.82 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.88 11.88 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893A11.82 11.82 0 0 0 20.464 3.488" />
+              </svg>
+            </a>
+
+            {/* Width rather than unmounting, so the bar grows into the button
+                instead of every item beside it jumping a step across. */}
+            <div
+              className={`overflow-hidden transition-all duration-300 ease-out ${
+                deep ? "w-[38px] opacity-100" : "w-0 opacity-0"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() =>
+                  window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? "auto" : "smooth" })
+                }
+                tabIndex={deep ? 0 : -1}
+                aria-label="Back to top"
+                title="Back to top"
+                className="flex size-[38px] shrink-0 items-center justify-center rounded-full text-white/70 transition-colors duration-200 hover:bg-white/[0.07] hover:text-white"
+              >
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
+                  <path
+                    d="M8 13V3.5M3.8 7.7 8 3.4l4.2 4.3"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </button>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
