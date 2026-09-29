@@ -5,6 +5,7 @@ import JsonLd from "@/components/JsonLd";
 import Header from "@/components/sections/Header";
 import ServiceDetailHero from "@/components/sections/ServiceDetailHero";
 import ServiceDetailContent from "@/components/sections/ServiceDetailContent";
+import ProjectWorkflow from "@/components/sections/ProjectWorkflow";
 import RelatedServices from "@/components/sections/RelatedServices";
 import Contact from "@/components/sections/Contact";
 import FeedbackTicker from "@/components/sections/FeedbackTicker";
@@ -54,6 +55,10 @@ export default async function ServiceDetailPage({ params }: PageProps<"/services
       <main id="main">
         <ServiceDetailHero service={service} />
         <ServiceDetailContent service={service} />
+        {/* The page has just described the process in prose. This is the same
+            process as a track, with a worked example running along it — the
+            part a reader who skipped the copy will still take in. */}
+        <ProjectWorkflow />
         <RelatedServices currentSlug={service.slug} />
         <Contact />
         <FeedbackTicker spacingClassName="lg:mt-[161px] lg:mb-[103px]" />
