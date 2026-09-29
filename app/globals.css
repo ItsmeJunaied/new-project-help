@@ -37,6 +37,8 @@
   --font-body: var(--font-inter-display);
   --font-mono: var(--font-jetbrains-mono);
   --font-alt: var(--font-plus-jakarta);
+  /* Italic only, and only for the accent half of a headline. */
+  --font-serif: var(--font-serif);
 }
 
 /* The layout is drawn on a 1440 canvas, so full-bleed sections are exactly as

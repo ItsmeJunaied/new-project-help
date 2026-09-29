@@ -1,6 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { GeistSans } from "geist/font/sans";
-import { Inter, JetBrains_Mono, Plus_Jakarta_Sans } from "next/font/google";
+import {
+  Instrument_Serif,
+  Inter,
+  JetBrains_Mono,
+  Plus_Jakarta_Sans,
+} from "next/font/google";
 
 import Analytics from "@/components/analytics/Analytics";
 import JsonLd from "@/components/JsonLd";
@@ -31,6 +36,24 @@ const jetBrainsMono = JetBrains_Mono({
 const plusJakartaSans = Plus_Jakarta_Sans({
   variable: "--font-plus-jakarta",
   subsets: ["latin"],
+  display: "swap",
+  preload: false,
+});
+
+/**
+ * One face, one weight, italic only — the contact page's headline turns on
+ * "you're building" and a serif italic is what makes that turn read as a
+ * change of voice rather than a change of style. It is the accent the
+ * reference design is built around.
+ *
+ * Not preloaded: it appears on one line of one page, so it has no business
+ * competing with the two faces that carry every other page above the fold.
+ */
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  weight: "400",
+  style: "italic",
   display: "swap",
   preload: false,
 });
@@ -100,7 +123,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${GeistSans.variable} ${interDisplay.variable} ${jetBrainsMono.variable} ${plusJakartaSans.variable} antialiased`}
+      className={`${GeistSans.variable} ${interDisplay.variable} ${jetBrainsMono.variable} ${plusJakartaSans.variable} ${instrumentSerif.variable} antialiased`}
     >
       <body className="bg-bg text-black font-body">
         {/* Skip link: the header's nav is the fourth stop on every page, and

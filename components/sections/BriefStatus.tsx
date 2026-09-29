@@ -132,7 +132,13 @@ const currentSecond = () => Math.floor(Date.now() / 1000);
  *  here is also what keeps hydration from mismatching on the clock. */
 const noSecondOnTheServer = () => null;
 
-export default function BriefStatus() {
+/**
+ * `onDark` is for the brief tray, where the panel sits on the tray's own black
+ * rather than on the page. A filled near-black card on black is a card nobody
+ * can see, so there it drops its fill and its shadow and keeps only a hairline
+ * — the contents are identical.
+ */
+export default function BriefStatus({ onDark = false }: { onDark?: boolean }) {
   const cardRef = useRef<HTMLDivElement>(null);
 
   const tick = useSyncExternalStore(
@@ -176,7 +182,11 @@ export default function BriefStatus() {
   return (
     <div
       ref={cardRef}
-      className="cd-aside relative isolate flex w-full flex-col gap-[20px] overflow-hidden rounded-[20px] bg-[#111] p-[24px] shadow-[0_30px_70px_-40px_rgba(0,0,0,0.9)]"
+      className={`cd-aside relative isolate flex w-full flex-col gap-[20px] overflow-hidden rounded-[20px] p-[24px] ${
+        onDark
+          ? "ring-1 ring-white/12"
+          : "bg-[#111] shadow-[0_30px_70px_-40px_rgba(0,0,0,0.9)]"
+      }`}
     >
       {/* A green wash off the top corner, so the card has some depth under the
           type rather than being a flat black rectangle. */}
