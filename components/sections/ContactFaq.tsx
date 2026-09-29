@@ -1,64 +1,67 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
-import { reveal } from "@/lib/anim";
-import { siteConfig } from "@/lib/site";
+import { prefersReducedMotion, reveal } from "@/lib/anim";
 
 /**
- * The questions people have with the form already open.
+ * The concept's FAQ, to its own measurements: a two-column grid with the
+ * heading sticky in the left column and a stack of bordered white cards on the
+ * right, each opening on a 36px circular toggle that fills green and turns 45
+ * degrees into a cross.
  *
- * Not the site's shared FAQ, and deliberately not an accordion. An accordion
- * is a filing cabinet: it is the right shape when there are thirty entries and
- * a visitor is hunting one of them, and the wrong shape here, where there are
- * six and the visitor has not thought to ask any of them yet. Hidden behind a
- * plus sign, the answer that would have settled somebody's hesitation is an
- * answer they never saw. Every one is open.
+ * The panel is animated by grid-template-rows rather than by height, so it can
+ * open to its content's real size without anything being measured first, and
+ * the copy inside settles with it instead of snapping into place.
  *
- * The questions are different too. The shared FAQ answers what the company
- * does — timelines, stack, ownership. These answer what happens if you send
- * the thing you are looking at, which is the only decision in front of anyone
- * on this page.
+ * The questions are contact-specific — what happens if you send the form —
+ * rather than the shared site FAQ, which answers what the company does.
  */
 
-type Entry = { question: string; answer: string };
+type Entry = { id: string; q: string; a: string };
 
 const ENTRIES: Entry[] = [
   {
-    question: "What happens right after I send this?",
-    answer:
-      "It lands in an inbox the engineers read, not a CRM queue. One of them claims it, and you get a reply from that person by name inside four business hours — with questions, a time to talk, or a straight answer either way.",
+    id: "f1",
+    q: "How fast do you actually reply?",
+    a: "Within four business hours, always — and from a named person rather than an autoresponder. If the honest answer needs longer than that to write, you still get a reply inside four hours telling you when the real one is coming.",
   },
   {
-    question: "Do I have to know what I want?",
-    answer:
-      "No. Most of the useful briefs we get are a description of something that is not working, written by somebody who is not technical. If you already have a specification we will read it; if you have a paragraph and a deadline, that is enough to start.",
+    id: "f2",
+    q: "Can you sign an NDA before I share details?",
+    a: "Yes, and the same day you ask. Say so in the opening line and nothing sensitive needs to go into the form at all: send the shape of the problem, we send the NDA back, and the detail follows once it is signed.",
   },
   {
-    question: "Will you sign an NDA before I share anything?",
-    answer:
-      "Yes, and the same day. Say so in the first line and nothing sensitive needs to go in the form at all — send the shape of the problem, we will send the NDA, and the detail can follow.",
+    id: "f3",
+    q: "Do I need to know what I want first?",
+    a: "No. Most of the useful briefs we get are a description of something that is not working, written by somebody who is not technical. If you already have a specification we will read it; if you have a paragraph and a deadline, that is enough to start.",
   },
   {
-    question: "Does any of this cost money before I sign?",
-    answer:
-      "Nothing before the contract. The call, the scope, the estimate and the technical questions along the way are all free, and you can stop after any of them owing us nothing. There is no discovery fee and no deposit to get a number.",
+    id: "f4",
+    q: "Does any of this cost money before I sign?",
+    a: "Nothing before the contract. The call, the scope, the written estimate and the technical questions along the way are all free, and you can stop after any of them owing us nothing. There is no discovery fee and no deposit to get a number.",
   },
   {
-    question: "What if we are not a fit?",
-    answer:
-      "We say so, in the first reply, and point you at whoever would be better. It costs us a lead and saves you a month — and it is the reason the reply comes from an engineer rather than from somebody paid to close.",
+    id: "f5",
+    q: "What if we are not the right fit?",
+    a: "We say so in the first reply, and point you at whoever would be better. It costs us a lead and saves you a month, and it is the reason the reply comes from an engineer rather than from somebody paid to close.",
   },
   {
-    question: "Can you take over something half-built?",
-    answer:
-      "Often, and it is a large part of what we do. It starts with an audit of the codebase, the infrastructure and the test coverage, and ends with a written plan of what to fix, what to refactor and what to rebuild — before anybody writes a new feature.",
+    id: "f6",
+    q: "Can you take over something half-built?",
+    a: "Often, and it is a large part of what we do. It starts with an audit of the codebase, the infrastructure and the test coverage, and ends with a written plan of what to fix, what to refactor and what to rebuild — before anybody writes a new feature.",
+  },
+  {
+    id: "f7",
+    q: "Who owns the code at the end?",
+    a: "You do, in full, including the repository history and the infrastructure definitions. Handover includes the documentation and the access, and nothing is held back as leverage for a support contract.",
   },
 ];
 
 export default function ContactFaq() {
   const sectionRef = useRef<HTMLElement>(null);
+  const [openId, setOpenId] = useState<string>(ENTRIES[0].id);
 
   useGSAP(
     () => {
@@ -73,11 +76,11 @@ export default function ContactFaq() {
       });
 
       gsap.from(".fq-item", {
-        y: 22,
+        y: 20,
         opacity: 0,
-        duration: 0.65,
+        duration: 0.6,
         ease: "power2.out",
-        stagger: 0.08,
+        stagger: 0.07,
         delay: 0.1,
         scrollTrigger: trigger,
       });
@@ -85,53 +88,92 @@ export default function ContactFaq() {
     { scope: sectionRef },
   );
 
+  // The grid row handles the height; this settles the copy inside it so an
+  // opening answer arrives rather than appearing.
+  useGSAP(
+    () => {
+      if (!openId || prefersReducedMotion()) return;
+
+      const panel = sectionRef.current?.querySelector(`#fq-panel-${openId} p`);
+      if (!panel) return;
+
+      gsap.fromTo(
+        panel,
+        { y: 12, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.45, ease: "power2.out", delay: 0.1 },
+      );
+    },
+    { scope: sectionRef, dependencies: [openId] },
+  );
+
   return (
-    <section ref={sectionRef} className="w-full bg-bg px-6 py-[80px] lg:px-[40px] lg:py-[120px]">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col">
-        <div className="fq-head flex w-full flex-col items-start gap-[18px] lg:flex-row lg:items-end lg:justify-between lg:gap-[70px]">
-          <div className="flex flex-col gap-[14px] lg:max-w-[680px]">
-            <p className="font-mono text-[11px] uppercase leading-none tracking-[0.2em] text-primary-green">
-              Before you send it
-            </p>
-            <h2 className="font-display text-[clamp(1.9rem,3.8vw,52px)] font-medium leading-[1.06] tracking-[-1.3px] text-black">
-              The things people ask first
-            </h2>
-          </div>
+    <section
+      ref={sectionRef}
+      className="mx-auto grid w-full max-w-[1440px] grid-cols-[repeat(auto-fit,minmax(min(100%,400px),1fr))] gap-x-[48px] gap-y-[48px] px-6 pb-[80px] lg:gap-x-[96px] lg:px-[40px] lg:pb-[128px]"
+    >
+      <div className="fq-head flex flex-col gap-[20px] self-start lg:sticky lg:top-[100px]">
+        <span className="flex items-center gap-[10px] font-mono text-[12px] uppercase leading-none tracking-[0.1em] text-black">
+          <span aria-hidden className="h-[2px] w-[24px] shrink-0 bg-primary-green" />
+          FAQ
+        </span>
+        <h2 className="font-display text-[clamp(40px,4.6vw,64px)] font-semibold leading-[0.98] tracking-[-0.05em] text-balance text-black">
+          Before you{" "}
+          <span className="font-serif font-normal italic tracking-[-0.02em]">
+            send the brief
+          </span>
+        </h2>
+      </div>
 
-          <p className="max-w-[320px] font-body text-[14px] leading-[22px] tracking-[-0.1px] text-neutral-paragraph lg:pb-[6px] lg:text-right">
-            Nothing hidden behind a plus sign — an answer you have to go looking for is one
-            you were never going to find.
-          </p>
-        </div>
+      <div className="flex flex-col gap-[10px]">
+        {ENTRIES.map((entry) => {
+          const open = entry.id === openId;
 
-        {/* Two columns of open answers on hairlines. The rule above each
-            question is what holds the grid together without drawing boxes. */}
-        <dl className="mt-[44px] grid w-full grid-cols-1 gap-x-[70px] gap-y-0 lg:mt-[58px] lg:grid-cols-2">
-          {ENTRIES.map((entry) => (
+          return (
             <div
-              key={entry.question}
-              className="fq-item flex w-full flex-col gap-[12px] border-t border-black/12 py-[26px] lg:py-[30px]"
+              key={entry.id}
+              className="fq-item overflow-hidden rounded-[20px] border border-black/12 bg-white"
             >
-              <dt className="font-display text-[20px] font-medium leading-[1.2] tracking-[-0.35px] text-black lg:text-[22px]">
-                {entry.question}
-              </dt>
-              <dd className="font-body text-[14px] leading-[23px] tracking-[-0.1px] text-neutral-paragraph lg:max-w-[540px]">
-                {entry.answer}
-              </dd>
-            </div>
-          ))}
-        </dl>
+              <h3 className="m-0">
+                <button
+                  type="button"
+                  onClick={() => setOpenId(open ? "" : entry.id)}
+                  aria-expanded={open}
+                  aria-controls={`fq-panel-${entry.id}`}
+                  className="flex w-full cursor-pointer items-center justify-between gap-[20px] border-0 bg-transparent px-[24px] py-[22px] text-left"
+                >
+                  <span className="font-display text-[18px] font-semibold leading-[1.3] tracking-[-0.02em] text-black">
+                    {entry.q}
+                  </span>
+                  <span
+                    aria-hidden
+                    className={`flex size-[36px] shrink-0 items-center justify-center rounded-full text-[20px] leading-none transition-[transform,background-color,color] duration-300 ${
+                      open
+                        ? "rotate-45 bg-primary-green text-white"
+                        : "bg-black/[0.055] text-black"
+                    }`}
+                  >
+                    +
+                  </span>
+                </button>
+              </h3>
 
-        <p className="fq-item mt-[34px] w-full border-t border-black/12 pt-[26px] font-body text-[14px] leading-[22px] tracking-[-0.1px] text-neutral-paragraph">
-          Something else on your mind?{" "}
-          <a
-            href={`mailto:${siteConfig.email}`}
-            className="text-black underline decoration-black/25 underline-offset-[5px] transition-colors hover:text-primary-green hover:decoration-primary-green"
-          >
-            {siteConfig.email}
-          </a>{" "}
-          reaches the same people, and so does the form above.
-        </p>
+              {/* Rows rather than height: the panel opens to whatever the copy
+                  actually needs, with nothing measured in advance. */}
+              <div
+                id={`fq-panel-${entry.id}`}
+                className={`grid transition-[grid-template-rows] duration-400 ease-out ${
+                  open ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <p className="m-0 max-w-[680px] px-[24px] pb-[24px] font-body text-[16px] leading-[1.65] tracking-[-0.1px] text-pretty text-[#4a4a45]">
+                    {entry.a}
+                  </p>
+                </div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
