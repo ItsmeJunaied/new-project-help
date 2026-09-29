@@ -10,7 +10,7 @@ import { useRef, useState } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
-import { SERVICES } from "@/lib/services";
+import { HEADLINE_SERVICES } from "@/lib/services";
 import { siteConfig } from "@/lib/site";
 import { COMPANY_PROFILE_HREF, PROFILE_EDITION } from "@/lib/company-profile";
 
@@ -32,9 +32,10 @@ const MENUS = [
   },
   {
     title: "Key Services",
-    // Straight from the service records, so a new service appears in the footer
-    // without anyone remembering to add it here.
-    items: SERVICES.map((service) => ({
+    // Straight from the service records, so a new one appears in the footer
+    // without anyone remembering to add it here. The headline seven rather than
+    // all fifteen: a column this long stops being a list and becomes a wall.
+    items: HEADLINE_SERVICES.map((service) => ({
       label: service.title,
       href: `/services/${service.slug}`,
     })),

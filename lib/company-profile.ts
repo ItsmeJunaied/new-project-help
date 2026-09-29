@@ -1,5 +1,5 @@
 import { PUBLISHED_CASE_STUDIES } from "@/lib/case-studies";
-import { SERVICES } from "@/lib/services";
+import { HEADLINE_SERVICES } from "@/lib/services";
 import { siteConfig } from "@/lib/site";
 
 /**
@@ -52,8 +52,11 @@ export type ProfileSlide = {
   title: string;
 };
 
-/** What we build. Straight from the service records. */
-export const PROFILE_SERVICES = SERVICES.map((service) => ({
+/**
+ * What we build. Straight from the service records — the seven the company
+ * leads with, because the slide that draws this is a fixed 16:9 page box.
+ */
+export const PROFILE_SERVICES = HEADLINE_SERVICES.map((service) => ({
   slug: service.slug,
   title: service.title,
   shortTitle: service.shortTitle,

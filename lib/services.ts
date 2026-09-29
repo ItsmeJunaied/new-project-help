@@ -1,10 +1,12 @@
 /**
- * The seven services the company sells, each with its own detail page.
+ * The fifteen services the company sells, each with its own detail page.
  *
- * The live site carries all seven; this rebuild had only the SaaS page drawn,
- * with the other six linking back to the overview. The SaaS entry below is the
- * copy that page already shipped, moved here verbatim so the page it renders is
- * byte-identical — the other six follow the same shape.
+ * The first seven are the ones the live site carried, and the SaaS entry below
+ * is the copy that page already shipped, moved here verbatim so the page it
+ * renders is byte-identical. The eight after them are the capabilities the
+ * services rail had always named but never linked anywhere: a card that says
+ * "ERP Systems", draws its own artwork and does nothing when you click it is
+ * worse than no card at all. They follow the same shape as the first seven.
  */
 
 export type ServiceStat = { value: string; copy: string };
@@ -611,9 +613,630 @@ export const SERVICES: Service[] = [
       },
     ],
   },
+
+  {
+    slug: "custom-software-development",
+    title: "Custom Software Development",
+    shortTitle: "Custom Software",
+    heroLines: ["Custom", "Software"],
+    metaDescription:
+      "Custom software written around how your business actually works — for the processes no off-the-shelf product fits. Discovery, build and documented handover by senior engineers.",
+    keywords: [
+      "custom software development",
+      "bespoke software development company",
+      "custom business software",
+      "software development Bangladesh",
+    ],
+    included: [
+      "Process discovery",
+      "A data model that fits",
+      "Integrations with what you run",
+      "Migration off the spreadsheets",
+    ],
+    statement:
+      "We write software around how a business already works, for the parts of it no product off the shelf will ever fit.",
+    process: [
+      {
+        lead: "Sit With The Work",
+        rest: " – We watch the process being done before we design anything. What makes a bespoke system worth building is almost always in the exceptions nobody wrote down.",
+      },
+      {
+        lead: "Build in Sprints",
+        rest: " – Two-week cycles against a signed scope. Every fortnight you get working software on staging, not a status deck.",
+      },
+      {
+        lead: "Launch & Support",
+        rest: " – A rehearsed go-live with a rollback plan, then 6–12 months of monitoring, patches and bug fixes included.",
+      },
+    ],
+    architectureHeading: "Built For One Business, Not For A Market",
+    architectureLead:
+      "A product has to fit a thousand companies, so it fits none of them exactly. Custom software has one business to satisfy, which means the awkward parts of your process get modelled rather than worked around.",
+    architecturePoints: [
+      "We take on the work that spreadsheets, a shared inbox and three disconnected tools are currently holding together.",
+      "Discovery, data model, application, integrations and the handover documentation — one senior team across all of it.",
+    ],
+    deliver: [
+      "A data model that matches how you actually operate",
+      "Role-based access for every team that touches it",
+      "Integrations with the systems you already run",
+      "Import and migration from what it replaces",
+    ],
+    handoverHeading: "Built To Be Handed Over",
+    handoverCopy:
+      "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
+    tools: ["TypeScript", "Node.js", "PostgreSQL", "Docker"],
+    images: {
+      hero: "/images/services/custom-software.webp",
+      process: "/images/about-photo-working.webp",
+      story: ["/images/case-detail-problem-1.jpg", "/images/case-detail-solution-1.jpg"],
+      tools: "/images/service-detail-tools.webp",
+    },
+    stats: SHARED_STATS,
+    whatYouGetCopy: SHARED_WHAT_YOU_GET_COPY,
+    whatYouGet: [
+      {
+        lead: "Discovery –",
+        rest: " Your process mapped end to end, including the exceptions, before anyone opens an editor.",
+      },
+      {
+        lead: "Product engineering –",
+        rest: " TypeScript across the stack, with tests and CI gates on every merge.",
+      },
+      {
+        lead: "Handover & support –",
+        rest: " Documentation, runbooks and monitoring you own, plus 6–12 months of post-launch support.",
+      },
+    ],
+  },
+
+  {
+    slug: "web-application-development",
+    title: "Web Application Development",
+    shortTitle: "Web Applications",
+    heroLines: ["Web", "Applications"],
+    metaDescription:
+      "Dashboards, portals and internal tools that stay quick once there is real data behind them — built in React and Next.js with the performance budget agreed up front.",
+    keywords: [
+      "web application development",
+      "custom dashboard development",
+      "internal tools development",
+      "Next.js development company",
+    ],
+    included: [
+      "Dashboards & portals",
+      "Role-based access",
+      "Real-time data",
+      "A performance budget",
+    ],
+    statement:
+      "We build the web applications a business runs on — dashboards, portals and internal tools that stay quick once there is real data behind them.",
+    process: [
+      {
+        lead: "Screens & States",
+        rest: " – We agree the screens, the roles that see them and what each one does when the data is empty, slow or wrong. That list is the scope.",
+      },
+      {
+        lead: "Build in Sprints",
+        rest: " – Two-week cycles against a signed scope. Every fortnight you get working software on staging, not a status deck.",
+      },
+      {
+        lead: "Launch & Support",
+        rest: " – A rehearsed go-live with a rollback plan, then 6–12 months of monitoring, patches and bug fixes included.",
+      },
+    ],
+    architectureHeading: "Fast On The Tenth Thousand Row, Not Just The Tenth",
+    architectureLead:
+      "Most internal tools are quick in a demo and unusable a year in. We set a performance budget at the start, seed staging with production-sized data, and hold the build to it on every merge.",
+    architecturePoints: [
+      "Server rendering, pagination and query design decided against the data volume you will actually have, not the one in the prototype.",
+      "Accessibility, keyboard paths and error states are part of the definition of done — these are tools people use all day.",
+    ],
+    deliver: [
+      "Dashboards, portals and admin surfaces",
+      "Role-based access and audit trails",
+      "Real-time updates where they earn their cost",
+      "Exports, reporting and scheduled jobs",
+    ],
+    handoverHeading: "Built To Be Handed Over",
+    handoverCopy:
+      "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
+    tools: ["Next.js", "React", "PostgreSQL", "Redis"],
+    images: {
+      hero: "/images/services/web-applications.webp",
+      process: "/images/service-detail-process.webp",
+      story: ["/images/case-study-card-1.jpg", "/images/case-study-card-3.jpg"],
+      tools: "/images/service-01-uiux.webp",
+    },
+    stats: SHARED_STATS,
+    whatYouGetCopy: SHARED_WHAT_YOU_GET_COPY,
+    whatYouGet: [
+      {
+        lead: "Interface engineering –",
+        rest: " Every screen, role and empty state agreed before the build, so scope creep has nowhere to hide.",
+      },
+      {
+        lead: "Performance –",
+        rest: " A budget set at kickoff and enforced in CI against production-sized data.",
+      },
+      {
+        lead: "Handover & support –",
+        rest: " Documentation, runbooks and monitoring you own, plus 6–12 months of post-launch support.",
+      },
+    ],
+  },
+
+  {
+    slug: "erp-software-development",
+    title: "ERP Software Development",
+    shortTitle: "ERP Systems",
+    heroLines: ["ERP", "Systems"],
+    metaDescription:
+      "Custom ERP development — inventory, production, purchasing and accounts in one system that finally agrees with itself. Built around your operation, migrated from what you run today.",
+    keywords: [
+      "ERP software development",
+      "custom ERP system",
+      "inventory management software",
+      "ERP development company",
+    ],
+    included: [
+      "Inventory & production",
+      "Purchasing & suppliers",
+      "Accounts integration",
+      "Migration from legacy",
+    ],
+    statement:
+      "We build ERP systems that put inventory, production, purchasing and accounts in one place, finally agreeing with each other.",
+    process: [
+      {
+        lead: "Map The Operation",
+        rest: " – Every module starts as a walk through the floor and the finance office. An ERP that disagrees with the stock room is worse than the spreadsheets it replaced.",
+      },
+      {
+        lead: "Module By Module",
+        rest: " – We ship one working module at a time, in two-week cycles, so the business adopts it in pieces rather than on one bad Monday.",
+      },
+      {
+        lead: "Cutover & Support",
+        rest: " – A rehearsed migration with a rollback plan and parallel running, then 6–12 months of monitoring, patches and bug fixes included.",
+      },
+    ],
+    architectureHeading: "One Set Of Numbers, Whoever Is Asking",
+    architectureLead:
+      "The value of an ERP is not in any one module. It is that stock, cost, margin and what accounts reported all come from the same record, so nobody spends the month-end reconciling three systems by hand.",
+    architecturePoints: [
+      "Inventory, production, purchasing, sales and accounts modelled together, with the movements between them recorded rather than re-keyed.",
+      "Migration and parallel running planned from the first week — an ERP project fails at the cutover far more often than in the build.",
+    ],
+    deliver: [
+      "Inventory, warehousing and stock movements",
+      "Production planning and bills of material",
+      "Purchasing, suppliers and goods received",
+      "Accounts integration and month-end reporting",
+    ],
+    handoverHeading: "Built To Be Handed Over",
+    handoverCopy:
+      "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
+    tools: ["Node.js", "PostgreSQL", "Next.js", "Docker"],
+    images: {
+      hero: "/images/services/erp-systems.webp",
+      process: "/images/case-detail-banner.jpg",
+      story: ["/images/case-detail-problem-2.jpg", "/images/case-detail-solution-2.jpg"],
+      tools: "/images/about-photo-working.webp",
+    },
+    stats: SHARED_STATS,
+    whatYouGetCopy: SHARED_WHAT_YOU_GET_COPY,
+    whatYouGet: [
+      {
+        lead: "Operational discovery –",
+        rest: " The floor, the stock room and the finance office walked before a module is designed.",
+      },
+      {
+        lead: "Staged delivery –",
+        rest: " One working module at a time, so adoption happens in pieces rather than on one bad Monday.",
+      },
+      {
+        lead: "Cutover & support –",
+        rest: " Rehearsed migration, parallel running, and 6–12 months of post-launch support.",
+      },
+    ],
+  },
+
+  {
+    slug: "crm-software-development",
+    title: "CRM Software Development",
+    shortTitle: "CRM Systems",
+    heroLines: ["CRM", "Systems"],
+    metaDescription:
+      "Custom CRM development — pipelines, quotes and forecasts shaped around your sales motion rather than a template's stages. Integrated with the tools your team already uses.",
+    keywords: [
+      "CRM software development",
+      "custom CRM system",
+      "sales pipeline software",
+      "CRM development company",
+    ],
+    included: [
+      "Pipelines & stages",
+      "Quotes & proposals",
+      "Forecasting",
+      "Email and calendar sync",
+    ],
+    statement:
+      "We build CRM systems shaped around your sales motion, rather than one that asks your team to sell the way a template expects.",
+    process: [
+      {
+        lead: "Follow A Deal",
+        rest: " – We trace a real deal from first contact to signature before designing a stage. Every team has steps their current CRM made them skip.",
+      },
+      {
+        lead: "Build in Sprints",
+        rest: " – Two-week cycles against a signed scope. Every fortnight you get working software on staging, not a status deck.",
+      },
+      {
+        lead: "Launch & Support",
+        rest: " – A rehearsed go-live with a rollback plan, then 6–12 months of monitoring, patches and bug fixes included.",
+      },
+    ],
+    architectureHeading: "A CRM Your Team Will Actually Update",
+    architectureLead:
+      "A pipeline nobody updates is worse than no pipeline, because the forecast built on it is confidently wrong. The fastest way to fix that is to stop asking people to enter what the system could have known.",
+    architecturePoints: [
+      "Email, calendar and call activity captured automatically, so the record is a by-product of the work rather than another task after it.",
+      "Stages, fields and permissions modelled on your motion — and reportable, so the forecast comes out of the same data the reps live in.",
+    ],
+    deliver: [
+      "Pipelines and stages built around your motion",
+      "Quotes, proposals and approval steps",
+      "Forecasting and territory reporting",
+      "Email, calendar and telephony integration",
+    ],
+    handoverHeading: "Built To Be Handed Over",
+    handoverCopy:
+      "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
+    tools: ["Next.js", "Node.js", "PostgreSQL", "AWS"],
+    images: {
+      hero: "/images/services/crm-systems.webp",
+      process: "/images/showcase-collaboration.webp",
+      story: ["/images/case-study-card-2.jpg", "/images/case-study-card-4.jpg"],
+      tools: "/images/contact-desk.jpg",
+    },
+    stats: SHARED_STATS,
+    whatYouGetCopy: SHARED_WHAT_YOU_GET_COPY,
+    whatYouGet: [
+      {
+        lead: "Sales discovery –",
+        rest: " A real deal traced end to end before a single stage is designed.",
+      },
+      {
+        lead: "Capture, not data entry –",
+        rest: " Email, calendar and call activity recorded automatically so the pipeline stays true.",
+      },
+      {
+        lead: "Handover & support –",
+        rest: " Documentation, runbooks and monitoring you own, plus 6–12 months of post-launch support.",
+      },
+    ],
+  },
+
+  {
+    slug: "enterprise-software-development",
+    title: "Enterprise Software Development",
+    shortTitle: "Enterprise Software",
+    heroLines: ["Enterprise", "Software"],
+    metaDescription:
+      "Enterprise platforms for the people who run the business — HR, payroll, operations and reporting. Single sign-on, audit trails and the integrations your estate already depends on.",
+    keywords: [
+      "enterprise software development",
+      "enterprise application development",
+      "HR and payroll software",
+      "enterprise software company",
+    ],
+    included: [
+      "Single sign-on",
+      "Audit trails",
+      "Estate integrations",
+      "Role and policy design",
+    ],
+    statement:
+      "We build the platforms the people running a business use all day — HR, payroll, operations and the reporting that sits on top of them.",
+    process: [
+      {
+        lead: "Stakeholders & Policy",
+        rest: " – Enterprise work has more people with a veto than any other kind. We get the access policy, the approvals and the reporting obligations written down first.",
+      },
+      {
+        lead: "Build in Sprints",
+        rest: " – Two-week cycles against a signed scope. Every fortnight you get working software on staging, not a status deck.",
+      },
+      {
+        lead: "Rollout & Support",
+        rest: " – Phased by department, with a rollback plan and training material, then 6–12 months of monitoring, patches and bug fixes included.",
+      },
+    ],
+    architectureHeading: "It Has To Live In The Estate You Already Have",
+    architectureLead:
+      "Enterprise software is rarely greenfield. It has to authenticate against your directory, respect your retention policy, and exchange data with systems that were in place long before this project started.",
+    architecturePoints: [
+      "Single sign-on, directory groups and role mapping, so joiners and leavers are handled where your organisation already handles them.",
+      "Audit trails, retention rules and exportable evidence built in — because someone will eventually ask who changed what, and when.",
+    ],
+    deliver: [
+      "HR, payroll and operations modules",
+      "Single sign-on and directory integration",
+      "Audit trails and retention policy",
+      "Reporting for the people who sign things off",
+    ],
+    handoverHeading: "Built To Be Handed Over",
+    handoverCopy:
+      "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
+    tools: ["Next.js", "Node.js", "PostgreSQL", "Azure"],
+    images: {
+      hero: "/images/services/enterprise-software.webp",
+      process: "/images/about-mission.jpg",
+      story: ["/images/about-gallery-3.jpg", "/images/case-detail-solution-1.jpg"],
+      tools: "/images/service-detail-hero.webp",
+    },
+    stats: SHARED_STATS,
+    whatYouGetCopy: SHARED_WHAT_YOU_GET_COPY,
+    whatYouGet: [
+      {
+        lead: "Policy first –",
+        rest: " Access, approvals and reporting obligations agreed in writing before the build starts.",
+      },
+      {
+        lead: "Estate integration –",
+        rest: " Single sign-on, directory groups and data exchange with the systems already in place.",
+      },
+      {
+        lead: "Rollout & support –",
+        rest: " Phased by department with training material, plus 6–12 months of post-launch support.",
+      },
+    ],
+  },
+
+  {
+    slug: "api-development",
+    title: "API Development",
+    shortTitle: "API Development",
+    heroLines: ["API", "Development"],
+    metaDescription:
+      "Documented, versioned APIs another team can build against without reading your controllers — REST and GraphQL, with authentication, rate limiting and a contract that holds.",
+    keywords: [
+      "API development services",
+      "REST API development",
+      "GraphQL API development",
+      "API integration company",
+    ],
+    included: [
+      "OpenAPI contract",
+      "Authentication & scopes",
+      "Versioning policy",
+      "Rate limiting",
+    ],
+    statement:
+      "We build documented, versioned APIs another team can integrate against without having to read your controllers to find out what they do.",
+    process: [
+      {
+        lead: "Contract First",
+        rest: " – The schema is agreed and published before the implementation exists, so the teams consuming it can start building the same week you do.",
+      },
+      {
+        lead: "Build in Sprints",
+        rest: " – Two-week cycles against a signed scope, with the contract tested on every merge so the documentation cannot drift from the behaviour.",
+      },
+      {
+        lead: "Launch & Support",
+        rest: " – A rehearsed go-live with a rollback plan, then 6–12 months of monitoring, patches and bug fixes included.",
+      },
+    ],
+    architectureHeading: "The Contract Is The Product",
+    architectureLead:
+      "An API is used by people who will never meet you and cannot ask a question. Everything they need has to be in the contract — what exists, what it returns, what happens when it fails, and what you promise not to change.",
+    architecturePoints: [
+      "OpenAPI or GraphQL schema published, versioned and tested against the running service, so the docs are generated from the truth rather than written beside it.",
+      "Authentication, scopes, pagination, idempotency and rate limits designed once and applied across every endpoint rather than per route.",
+    ],
+    deliver: [
+      "REST or GraphQL APIs with a published schema",
+      "Authentication, scopes and rate limiting",
+      "A versioning and deprecation policy",
+      "Sandbox environment and integration guides",
+    ],
+    handoverHeading: "Built To Be Handed Over",
+    handoverCopy:
+      "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
+    tools: ["Node.js", "TypeScript", "PostgreSQL", "OpenAPI"],
+    images: {
+      hero: "/images/services/api-development.webp",
+      process: "/images/service-detail-tools.webp",
+      story: ["/images/case-detail-problem-3.jpg", "/images/case-study-card-1.jpg"],
+      tools: "/images/service-detail-process.webp",
+    },
+    stats: SHARED_STATS,
+    whatYouGetCopy: SHARED_WHAT_YOU_GET_COPY,
+    whatYouGet: [
+      {
+        lead: "Contract first –",
+        rest: " A published schema before implementation, so consumers start the same week you do.",
+      },
+      {
+        lead: "Operable by design –",
+        rest: " Authentication, rate limits, idempotency and logging applied once, across every endpoint.",
+      },
+      {
+        lead: "Handover & support –",
+        rest: " Documentation, runbooks and monitoring you own, plus 6–12 months of post-launch support.",
+      },
+    ],
+  },
+
+  {
+    slug: "microservices-architecture",
+    title: "Microservices Architecture",
+    shortTitle: "Microservices",
+    heroLines: ["Micro", "services"],
+    metaDescription:
+      "Services split along boundaries that exist in the business, for when a monolith has stopped fitting — with the messaging, observability and deployment story worked out first.",
+    keywords: [
+      "microservices architecture",
+      "monolith to microservices migration",
+      "distributed systems development",
+      "microservices consulting",
+    ],
+    included: [
+      "Boundary analysis",
+      "Messaging & events",
+      "Observability",
+      "Staged migration",
+    ],
+    statement:
+      "We split systems along boundaries that already exist in the business — for when a monolith has genuinely stopped fitting, and not before.",
+    process: [
+      {
+        lead: "Find The Seams",
+        rest: " – We look for the boundaries the business already has. Splitting a system along the wrong lines produces a distributed monolith, which is strictly worse than the one you had.",
+      },
+      {
+        lead: "Strangle, Don't Rewrite",
+        rest: " – Services are carved out one at a time behind the existing interface, in two-week cycles, with the old path live until the new one has proved itself.",
+      },
+      {
+        lead: "Cutover & Support",
+        rest: " – Traffic moved gradually with a rollback at every step, then 6–12 months of monitoring, patches and bug fixes included.",
+      },
+    ],
+    architectureHeading: "Most Systems Should Not Be Split",
+    architectureLead:
+      "Microservices trade a problem you understand for a set of problems you cannot debug with a stack trace. We will tell you when a modular monolith is the right answer, and we say so before the engagement rather than after it.",
+    architecturePoints: [
+      "When the split is right, the payoff is teams deploying independently — so the boundaries follow the org chart and the data, not the layer diagram.",
+      "Messaging, retries, idempotency, tracing and a deployment story are designed before the first service leaves the monolith, not discovered in production.",
+    ],
+    deliver: [
+      "A boundary analysis with a recommendation",
+      "Service extraction, one at a time, behind the old interface",
+      "Event and messaging infrastructure",
+      "Distributed tracing, metrics and alerting",
+    ],
+    handoverHeading: "Built To Be Handed Over",
+    handoverCopy:
+      "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
+    tools: ["Docker", "Kubernetes", "RabbitMQ", "OpenTelemetry"],
+    images: {
+      hero: "/images/services/microservices.webp",
+      process: "/images/case-detail-hero.jpg",
+      story: ["/images/case-detail-solution-2.jpg", "/images/about-gallery-2.jpg"],
+      tools: "/images/service-detail-tools.webp",
+    },
+    stats: SHARED_STATS,
+    whatYouGetCopy: SHARED_WHAT_YOU_GET_COPY,
+    whatYouGet: [
+      {
+        lead: "An honest recommendation –",
+        rest: " Including “do not split this”, when a modular monolith is the better answer.",
+      },
+      {
+        lead: "Staged extraction –",
+        rest: " One service at a time behind the existing interface, with the old path live until the new one holds.",
+      },
+      {
+        lead: "Handover & support –",
+        rest: " Tracing, runbooks and alerting you own, plus 6–12 months of post-launch support.",
+      },
+    ],
+  },
+
+  {
+    slug: "business-process-automation",
+    title: "Business Process Automation",
+    shortTitle: "Business Automation",
+    heroLines: ["Business", "Automation"],
+    metaDescription:
+      "The manual steps between your systems removed — reconciliations, exports, approvals and chasing. Long-running processes with states, handoffs and an audit trail.",
+    keywords: [
+      "business process automation",
+      "workflow automation development",
+      "system integration services",
+      "process automation company",
+    ],
+    included: [
+      "Process mapping",
+      "System integrations",
+      "Approval workflows",
+      "An audit trail",
+    ],
+    statement:
+      "We remove the manual steps between systems — the reconciliations, the exports, the approvals and the chasing that fill a week without appearing in anyone's job description.",
+    process: [
+      {
+        lead: "Count The Hours",
+        rest: " – We measure the steps before we automate them. A process that costs four hours a month is not worth a project, and we would rather say so in week one.",
+      },
+      {
+        lead: "Automate The Biggest First",
+        rest: " – Delivered in two-week cycles, most expensive step first, so the engagement pays for itself before it finishes.",
+      },
+      {
+        lead: "Launch & Support",
+        rest: " – Run in parallel with the manual process until the numbers agree, then 6–12 months of monitoring, patches and bug fixes included.",
+      },
+    ],
+    architectureHeading: "Automation That Fails Loudly",
+    architectureLead:
+      "The danger in automating a process is not that it breaks. It is that it breaks quietly and nobody notices for a month. Every workflow we build knows what state it is in and says something when it gets stuck.",
+    architecturePoints: [
+      "Long-running processes modelled with explicit states and handoffs, so a stalled approval is visible rather than sitting in somebody's inbox.",
+      "Every run leaves an audit trail — what ran, what it touched, what it decided — which is what turns an automation into something finance will sign off.",
+    ],
+    deliver: [
+      "Integrations between the systems you already run",
+      "Approval and exception workflows with owners",
+      "Scheduled reconciliations and reporting",
+      "An audit trail for every automated run",
+    ],
+    handoverHeading: "Built To Be Handed Over",
+    handoverCopy:
+      "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
+    tools: ["Node.js", "PostgreSQL", "Temporal", "AWS"],
+    images: {
+      hero: "/images/services/business-automation.webp",
+      process: "/images/work-card-leafy-plant.webp",
+      story: ["/images/about-gallery-1.jpg", "/images/case-study-card-4.jpg"],
+      tools: "/images/case-detail-banner.jpg",
+    },
+    stats: SHARED_STATS,
+    whatYouGetCopy: SHARED_WHAT_YOU_GET_COPY,
+    whatYouGet: [
+      {
+        lead: "A measured case –",
+        rest: " The hours each step costs today, counted before anything is automated.",
+      },
+      {
+        lead: "Workflows with state –",
+        rest: " Explicit states, owners and alerts, so a stalled process is visible rather than silent.",
+      },
+      {
+        lead: "Handover & support –",
+        rest: " Audit trails, runbooks and monitoring you own, plus 6–12 months of post-launch support.",
+      },
+    ],
+  },
 ];
 
 export const SERVICE_SLUGS = SERVICES.map((service) => service.slug);
+
+/**
+ * The seven the company leads with — the first seven above, in order.
+ *
+ * SERVICES went from seven to fifteen when the capability cards were given
+ * pages of their own, and most places that read it are happy with however many
+ * there are: the sitemap, the 404 page's pill list, the enquiry form's dropdown
+ * and the structured data all got better for it. Two are not. The company
+ * profile's "what we build" slide is a fixed 16:9 page box laid out for seven,
+ * and a footer column with fifteen links in it is a wall rather than a list.
+ * Both read this instead.
+ */
+export const HEADLINE_SERVICES = SERVICES.slice(0, 7);
 
 export function getService(slug: string) {
   return SERVICES.find((service) => service.slug === slug);
@@ -628,9 +1251,9 @@ export function getService(slug: string) {
  * technologies and left a reader to guess whether an ERP rebuild or an AI agent
  * was in scope.
  *
- * `service` points at the page that covers a domain where one exists. Half of
- * these do not have their own page and should not pretend to — they are named
- * here because clients ask for them by these names.
+ * `service` points at the page that covers a domain. Every one of them now has
+ * one: the eight that used to sit here with nothing behind them are services in
+ * their own right, and were only unlinked because nobody had written the pages.
  */
 export type WorkDomain = {
   name: string;
@@ -652,12 +1275,12 @@ export const WORK_DOMAINS: WorkDomain[] = [
   {
     name: "Custom Software",
     copy: "Systems written around how a business actually works, for when nothing off the shelf fits it.",
-    service: null,
+    service: "custom-software-development",
   },
   {
     name: "Web Applications",
     copy: "Dashboards, portals and internal tools that stay quick once there is real data behind them.",
-    service: null,
+    service: "web-application-development",
   },
   {
     name: "Mobile Applications",
@@ -682,27 +1305,27 @@ export const WORK_DOMAINS: WorkDomain[] = [
   {
     name: "ERP Systems",
     copy: "Inventory, production, purchasing and accounts in one place, finally agreeing with each other.",
-    service: null,
+    service: "erp-software-development",
   },
   {
     name: "CRM Systems",
     copy: "Pipelines, quotes and forecasts shaped around your sales motion rather than a template's stages.",
-    service: null,
+    service: "crm-software-development",
   },
   {
     name: "Enterprise Software",
     copy: "Platforms for the people who run the business — HR, payroll, operations, reporting.",
-    service: null,
+    service: "enterprise-software-development",
   },
   {
     name: "API Development",
     copy: "Documented, versioned APIs another team can build against without reading your controllers.",
-    service: null,
+    service: "api-development",
   },
   {
     name: "Microservices",
     copy: "Services split along boundaries that exist in the business, when a monolith has stopped fitting.",
-    service: null,
+    service: "microservices-architecture",
   },
   {
     name: "Cloud Solutions",
@@ -712,11 +1335,11 @@ export const WORK_DOMAINS: WorkDomain[] = [
   {
     name: "Business Automation",
     copy: "The manual steps between systems removed — reconciliations, exports, approvals, chasing.",
-    service: null,
+    service: "business-process-automation",
   },
   {
     name: "Workflow Automation",
     copy: "Long-running processes with states, handoffs and an audit trail instead of a chain of emails.",
-    service: null,
+    service: "business-process-automation",
   },
 ];

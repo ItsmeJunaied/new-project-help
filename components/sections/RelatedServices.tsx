@@ -21,13 +21,15 @@ const CARD_GAP = 24;
 /**
  * Which service each card belongs to, in the order they are drawn.
  *
- * The first seven are the services and carry a link to their page. The rest are
- * the kinds of work with no page of their own — they are on the rail because
- * they are what the company does, not because there is somewhere to send you.
+ * Every card goes somewhere. Eight of them used to go nowhere — they were on
+ * the rail because they are what the company does, and a visitor who clicked
+ * "ERP Systems" got a card that moved under the cursor and then nothing. They
+ * have pages of their own now, so the rail is fifteen links rather than seven
+ * links and eight posters.
  *
  * `label` is the link's title; the card draws its own name.
  */
-const CARDS: { slug: string | null; label: string }[] = [
+const CARDS: { slug: string; label: string }[] = [
   { slug: "saas-platform-development", label: "SaaS Platforms" },
   { slug: "ecommerce-digital-commerce", label: "eCommerce" },
   { slug: "devops-cloud-infrastructure", label: "DevOps & Cloud" },
@@ -35,14 +37,14 @@ const CARDS: { slug: string | null; label: string }[] = [
   { slug: "technology-consulting", label: "Consulting" },
   { slug: "mobile-app-development", label: "Mobile Apps" },
   { slug: "cybersecurity-data-protection", label: "Cybersecurity" },
-  { slug: null, label: "Custom Software" },
-  { slug: null, label: "Web Applications" },
-  { slug: null, label: "ERP Systems" },
-  { slug: null, label: "CRM Systems" },
-  { slug: null, label: "Enterprise Software" },
-  { slug: null, label: "API Development" },
-  { slug: null, label: "Microservices" },
-  { slug: null, label: "Business Automation" },
+  { slug: "custom-software-development", label: "Custom Software" },
+  { slug: "web-application-development", label: "Web Applications" },
+  { slug: "erp-software-development", label: "ERP Systems" },
+  { slug: "crm-software-development", label: "CRM Systems" },
+  { slug: "enterprise-software-development", label: "Enterprise Software" },
+  { slug: "api-development", label: "API Development" },
+  { slug: "microservices-architecture", label: "Microservices" },
+  { slug: "business-process-automation", label: "Business Automation" },
 ];
 
 /**
@@ -53,9 +55,10 @@ const CARDS: { slug: string | null; label: string }[] = [
  * BEHIND the first have to cover the window — otherwise the rail runs out of
  * its own scroll and stops dead before it comes round.
  *
- * Fifteen cards is 5,760px, so two copies cover any window worth designing for.
- * Six — the sibling row on a service page — is 2,304px, and two would strand a
- * wide monitor; three carry it past 4,600px.
+ * Fifteen cards is 5,760px, so two copies cover any window worth designing for,
+ * and so does the fourteen-card sibling row on a service page. The three-copy
+ * branch is what keeps a short rail — anything under ten cards — from stranding
+ * a wide monitor halfway through its own lap.
  */
 const railCopies = (count: number) => (count >= 10 ? 2 : 3);
 
@@ -79,10 +82,10 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
    */
   const [still, setStill] = useState(false);
 
-  // On a detail page this is the sibling row, so it is the other six services
-  // and nothing else. On /services it is the whole offering.
-  const drawn = CARDS.map((card, index) => ({ ...card, index })).filter((card) =>
-    currentSlug ? card.slug !== null && card.slug !== currentSlug : true,
+  // On a detail page this is the sibling row, so it is everything except the
+  // service you are already reading. On /services it is the whole offering.
+  const drawn = CARDS.map((card, index) => ({ ...card, index })).filter(
+    (card) => card.slug !== currentSlug,
   );
 
   useGSAP(
@@ -250,7 +253,7 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
                 );
               }
 
-              return card.slug ? (
+              return (
                 <Link
                   key={`${copy}-${card.index}`}
                   href={`/services/${card.slug}`}
@@ -260,10 +263,6 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
                 >
                   {inner}
                 </Link>
-              ) : (
-                <div key={`${copy}-${card.index}`} className="related-card" style={shell(card.index)}>
-                  {inner}
-                </div>
               );
             }),
           )}
