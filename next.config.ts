@@ -56,6 +56,52 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        // The films, on the same terms and for the same reason. Next serves
+        // everything in /public with `max-age=0`, so 15MB of video was being
+        // re-validated on every repeat visit — the showreel loop alone runs on
+        // the home page, the footer of every page, and nothing was keeping it.
+        //
+        // Same promise as the audio above, and the same obligation with it:
+        // `immutable` is about this exact path, and these filenames carry no
+        // content hash, so a re-cut film needs a NEW name or the browsers
+        // holding the old one will never ask again.
+        source: "/videos/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=31536000, immutable",
+          },
+        ],
+      },
+      {
+        // Photographs and icons served straight from /public — the ones that
+        // do not go through next/image, which sets its own headers off
+        // minimumCacheTTL.
+        //
+        // A month rather than a year, and deliberately NOT immutable: these
+        // are the files most likely to be corrected in place, and a wrong
+        // photograph that cannot be recalled for a year is a worse problem
+        // than a monthly revalidation. `stale-while-revalidate` means the
+        // month's end costs a visitor nothing — they get the held copy while
+        // the new one is fetched behind them.
+        source: "/images/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=2592000, stale-while-revalidate=86400",
+          },
+        ],
+      },
+      {
+        source: "/icons/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=2592000, stale-while-revalidate=86400",
+          },
+        ],
+      },
+      {
         source: "/:path*",
         headers: [
           { key: "X-Content-Type-Options", value: "nosniff" },

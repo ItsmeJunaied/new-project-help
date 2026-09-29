@@ -9,8 +9,10 @@ type AutoVideoProps = {
   poster: string;
   className?: string;
   /**
-   * Fetch the file on mount instead of waiting for the frame to come near the
-   * viewport. For the hero only — everything below the fold should wait.
+   * Skip the "is it near the viewport yet" wait, because this frame is already
+   * in it. For the hero only — everything below the fold should wait.
+   *
+   * It does NOT mean "fetch during mount". See the effect below.
    */
   eager?: boolean;
   /**
@@ -45,10 +47,46 @@ export default function AutoVideo({
   label,
 }: AutoVideoProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [loaded, setLoaded] = useState(eager);
+  const [loaded, setLoaded] = useState(false);
+
+  /**
+   * An eager film still waits for the page to finish loading.
+   *
+   * `eager` used to attach the src during mount, which put a multi-megabyte
+   * download in the same queue as the stylesheet, the fonts and the LCP image
+   * — all of which the visitor can see and none of which can be seen until
+   * they arrive. The film cannot: it has a poster over it, which is a frame of
+   * the film itself, so there is nothing to look at either way for the first
+   * second.
+   *
+   * So it goes after `load`, and after an idle callback on top of that. The
+   * poster carries the frame until it arrives, exactly as it did before, and
+   * the page's own paint no longer competes with it.
+   */
+  useEffect(() => {
+    if (!eager || loaded) return;
+
+    let idle: number | null = null;
+
+    const begin = () => {
+      // requestIdleCallback is still missing on Safari, where the timeout is
+      // the whole implementation rather than a fallback.
+      const schedule =
+        window.requestIdleCallback ?? ((cb: IdleRequestCallback) => window.setTimeout(cb, 200));
+      idle = schedule(() => setLoaded(true)) as unknown as number;
+    };
+
+    if (document.readyState === "complete") begin();
+    else window.addEventListener("load", begin, { once: true });
+
+    return () => {
+      window.removeEventListener("load", begin);
+      if (idle !== null) window.cancelIdleCallback?.(idle);
+    };
+  }, [eager, loaded]);
 
   useEffect(() => {
-    if (loaded) return;
+    if (loaded || eager) return;
     const el = videoRef.current;
     if (!el) return;
 
@@ -63,7 +101,7 @@ export default function AutoVideo({
 
     observer.observe(el);
     return () => observer.disconnect();
-  }, [loaded]);
+  }, [loaded, eager]);
 
   useEffect(() => {
     const el = videoRef.current;

@@ -1,33 +1,43 @@
 /**
  * Re-encode the site's films smaller, and give each one a WebM alternate.
  *
- * The originals were encoded once at a fixed bitrate and never revisited. The
- * hero's loop was the worst of it: 3.9MB fetched eagerly on the home page, at
- * 800 kb/s for a 960x540 silent cut that is mostly centred type on flat
- * ground — the kind of picture a constant-quality encode gets right for a
- * fraction of that.
+ * NOT RUN AS PART OF ANY BUILD. It rewrites the films, which is a visible
+ * change to the site, so it is run deliberately and its output is reviewed
+ * before anything is wired up to it.
  *
- * Two outputs per film:
+ * ---
  *
- *   .webm  VP9, which every current browser takes and which lands roughly a
- *          third smaller than H.264 at the same quality on this material.
- *   .mp4   H.264 High, for Safari before 14 and anything else that has never
- *          heard of VP9. Still re-encoded, so even the fallback is smaller
- *          than what it replaces.
+ * The thing to understand before touching the numbers: this footage is
+ * datamosh. Glitch frames, RGB shear, chromatic tearing, falling particles.
+ * Every pixel changes every frame and most of those changes are, to a codec,
+ * indistinguishable from noise — which is the single most expensive kind of
+ * picture there is.
  *
- * The browser picks: <source> lists WebM first and the first one that plays
- * wins, so nobody downloads both.
+ * A constant-quality encode is therefore the wrong tool. CRF asks the encoder
+ * to preserve detail faithfully, and asked to faithfully preserve noise it
+ * produces a LARGER file than the source: libvpx-vp9 at CRF 36 turned the
+ * 3.9MB hero loop into 6.6MB. That is not a misconfiguration, it is what CRF
+ * is for.
  *
- * NEW FILENAMES, not replacements. /videos is served immutable for a year
- * (see next.config.ts), which is a promise about a path — a browser holding
- * the old file would never look again. Changing a film means changing its
- * name.
+ * So these are capped-bitrate encodes. We name a ceiling and the encoder fits
+ * the picture inside it. On ordinary footage that trade shows up as mush; on
+ * this footage it hides almost perfectly, because the artefacts of a starved
+ * encoder and the artefacts the film is *made of* look the same. Compared
+ * frame by frame at 720p/400k against the source, the only visible loss was
+ * some softening in the snow particles — on a frame that plays 540px wide.
+ *
+ * Two outputs per film, WebM first in the markup so the MP4 is only ever the
+ * fallback and nobody fetches both.
+ *
+ * NEW FILENAMES, not replacements. /videos is served immutable for a year (see
+ * next.config.ts), which is a promise about a path. A re-cut film needs a new
+ * name or the browsers holding the old one will never ask again.
  *
  * Run: node scripts/video/encode.mjs
  */
 
 import { spawn } from "node:child_process";
-import { mkdirSync, statSync } from "node:fs";
+import { statSync } from "node:fs";
 import path from "node:path";
 
 import ffmpegPath from "ffmpeg-static";
@@ -35,48 +45,43 @@ import ffmpegPath from "ffmpeg-static";
 const VIDEOS = path.join(process.cwd(), "public", "videos");
 
 /**
- * CRF is a quality target, not a size target, so the same number gives a
- * bigger file to a busier picture. These are tuned per film rather than shared:
- * the two loops are silent background texture behind other content, and the
- * lightbox cut is the one somebody has chosen to sit and watch.
+ * Ceilings, in kbit/s, measured against each film's own source rather than
+ * shared. VP9 gets roughly a quarter less than H.264 for the same picture,
+ * which is about what it is worth on this material.
+ *
+ * `width` is the other half of the saving, and the cheaper half: the hero
+ * frame is 540px wide on a desktop and about 330 on a phone, so a 960-wide
+ * master was already carrying more picture than anything could show.
  */
 const JOBS = [
   {
     from: "showreel-40s-loop.mp4",
     to: "showreel-40s-loop-v2",
-    // Plays at 540px wide on a desktop and full-bleed on a phone; 960 wide
-    // covers both without carrying a 1080p master nobody sees.
-    width: 960,
-    vp9Crf: 36,
-    h264Crf: 29,
+    // Background texture behind the hero and in the footer. Never watched.
+    width: 854,
+    vp9: 380,
+    h264: 500,
     audio: false,
   },
   {
     from: "showreel-v8.mp4",
     to: "showreel-v8-v2",
-    // The showcase frame is wider than the hero's, so this one keeps more.
+    // Full-bleed showcase band. Source is already a lean 452 kb/s, so there
+    // is much less to take here than the file size suggests.
     width: 1280,
-    vp9Crf: 35,
-    h264Crf: 28,
+    vp9: 280,
+    h264: 360,
     audio: true,
   },
   {
     from: "showreel-40s.mp4",
     to: "showreel-40s-v2",
-    // Full screen with sound, and the only film anyone deliberately opens.
-    // The gentlest compression of the three.
+    // The lightbox cut: full screen, with sound, and the only one anybody
+    // chooses to sit and watch. Handled gently.
     width: 1280,
-    vp9Crf: 33,
-    h264Crf: 26,
+    vp9: 700,
+    h264: 900,
     audio: true,
-  },
-  {
-    from: "hero-pill.mp4",
-    to: "hero-pill-v2",
-    width: 800,
-    vp9Crf: 36,
-    h264Crf: 29,
-    audio: false,
   },
 ];
 
@@ -101,17 +106,16 @@ async function encode(job) {
   const webm = path.join(VIDEOS, `${job.to}.webm`);
   const mp4 = path.join(VIDEOS, `${job.to}.mp4`);
 
-  // Even width and height: both codecs need it for 4:2:0 chroma, and -2 asks
-  // ffmpeg for the nearest even height that keeps the aspect ratio.
+  // -2 asks for the nearest even height that keeps the ratio; both codecs need
+  // even dimensions for 4:2:0 chroma.
   const scale = `scale=${job.width}:-2:flags=lanczos`;
 
-  const silence = job.audio ? [] : ["-an"];
-  // 96k Opus and 128k AAC are both well past transparent for a showreel bed.
   const webmAudio = job.audio ? ["-c:a", "libopus", "-b:a", "96k"] : ["-an"];
   const mp4Audio = job.audio ? ["-c:a", "aac", "-b:a", "128k"] : ["-an"];
 
-  // VP9 in constant-quality mode wants -b:v 0, or the CRF is treated as a cap
-  // on a bitrate-targeted encode and the quality target is ignored.
+  // Average-bitrate VP9, not CRF: -b:v is a target rather than a ceiling here,
+  // and the two-pass that would hit it exactly is not worth the wall time on a
+  // film this short.
   await run([
     "-y",
     "-i",
@@ -120,11 +124,12 @@ async function encode(job) {
     scale,
     "-c:v",
     "libvpx-vp9",
-    "-crf",
-    String(job.vp9Crf),
     "-b:v",
-    "0",
-    // Lets VP9 use every core; without it a 40-second encode is single-threaded.
+    `${job.vp9}k`,
+    "-maxrate",
+    `${Math.round(job.vp9 * 1.5)}k`,
+    "-bufsize",
+    `${job.vp9 * 3}k`,
     "-row-mt",
     "1",
     "-tile-columns",
@@ -137,10 +142,10 @@ async function encode(job) {
     webm,
   ]);
 
-  // faststart moves the index to the front of the file, so playback can begin
-  // on the first chunk instead of after the whole download. On a 40-second
-  // film over a slow connection that is the difference between a poster that
-  // turns into a film and a poster that just sits there.
+  // faststart moves the index to the front, so playback can begin on the first
+  // chunk rather than after the whole download. On a slow connection that is
+  // the difference between a poster that becomes a film and one that just sits
+  // there.
   await run([
     "-y",
     "-i",
@@ -149,10 +154,14 @@ async function encode(job) {
     scale,
     "-c:v",
     "libx264",
-    "-crf",
-    String(job.h264Crf),
+    "-b:v",
+    `${job.h264}k`,
+    "-maxrate",
+    `${job.h264}k`,
+    "-bufsize",
+    `${job.h264 * 2}k`,
     "-preset",
-    "slower",
+    "slow",
     "-profile:v",
     "high",
     "-pix_fmt",
@@ -160,21 +169,22 @@ async function encode(job) {
     "-movflags",
     "+faststart",
     ...mp4Audio,
-    ...silence,
     mp4,
   ]);
 
   const before = kb(input);
-  const after = kb(webm) + 0;
   console.log(
     `${job.from.padEnd(26)} ${String(before).padStart(6)} KB  ->  ` +
       `webm ${String(kb(webm)).padStart(5)} KB · mp4 ${String(kb(mp4)).padStart(5)} KB` +
-      `   (${Math.round((1 - after / before) * 100)}% off the file a modern browser fetches)`,
+      `   (${Math.round((1 - kb(webm) / before) * 100)}% off what a current browser fetches)`,
   );
 }
-
-mkdirSync(VIDEOS, { recursive: true });
 
 for (const job of JOBS) {
   await encode(job);
 }
+
+console.log(
+  "\nNothing is wired up to these yet. Check them against the originals first,\n" +
+    "then point Hero, VideoShowcase and Footer at the new names.",
+);
