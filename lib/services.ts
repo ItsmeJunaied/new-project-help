@@ -667,7 +667,7 @@ export const SERVICES: Service[] = [
       "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
     tools: ["TypeScript", "Node.js", "PostgreSQL", "Docker"],
     images: {
-      hero: "/images/services/custom-software.webp",
+      hero: "/images/about-gallery-1.jpg",
       process: "/images/about-photo-working.webp",
       story: ["/images/case-detail-problem-1.jpg", "/images/case-detail-solution-1.jpg"],
       tools: "/images/service-detail-tools.webp",
@@ -743,7 +743,7 @@ export const SERVICES: Service[] = [
       "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
     tools: ["Next.js", "React", "PostgreSQL", "Redis"],
     images: {
-      hero: "/images/services/web-applications.webp",
+      hero: "/images/about-gallery-4.jpg",
       process: "/images/service-detail-process.webp",
       story: ["/images/case-study-card-1.jpg", "/images/case-study-card-3.jpg"],
       tools: "/images/service-01-uiux.webp",
@@ -819,7 +819,7 @@ export const SERVICES: Service[] = [
       "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
     tools: ["Node.js", "PostgreSQL", "Next.js", "Docker"],
     images: {
-      hero: "/images/services/erp-systems.webp",
+      hero: "/images/career-intro.jpg",
       process: "/images/case-detail-banner.jpg",
       story: ["/images/case-detail-problem-2.jpg", "/images/case-detail-solution-2.jpg"],
       tools: "/images/about-photo-working.webp",
@@ -895,7 +895,7 @@ export const SERVICES: Service[] = [
       "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
     tools: ["Next.js", "Node.js", "PostgreSQL", "AWS"],
     images: {
-      hero: "/images/services/crm-systems.webp",
+      hero: "/images/client-onboarding-signing.webp",
       process: "/images/showcase-collaboration.webp",
       story: ["/images/case-study-card-2.jpg", "/images/case-study-card-4.jpg"],
       tools: "/images/contact-desk.jpg",
@@ -971,7 +971,7 @@ export const SERVICES: Service[] = [
       "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
     tools: ["Next.js", "Node.js", "PostgreSQL", "Azure"],
     images: {
-      hero: "/images/services/enterprise-software.webp",
+      hero: "/images/cta-team-meeting.webp",
       process: "/images/about-mission.jpg",
       story: ["/images/about-gallery-3.jpg", "/images/case-detail-solution-1.jpg"],
       tools: "/images/service-detail-hero.webp",
@@ -1047,7 +1047,7 @@ export const SERVICES: Service[] = [
       "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
     tools: ["Node.js", "TypeScript", "PostgreSQL", "OpenAPI"],
     images: {
-      hero: "/images/services/api-development.webp",
+      hero: "/images/case-detail-hero.jpg",
       process: "/images/service-detail-tools.webp",
       story: ["/images/case-detail-problem-3.jpg", "/images/case-study-card-1.jpg"],
       tools: "/images/service-detail-process.webp",
@@ -1123,7 +1123,7 @@ export const SERVICES: Service[] = [
       "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
     tools: ["Docker", "Kubernetes", "RabbitMQ", "OpenTelemetry"],
     images: {
-      hero: "/images/services/microservices.webp",
+      hero: "/images/about-showcase.jpg",
       process: "/images/case-detail-hero.jpg",
       story: ["/images/case-detail-solution-2.jpg", "/images/about-gallery-2.jpg"],
       tools: "/images/service-detail-tools.webp",
@@ -1199,7 +1199,7 @@ export const SERVICES: Service[] = [
       "Documentation, tests and runbooks are part of the deliverable, not an afterthought you have to chase us for. Source, infrastructure definitions and design files live in accounts you control from the first commit.",
     tools: ["Node.js", "PostgreSQL", "Temporal", "AWS"],
     images: {
-      hero: "/images/services/business-automation.webp",
+      hero: "/images/about-mission.jpg",
       process: "/images/work-card-leafy-plant.webp",
       story: ["/images/about-gallery-1.jpg", "/images/case-study-card-4.jpg"],
       tools: "/images/case-detail-banner.jpg",

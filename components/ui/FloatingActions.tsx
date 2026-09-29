@@ -137,9 +137,9 @@ export default function FloatingActions() {
           It stands above the dock until the window is wide enough for the two
           to sit side by side without touching, and below that they stack. That
           width is arithmetic rather than a guess: the dock is 594px and
-          centred, this pill is 345px against the right margin, so they touch
-          at 1,380px. 1,400 is the nearest round number clear of it. */}
-      <div className="print-hide pointer-events-none fixed bottom-[92px] right-0 z-40 px-4 min-[1400px]:bottom-[24px] min-[1400px]:px-[24px]">
+          centred, this pill is 243px against the right margin, so they touch
+          at 1,176px and xl clears it by some seventy pixels. */}
+      <div className="print-hide pointer-events-none fixed bottom-[92px] right-0 z-40 px-4 xl:bottom-[24px] xl:px-[24px]">
         <div
           ref={consultRef}
           className="pointer-events-auto relative opacity-0 will-change-transform"
@@ -190,15 +190,16 @@ export default function FloatingActions() {
                 phrased around the experience rather than around the engineer,
                 because "a 12-year engineer" describes someone who is twelve.
 
-                It wraps on a phone and holds one line from sm up, so the pill
-                stays inside a 375px screen without the line being cut short
-                for the sake of the wide case. */}
+                Kept to four words. Every word after that is width, and this
+                floats over the page on every screen it appears on: the full
+                sentence ran the pill out to 346px, which on a phone is most of
+                the screen and on a desktop is wide enough to reach the dock. */}
             <span className="flex flex-col gap-[5px]">
               <span className="whitespace-nowrap font-body text-[14px] font-semibold leading-none tracking-[-0.2px] text-ink">
                 Book a free consultation
               </span>
-              <span className="max-w-[200px] font-body text-[12px] leading-[16px] tracking-[-0.1px] text-neutral-paragraph sm:max-w-none sm:whitespace-nowrap">
-                With a software engineer of 12 years&rsquo; experience
+              <span className="whitespace-nowrap font-body text-[12px] leading-none tracking-[-0.1px] text-neutral-paragraph">
+                Engineer, 12 years&rsquo; experience
               </span>
             </span>
           </a>
@@ -248,7 +249,11 @@ export default function FloatingActions() {
               }}
               className="group flex items-center gap-[7px] rounded-[999px] bg-primary-green px-[16px] py-[10px] shadow-[0_6px_18px_-6px_rgba(134,213,42,0.8)] transition-[transform,box-shadow] duration-300 hover:scale-[1.03] sm:px-[18px]"
             >
-              <span className="whitespace-nowrap font-body text-[14px] font-semibold leading-none tracking-[-0.2px] text-black">
+              {/* White on the green, to match the mark on the consultation
+                  pill. It is the softer of the two against this green —
+                  black on it is far higher contrast — so the label carries
+                  its weight at 600 and the arrow keeps a 1.7 stroke. */}
+              <span className="whitespace-nowrap font-body text-[14px] font-semibold leading-none tracking-[-0.2px] text-white">
                 Let&rsquo;s talk
               </span>
               <svg
@@ -257,7 +262,7 @@ export default function FloatingActions() {
                 viewBox="0 0 15 15"
                 fill="none"
                 aria-hidden="true"
-                className="shrink-0 text-black transition-transform duration-300 group-hover:translate-x-[3px]"
+                className="shrink-0 text-white transition-transform duration-300 group-hover:translate-x-[3px]"
               >
                 <path
                   d="M3 7.5h9M8.4 3.6 12.3 7.5 8.4 11.4"
