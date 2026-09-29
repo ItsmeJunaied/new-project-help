@@ -6,67 +6,95 @@ import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
 
 /**
- * What happens to a brief after it is sent, hour by hour.
+ * Your project, start to finish.
  *
- * Drawn as a ledger rather than as a row of cards: five full-width rows on
- * hairlines, a large ghosted numeral in the margin, the clock in its own
- * column and the outcome ranged right. Cards in a grid are what every agency
- * template does with a process, and they force five paragraphs into five
- * identical boxes whether or not they are the same size. Rows do not, they
- * read left to right the way a sentence does, and they give the page a spine.
+ * The reference design ran this as seven equal blocks, each a time label, a
+ * title and a sentence — which is a list wearing the costume of a process.
+ * Seven identical boxes tell you the order of things and nothing else, and the
+ * question somebody actually has at this point is not "what are the stages",
+ * it is "how far can I go before this costs me anything, and what do you need
+ * from me".
  *
- * The times are the commitment, not an average. Four business hours is the
- * figure quoted everywhere else on the site and the rest hang off it.
+ * So it is split at the only line that matters — the contract — and every step
+ * says whose move it is. Everything above the line is free and reversible and
+ * says so; everything below it is work. A visitor can read the top half and
+ * know exactly what they are signing up for by sending a form, which is the
+ * whole job of a contact page.
  */
 
-type Stop = {
-  /** Where this sits on the clock, counting from the brief landing. */
+type Step = {
   when: string;
   title: string;
   body: string;
-  /** What exists at the end of this step that did not before. */
-  output: string;
+  /** Whose move it is. The alternation is the point of the column. */
+  who: "You" | "Us";
 };
 
-const STOPS: Stop[] = [
-  {
-    when: "Hour 0",
-    title: "It lands with an engineer",
-    body: "Straight to the people who would run the build — not into a shared sales inbox that gets triaged on Monday morning.",
-    output: "Read, not queued",
-  },
-  {
-    when: "4 hours",
-    title: "A written reply",
-    body: "From a named person. Either the questions we need answered, or a time to talk, or — if we are not the right people for it — who is.",
-    output: "A human answer",
-  },
-  {
-    when: "Day 1–2",
-    title: "A call, if you want one",
-    body: "Thirty minutes to walk through the problem. Most briefs want one; some are clear enough that we go straight to the scope.",
-    output: "Shared understanding",
-  },
-  {
-    when: "Day 2–5",
-    title: "Scope and a fixed estimate",
-    body: "In writing: what gets built, in what order, by when and for how much — with the two projects in our work closest to yours.",
-    output: "A real number",
-  },
-  {
-    when: "Week 1–2",
-    title: "Contract and kickoff",
-    body: "If it is a fit. The engineers in the kickoff call are the ones who write the code, which is the whole reason the first reply came from one of them.",
-    output: "Work starts",
-  },
-];
+type Phase = {
+  name: string;
+  /** What this phase costs the visitor — stated, not implied. */
+  cost: string;
+  note: string;
+  steps: Step[];
+};
 
-/** The record, closing the section — the same figures the service pages quote. */
-const FACTS = [
-  { value: "28+", label: "Systems delivered" },
-  { value: "95%", label: "Client satisfaction" },
-  { value: "99.9%", label: "Uptime after migration" },
-  { value: "4h", label: "Reply, business hours" },
+const PHASES: Phase[] = [
+  {
+    name: "Deciding",
+    cost: "Costs nothing, commits nothing",
+    note: "Every step here is reversible. You can stop after any of them and owe us nothing — no retainer, no deposit, no discovery fee.",
+    steps: [
+      {
+        when: "Hour 0",
+        title: "Your brief lands",
+        body: "The form, an email, WhatsApp or a call — all four reach the same inbox, read by the engineers who would run the build.",
+        who: "You",
+      },
+      {
+        when: "4 hours",
+        title: "A named person replies",
+        body: "Inside four business hours. With the questions we need answered, a time to talk, or an honest “this is not us, try them”.",
+        who: "Us",
+      },
+      {
+        when: "Day 1–2",
+        title: "A call, if it helps",
+        body: "Thirty minutes, free, with the two projects closest to yours on screen. Some briefs are clear enough that we skip it.",
+        who: "You",
+      },
+      {
+        when: "Day 2–5",
+        title: "Scope and a fixed number",
+        body: "In writing: what gets built, in what order, by when, for how much, and who is assigned. If we cannot hit your window we say so here.",
+        who: "Us",
+      },
+    ],
+  },
+  {
+    name: "Building",
+    cost: "From the day you say yes",
+    note: "The engineers in the kickoff call are the ones who write the code. That is the whole reason the first reply came from one of them.",
+    steps: [
+      {
+        when: "Week 1",
+        title: "Contract and kickoff",
+        body: "The contract goes out the day you agree, and kickoff follows inside 48 hours. Access, environments and the backlog are set up in that first week.",
+        who: "You",
+      },
+      {
+        when: "Every 2 weeks",
+        title: "Working software, on a cycle",
+        body: "Two-week cycles against the signed scope, each ending on something you can open and use. Weekly written updates, an open backlog, direct access to the engineers.",
+        who: "Us",
+      },
+      {
+        when: "Launch",
+        title: "Go live, then stay",
+        body: "A rehearsed cutover with a way back, then months of monitoring, patches and changes — not a handover email and a goodbye.",
+        who: "Us",
+      },
+    ],
+  },
 ];
 
 export default function ContactTimeline() {
@@ -86,41 +114,22 @@ export default function ContactTimeline() {
         scrollTrigger: trigger,
       });
 
-      // Each row wipes in from its own left rule, so the section builds
-      // downward like something being written rather than popping in as a set.
-      gsap.from(".tl-row", {
-        y: 26,
-        opacity: 0,
-        duration: 0.7,
-        ease: "power2.out",
-        stagger: 0.1,
-        delay: 0.15,
-        scrollTrigger: trigger,
-      });
-
-      gsap.fromTo(
-        ".tl-rule",
-        { scaleX: 0 },
-        {
-          scaleX: 1,
-          duration: 0.9,
-          ease: "power2.inOut",
-          stagger: 0.1,
-          delay: 0.1,
-          transformOrigin: "left center",
-          scrollTrigger: trigger,
-        },
-      );
-
-      gsap.from(".tl-fact", {
+      gsap.from(".tl-phase", {
         y: 20,
         opacity: 0,
         duration: 0.7,
         ease: "power2.out",
-        stagger: 0.08,
-        scrollTrigger: reveal(sectionRef.current?.querySelector(".tl-facts") ?? null, {
-          start: "top 90%",
-        }),
+        stagger: 0.12,
+        scrollTrigger: reveal(sectionRef.current, { start: "top 70%" }),
+      });
+
+      gsap.from(".tl-step", {
+        y: 22,
+        opacity: 0,
+        duration: 0.65,
+        ease: "power2.out",
+        stagger: 0.07,
+        scrollTrigger: reveal(sectionRef.current, { start: "top 66%" }),
       });
     },
     { scope: sectionRef },
@@ -133,83 +142,106 @@ export default function ContactTimeline() {
     >
       <div className="mx-auto flex w-full max-w-[1440px] flex-col">
         <div className="tl-head flex w-full flex-col items-start gap-[20px] lg:flex-row lg:items-end lg:justify-between lg:gap-[80px]">
-          <div className="flex flex-col gap-[16px] lg:max-w-[720px]">
+          <div className="flex flex-col gap-[16px] lg:max-w-[760px]">
             <p className="font-mono text-[11px] uppercase leading-none tracking-[0.2em] text-primary-green">
-              After you hit send
+              Free until you sign · then two-week cycles
             </p>
-            <h2 className="font-display text-[clamp(2rem,4.2vw,60px)] font-medium leading-[1.06] tracking-[-1.5px] text-white">
-              From your brief to a real number
+            <h2 className="font-display text-[clamp(2rem,4.2vw,60px)] font-medium leading-[1.05] tracking-[-1.5px] text-white">
+              Your project, start to finish
             </h2>
           </div>
 
-          <p className="max-w-[360px] font-body text-[15px] leading-[23px] tracking-[-0.1px] text-white/45 lg:pb-[8px] lg:text-right">
-            Five steps with a time against each. The first one is a commitment rather than
-            an average.
+          <p className="max-w-[350px] font-body text-[15px] leading-[23px] tracking-[-0.1px] text-white/45 lg:pb-[8px] lg:text-right">
+            Seven steps, each one saying whose move it is — and a line through the middle
+            marking where it starts costing money.
           </p>
         </div>
 
-        {/* The ledger. Grid rather than flex, so the clock column and the
-            outcome column line up down the whole section — which is the only
-            reason rows beat cards here. */}
-        <ol className="mt-[52px] flex w-full flex-col lg:mt-[76px]">
-          {STOPS.map((stop, index) => (
-            <li key={stop.when} className="group relative w-full">
-              <span
-                aria-hidden
-                className="tl-rule block h-px w-full bg-white/15"
-              />
+        <div className="mt-[54px] flex w-full flex-col gap-[48px] lg:mt-[78px] lg:gap-[64px]">
+          {PHASES.map((phase, phaseIndex) => {
+            // Numbering runs 01–07 straight through rather than restarting per
+            // phase, because it is one sequence that happens to have a line
+            // drawn across it. Derived from the phases before this one rather
+            // than counted up in a closure, which the compiler rightly refuses.
+            const offset = PHASES.slice(0, phaseIndex).reduce(
+              (total, earlier) => total + earlier.steps.length,
+              0,
+            );
 
-              <div className="tl-row grid w-full grid-cols-1 gap-x-[32px] gap-y-[12px] py-[28px] transition-colors duration-500 lg:grid-cols-[64px_128px_1fr_190px] lg:items-baseline lg:py-[34px]">
-                <span className="font-display text-[34px] font-medium leading-none tracking-[-1px] text-white/15 transition-colors duration-500 group-hover:text-primary-green lg:text-[40px]">
-                  {String(index + 1).padStart(2, "0")}
-                </span>
-
-                <span className="font-mono text-[11px] uppercase leading-none tracking-[0.18em] text-primary-green">
-                  {stop.when}
-                </span>
-
-                <div className="flex flex-col gap-[10px] lg:max-w-[560px]">
-                  <h3 className="font-display text-[22px] font-medium leading-[1.15] tracking-[-0.45px] text-white lg:text-[26px]">
-                    {stop.title}
+            return (
+            <div key={phase.name} className="flex w-full flex-col">
+              {/* The phase header carries the cost, which is the fact the
+                  whole section is arranged around. */}
+              <div
+                className={`tl-phase flex w-full flex-col gap-[14px] border-t pb-[10px] pt-[24px] lg:flex-row lg:items-start lg:justify-between lg:gap-[60px] ${
+                  phaseIndex === 0 ? "border-white/15" : "border-primary-green/50"
+                }`}
+              >
+                <div className="flex items-center gap-[14px]">
+                  <h3 className="font-display text-[26px] font-medium leading-none tracking-[-0.5px] text-white lg:text-[30px]">
+                    {phase.name}
                   </h3>
-                  <p className="font-body text-[14px] leading-[22px] tracking-[-0.1px] text-white/45">
-                    {stop.body}
-                  </p>
+                  <span
+                    className={`rounded-full px-[12px] py-[7px] font-mono text-[10px] uppercase leading-none tracking-[0.16em] ${
+                      phaseIndex === 0
+                        ? "bg-primary-green text-white"
+                        : "bg-white/[0.08] text-white/70 ring-1 ring-white/12"
+                    }`}
+                  >
+                    {phase.cost}
+                  </span>
                 </div>
 
-                <span className="flex items-center gap-[8px] font-mono text-[11px] uppercase leading-none tracking-[0.14em] text-white/70 lg:justify-end">
-                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden>
-                    <path
-                      d="M2 6.4 4.6 9 10 3.2"
-                      stroke="currentColor"
-                      strokeWidth="1.9"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      className="text-primary-green"
-                    />
-                  </svg>
-                  {stop.output}
-                </span>
+                <p className="font-body text-[14px] leading-[22px] tracking-[-0.1px] text-white/45 lg:max-w-[440px] lg:text-right">
+                  {phase.note}
+                </p>
               </div>
-            </li>
-          ))}
 
-          <li aria-hidden className="tl-rule h-px w-full bg-white/15" />
-        </ol>
+              <ol className="flex w-full flex-col">
+                {phase.steps.map((step, stepIndex) => {
+                  const counter = offset + stepIndex + 1;
 
-        {/* The record, ranged across the foot of the section. */}
-        <dl className="tl-facts mt-[56px] grid w-full grid-cols-2 gap-x-[24px] gap-y-[32px] lg:mt-[80px] lg:grid-cols-4">
-          {FACTS.map((fact) => (
-            <div key={fact.label} className="tl-fact flex flex-col gap-[8px]">
-              <dt className="font-display text-[clamp(2.25rem,3.6vw,48px)] font-medium leading-none tracking-[-1.4px] text-white">
-                {fact.value}
-              </dt>
-              <dd className="font-mono text-[10px] uppercase leading-[1.5] tracking-[0.18em] text-white/35">
-                {fact.label}
-              </dd>
+                  return (
+                    <li
+                      key={step.title}
+                      className="tl-step group grid w-full grid-cols-1 gap-x-[30px] gap-y-[10px] border-t border-white/[0.09] py-[26px] lg:grid-cols-[56px_120px_1fr_84px] lg:items-baseline lg:py-[30px]"
+                    >
+                      <span className="font-display text-[30px] font-medium leading-none tracking-[-0.8px] text-white/15 transition-colors duration-500 group-hover:text-primary-green lg:text-[36px]">
+                        {String(counter).padStart(2, "0")}
+                      </span>
+
+                      <span className="font-mono text-[11px] uppercase leading-none tracking-[0.18em] text-primary-green">
+                        {step.when}
+                      </span>
+
+                      <div className="flex flex-col gap-[9px] lg:max-w-[620px]">
+                        <h4 className="font-display text-[21px] font-medium leading-[1.15] tracking-[-0.4px] text-white lg:text-[24px]">
+                          {step.title}
+                        </h4>
+                        <p className="font-body text-[14px] leading-[22px] tracking-[-0.1px] text-white/45">
+                          {step.body}
+                        </p>
+                      </div>
+
+                      {/* Whose move. Two values, so it reads as a rally
+                          rather than as a queue you are waiting in. */}
+                      <span
+                        className={`w-fit rounded-full px-[11px] py-[6px] font-mono text-[10px] uppercase leading-none tracking-[0.16em] lg:justify-self-end ${
+                          step.who === "You"
+                            ? "bg-white text-ink"
+                            : "text-white/55 ring-1 ring-white/20"
+                        }`}
+                      >
+                        {step.who === "You" ? "Your move" : "Our move"}
+                      </span>
+                    </li>
+                  );
+                })}
+              </ol>
             </div>
-          ))}
-        </dl>
+            );
+          })}
+        </div>
       </div>
     </section>
   );

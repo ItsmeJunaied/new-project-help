@@ -75,15 +75,41 @@ export default function ContactChannels() {
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-[48px]">
         {/* The section now opens on its own title, because the three cards
             that used to introduce it have moved to the top of the page. */}
-        <div className="channel-card flex w-full flex-col gap-[12px] lg:max-w-[720px]">
-          <h2 className="font-display text-[clamp(2rem,4vw,56px)] font-medium leading-[1.08] tracking-[-1.5px] text-black">
-            Where we are
-          </h2>
-          <p className="font-display text-[19px] leading-[1.35] tracking-[-0.25px] text-ash-dark">
-            One office, in Banani, Dhaka, and clients working to their own clock rather
-            than ours. Visits by appointment — the address below is a real one.
+        <div className="channel-card flex w-full flex-col items-start gap-[18px] lg:flex-row lg:items-end lg:justify-between lg:gap-[70px]">
+          <div className="flex flex-col gap-[14px] lg:max-w-[700px]">
+            <p className="font-mono text-[11px] uppercase leading-none tracking-[0.2em] text-primary-green">
+              Based in Dhaka
+            </p>
+            <h2 className="font-display text-[clamp(1.9rem,3.8vw,52px)] font-medium leading-[1.06] tracking-[-1.3px] text-black">
+              Built in Bangladesh, delivered on your clock
+            </h2>
+          </div>
+
+          <p className="max-w-[330px] font-body text-[14px] leading-[22px] tracking-[-0.1px] text-neutral-paragraph lg:pb-[6px] lg:text-right">
+            One office, and clients who keep their own hours. The four-hour reply is
+            counted in business hours here — the address below is a real one.
           </p>
         </div>
+
+        {/* The record, on a rule under the title. Same figures the service
+            pages quote; see SHARED_STATS in lib/services.ts. */}
+        <dl className="channel-card grid w-full grid-cols-2 gap-x-[24px] gap-y-[28px] border-y border-black/10 py-[30px] lg:grid-cols-4">
+          {[
+            { value: "28+", label: "Systems delivered" },
+            { value: "95%", label: "Client satisfaction" },
+            { value: "99.9%", label: "Uptime after migration" },
+            { value: "4h", label: "Reply, business hours" },
+          ].map((fact) => (
+            <div key={fact.label} className="flex flex-col gap-[8px]">
+              <dt className="font-display text-[clamp(2rem,3.4vw,44px)] font-medium leading-none tracking-[-1.3px] text-black">
+                {fact.value}
+              </dt>
+              <dd className="font-mono text-[10px] uppercase leading-[1.5] tracking-[0.18em] text-neutral-paragraph">
+                {fact.label}
+              </dd>
+            </div>
+          ))}
+        </dl>
 
         {/* The office, framed rather than embedded.
             An iframe is a window onto somebody else's application: it brings

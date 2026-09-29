@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 
 import JsonLd from "@/components/JsonLd";
 import Header from "@/components/sections/Header";
+import ContactProof from "@/components/sections/ContactProof";
 import ContactTimeline from "@/components/sections/ContactTimeline";
 import ContactDetails from "@/components/sections/ContactDetails";
 import ContactChannels from "@/components/sections/ContactChannels";
-import Faq from "@/components/sections/Faq";
+import ContactFaq from "@/components/sections/ContactFaq";
 import TeamCta from "@/components/sections/TeamCta";
 import Footer from "@/components/sections/Footer";
 import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
@@ -31,10 +32,14 @@ export default function ContactPage() {
             collect a brief and everything that used to sit above it now sits
             beside it or below it. */}
         <ContactDetails />
-        {/* Then what happens to the brief once it has been sent. */}
+        {/* Who has already sent one, and the work that came out of it. */}
+        <ContactProof />
+        {/* Then what happens to a brief, split at the contract. */}
         <ContactTimeline />
         <ContactChannels />
-        <Faq />
+        {/* A contact-specific FAQ rather than the shared one: these answer
+            what happens if you send the form, not what the company does. */}
+        <ContactFaq />
         <TeamCta />
       </main>
       <Footer />
