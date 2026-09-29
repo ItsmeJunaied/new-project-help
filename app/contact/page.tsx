@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 
 import JsonLd from "@/components/JsonLd";
 import Header from "@/components/sections/Header";
-import ContactHero from "@/components/sections/ContactHero";
-import ContactPaths from "@/components/sections/ContactPaths";
 import ContactTimeline from "@/components/sections/ContactTimeline";
 import ContactDetails from "@/components/sections/ContactDetails";
 import ContactChannels from "@/components/sections/ContactChannels";
@@ -29,13 +27,12 @@ export default function ContactPage() {
     <>
       <Header />
       <main id="main">
-        <ContactHero />
-        {/* The four routes first, because the page's job is to get you to one
-            of them and only one of them is the form. */}
-        <ContactPaths />
-        {/* Then what happens to a brief, before being asked to write one. */}
-        <ContactTimeline />
+        {/* The title and the form, together, at the top — the page exists to
+            collect a brief and everything that used to sit above it now sits
+            beside it or below it. */}
         <ContactDetails />
+        {/* Then what happens to the brief once it has been sent. */}
+        <ContactTimeline />
         <ContactChannels />
         <Faq />
         <TeamCta />

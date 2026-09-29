@@ -8,14 +8,15 @@ import { prefersReducedMotion, reveal } from "@/lib/anim";
 /**
  * What happens to a brief after it is sent, hour by hour.
  *
- * This was three steps in the margin beside the form, which is the one place a
- * promise about replying is no use: you read it while you are already writing.
- * Moved ahead of the form and given the clock, it answers the question that
- * actually stops people from starting — how long am I going to be waiting, and
- * for what.
+ * Drawn as a ledger rather than as a row of cards: five full-width rows on
+ * hairlines, a large ghosted numeral in the margin, the clock in its own
+ * column and the outcome ranged right. Cards in a grid are what every agency
+ * template does with a process, and they force five paragraphs into five
+ * identical boxes whether or not they are the same size. Rows do not, they
+ * read left to right the way a sentence does, and they give the page a spine.
  *
- * The times are the commitment, not an average. Four business hours is the one
- * quoted everywhere else on the site, and the rest hang off it.
+ * The times are the commitment, not an average. Four business hours is the
+ * figure quoted everywhere else on the site and the rest hang off it.
  */
 
 type Stop = {
@@ -23,7 +24,7 @@ type Stop = {
   when: string;
   title: string;
   body: string;
-  /** The thing that exists at the end of this step that did not before. */
+  /** What exists at the end of this step that did not before. */
   output: string;
 };
 
@@ -31,33 +32,41 @@ const STOPS: Stop[] = [
   {
     when: "Hour 0",
     title: "It lands with an engineer",
-    body: "Straight to the people who would run the build, not into a shared sales inbox that gets triaged on Monday.",
+    body: "Straight to the people who would run the build — not into a shared sales inbox that gets triaged on Monday morning.",
     output: "Read, not queued",
   },
   {
     when: "4 hours",
     title: "A written reply",
-    body: "From a named person, inside four business hours. Either the questions we need answered, or a time to talk, or — if we are not the right people — who is.",
+    body: "From a named person. Either the questions we need answered, or a time to talk, or — if we are not the right people for it — who is.",
     output: "A human answer",
   },
   {
     when: "Day 1–2",
     title: "A call, if you want one",
-    body: "Thirty minutes to walk through the problem. Most briefs need one; some are clear enough that we skip straight to the scope.",
+    body: "Thirty minutes to walk through the problem. Most briefs want one; some are clear enough that we go straight to the scope.",
     output: "Shared understanding",
   },
   {
     when: "Day 2–5",
     title: "Scope and a fixed estimate",
-    body: "In writing: what gets built, in what order, by when, for how much — with the two projects in our work closest to yours.",
+    body: "In writing: what gets built, in what order, by when and for how much — with the two projects in our work closest to yours.",
     output: "A real number",
   },
   {
     when: "Week 1–2",
     title: "Contract and kickoff",
-    body: "If it is a fit. The engineers in the kickoff call are the ones who write the code, which is the whole reason the reply came from one of them.",
+    body: "If it is a fit. The engineers in the kickoff call are the ones who write the code, which is the whole reason the first reply came from one of them.",
     output: "Work starts",
   },
+];
+
+/** The record, closing the section — the same figures the service pages quote. */
+const FACTS = [
+  { value: "28+", label: "Systems delivered" },
+  { value: "95%", label: "Client satisfaction" },
+  { value: "99.9%", label: "Uptime after migration" },
+  { value: "4h", label: "Reply, business hours" },
 ];
 
 export default function ContactTimeline() {
@@ -67,52 +76,51 @@ export default function ContactTimeline() {
     () => {
       if (prefersReducedMotion()) return;
 
-      const trigger = reveal(sectionRef.current, { start: "top 82%" });
+      const trigger = reveal(sectionRef.current, { start: "top 78%" });
 
       gsap.from(".tl-head", {
-        y: 22,
+        y: 24,
         opacity: 0,
-        duration: 0.8,
+        duration: 0.85,
         ease: "power2.out",
         scrollTrigger: trigger,
       });
 
-      // Same one-pixel connector as the service pages' project track: it runs
-      // down the gutter on a phone and across between the dots from lg up, so
-      // both axes are scaled and whichever one is a hairline stays invisible.
-      // fromTo rather than from, so the finished state is written down.
+      // Each row wipes in from its own left rule, so the section builds
+      // downward like something being written rather than popping in as a set.
+      gsap.from(".tl-row", {
+        y: 26,
+        opacity: 0,
+        duration: 0.7,
+        ease: "power2.out",
+        stagger: 0.1,
+        delay: 0.15,
+        scrollTrigger: trigger,
+      });
+
       gsap.fromTo(
-        ".tl-link",
-        { scaleX: 0, scaleY: 0 },
+        ".tl-rule",
+        { scaleX: 0 },
         {
           scaleX: 1,
-          scaleY: 1,
-          duration: 0.5,
-          ease: "power2.out",
-          stagger: 0.11,
-          delay: 0.25,
-          transformOrigin: "left top",
+          duration: 0.9,
+          ease: "power2.inOut",
+          stagger: 0.1,
+          delay: 0.1,
+          transformOrigin: "left center",
           scrollTrigger: trigger,
         },
       );
 
-      gsap.from(".tl-dot", {
-        scale: 0,
-        duration: 0.45,
-        ease: "back.out(2)",
-        stagger: 0.11,
-        delay: 0.25,
-        scrollTrigger: trigger,
-      });
-
-      gsap.from(".tl-card", {
+      gsap.from(".tl-fact", {
         y: 20,
         opacity: 0,
-        duration: 0.55,
+        duration: 0.7,
         ease: "power2.out",
-        stagger: 0.11,
-        delay: 0.33,
-        scrollTrigger: trigger,
+        stagger: 0.08,
+        scrollTrigger: reveal(sectionRef.current?.querySelector(".tl-facts") ?? null, {
+          start: "top 90%",
+        }),
       });
     },
     { scope: sectionRef },
@@ -121,72 +129,87 @@ export default function ContactTimeline() {
   return (
     <section
       ref={sectionRef}
-      className="w-full bg-[#111] px-6 py-[72px] lg:px-[40px] lg:py-[110px]"
+      className="w-full bg-[#111] px-6 py-[80px] lg:px-[40px] lg:py-[130px]"
     >
       <div className="mx-auto flex w-full max-w-[1440px] flex-col">
-        <div className="tl-head flex w-full flex-col gap-[14px] lg:max-w-[820px]">
-          <p className="font-body text-[14px] font-medium uppercase leading-[1.2] tracking-[0.5px] text-primary-green">
-            [ After you hit send ]
-          </p>
-          <h2 className="font-display text-[clamp(2rem,4vw,56px)] font-medium leading-[1.08] tracking-[-1.5px] text-white">
-            From your brief to a real number
-          </h2>
-          <p className="font-display text-[19px] leading-[1.35] tracking-[-0.25px] text-white/55">
-            Five steps, each with a time against it. The first one is a commitment, not an
-            average.
+        <div className="tl-head flex w-full flex-col items-start gap-[20px] lg:flex-row lg:items-end lg:justify-between lg:gap-[80px]">
+          <div className="flex flex-col gap-[16px] lg:max-w-[720px]">
+            <p className="font-mono text-[11px] uppercase leading-none tracking-[0.2em] text-primary-green">
+              After you hit send
+            </p>
+            <h2 className="font-display text-[clamp(2rem,4.2vw,60px)] font-medium leading-[1.06] tracking-[-1.5px] text-white">
+              From your brief to a real number
+            </h2>
+          </div>
+
+          <p className="max-w-[360px] font-body text-[15px] leading-[23px] tracking-[-0.1px] text-white/45 lg:pb-[8px] lg:text-right">
+            Five steps with a time against each. The first one is a commitment rather than
+            an average.
           </p>
         </div>
 
-        <ol className="mt-[42px] grid w-full grid-cols-1 gap-y-[30px] lg:mt-[64px] lg:grid-cols-5 lg:gap-x-[20px] lg:gap-y-0">
-          {STOPS.map((stop, index) => {
-            const last = index === STOPS.length - 1;
+        {/* The ledger. Grid rather than flex, so the clock column and the
+            outcome column line up down the whole section — which is the only
+            reason rows beat cards here. */}
+        <ol className="mt-[52px] flex w-full flex-col lg:mt-[76px]">
+          {STOPS.map((stop, index) => (
+            <li key={stop.when} className="group relative w-full">
+              <span
+                aria-hidden
+                className="tl-rule block h-px w-full bg-white/15"
+              />
 
-            return (
-              <li key={stop.when} className="relative flex flex-col pl-[44px] lg:pl-0">
-                {!last && (
-                  <span
-                    aria-hidden
-                    className="tl-link absolute -bottom-[38px] left-[15px] top-[42px] w-px bg-white/20 lg:bottom-auto lg:left-[36px] lg:-right-[20px] lg:top-[15px] lg:h-px lg:w-auto"
-                  />
-                )}
-
-                <span
-                  aria-hidden
-                  className="tl-dot absolute left-0 top-[8px] flex size-[32px] items-center justify-center rounded-full bg-primary-green font-mono text-[12px] font-medium leading-none text-white shadow-[0_8px_20px_-10px_color-mix(in_srgb,var(--color-primary-green)_90%,transparent)] lg:static lg:top-auto"
-                >
+              <div className="tl-row grid w-full grid-cols-1 gap-x-[32px] gap-y-[12px] py-[28px] transition-colors duration-500 lg:grid-cols-[64px_128px_1fr_190px] lg:items-baseline lg:py-[34px]">
+                <span className="font-display text-[34px] font-medium leading-none tracking-[-1px] text-white/15 transition-colors duration-500 group-hover:text-primary-green lg:text-[40px]">
                   {String(index + 1).padStart(2, "0")}
                 </span>
 
-                <div className="tl-card flex flex-col gap-[10px] lg:mt-[24px] lg:pr-[20px]">
-                  <span className="w-fit rounded-full bg-white/[0.08] px-[11px] py-[6px] font-mono text-[11px] uppercase leading-none tracking-[0.14em] text-primary-green ring-1 ring-white/10">
-                    {stop.when}
-                  </span>
+                <span className="font-mono text-[11px] uppercase leading-none tracking-[0.18em] text-primary-green">
+                  {stop.when}
+                </span>
 
-                  <h3 className="font-display text-[21px] font-medium leading-[1.2] tracking-[-0.4px] text-white">
+                <div className="flex flex-col gap-[10px] lg:max-w-[560px]">
+                  <h3 className="font-display text-[22px] font-medium leading-[1.15] tracking-[-0.45px] text-white lg:text-[26px]">
                     {stop.title}
                   </h3>
-
-                  <p className="font-body text-[14px] leading-[21px] tracking-[-0.1px] text-white/55">
+                  <p className="font-body text-[14px] leading-[22px] tracking-[-0.1px] text-white/45">
                     {stop.body}
                   </p>
-
-                  <p className="mt-[2px] flex items-center gap-[7px] font-body text-[13px] font-medium leading-none tracking-[-0.1px] text-white">
-                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden>
-                      <path
-                        d="M2 6.4 4.6 9 10 3.2"
-                        stroke="currentColor"
-                        strokeWidth="1.8"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                    {stop.output}
-                  </p>
                 </div>
-              </li>
-            );
-          })}
+
+                <span className="flex items-center gap-[8px] font-mono text-[11px] uppercase leading-none tracking-[0.14em] text-white/70 lg:justify-end">
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden>
+                    <path
+                      d="M2 6.4 4.6 9 10 3.2"
+                      stroke="currentColor"
+                      strokeWidth="1.9"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="text-primary-green"
+                    />
+                  </svg>
+                  {stop.output}
+                </span>
+              </div>
+            </li>
+          ))}
+
+          <li aria-hidden className="tl-rule h-px w-full bg-white/15" />
         </ol>
+
+        {/* The record, ranged across the foot of the section. */}
+        <dl className="tl-facts mt-[56px] grid w-full grid-cols-2 gap-x-[24px] gap-y-[32px] lg:mt-[80px] lg:grid-cols-4">
+          {FACTS.map((fact) => (
+            <div key={fact.label} className="tl-fact flex flex-col gap-[8px]">
+              <dt className="font-display text-[clamp(2.25rem,3.6vw,48px)] font-medium leading-none tracking-[-1.4px] text-white">
+                {fact.value}
+              </dt>
+              <dd className="font-mono text-[10px] uppercase leading-[1.5] tracking-[0.18em] text-white/35">
+                {fact.label}
+              </dd>
+            </div>
+          ))}
+        </dl>
       </div>
     </section>
   );

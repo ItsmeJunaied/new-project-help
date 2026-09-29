@@ -176,7 +176,7 @@ export default function BriefStatus() {
   return (
     <div
       ref={cardRef}
-      className="contact-aside relative isolate flex w-full flex-col gap-[22px] overflow-hidden rounded-[22px] bg-[#111] p-[26px] shadow-[0_30px_70px_-40px_rgba(0,0,0,0.9)]"
+      className="cd-aside relative isolate flex w-full flex-col gap-[20px] overflow-hidden rounded-[20px] bg-[#111] p-[24px] shadow-[0_30px_70px_-40px_rgba(0,0,0,0.9)]"
     >
       {/* A green wash off the top corner, so the card has some depth under the
           type rather than being a flat black rectangle. */}
