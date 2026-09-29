@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 
 import JsonLd from "@/components/JsonLd";
 import Header from "@/components/sections/Header";
-import ListingHero from "@/components/sections/ListingHero";
+import ContactHero from "@/components/sections/ContactHero";
+import ContactPaths from "@/components/sections/ContactPaths";
+import ContactTimeline from "@/components/sections/ContactTimeline";
 import ContactDetails from "@/components/sections/ContactDetails";
 import ContactChannels from "@/components/sections/ContactChannels";
 import Faq from "@/components/sections/Faq";
@@ -27,15 +29,12 @@ export default function ContactPage() {
     <>
       <Header />
       <main id="main">
-        <ListingHero
-          title="Get in touch"
-          asideTitle="{ Contact US }"
-          asideBody="— Send us the problem and we'll send back a scope, an estimate and an honest answer"
-          metaLeft="©Contact"
-          metaRight="//001 Selected"
-          nodeId="156:11115"
-          spacingClassName="pb-[48px] pt-[40px] lg:pb-[80px] lg:pt-[75px]"
-        />
+        <ContactHero />
+        {/* The four routes first, because the page's job is to get you to one
+            of them and only one of them is the form. */}
+        <ContactPaths />
+        {/* Then what happens to a brief, before being asked to write one. */}
+        <ContactTimeline />
         <ContactDetails />
         <ContactChannels />
         <Faq />

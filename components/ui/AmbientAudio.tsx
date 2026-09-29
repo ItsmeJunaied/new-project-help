@@ -605,7 +605,10 @@ export default function AmbientAudio({ inline = false }: { inline?: boolean }) {
           onClick={toggle}
           aria-pressed={playing}
           aria-label={playing ? "Pause ambient sound" : "Play ambient sound"}
-          className={`flex shrink-0 items-center justify-center rounded-full bg-primary-green text-black transition-transform duration-300 hover:scale-105 active:scale-95 ${inline ? "size-[34px]" : "size-[40px]"}`}
+          // White mark rather than black, to match the arrow on the dock's
+          // "Let's talk" and the calendar on the consultation pill — every
+          // green surface on the site now carries a white glyph.
+          className={`flex shrink-0 items-center justify-center rounded-full bg-primary-green text-white transition-transform duration-300 hover:scale-105 active:scale-95 ${inline ? "size-[34px]" : "size-[40px]"}`}
         >
           {playing ? (
             <svg width="13" height="14" viewBox="0 0 13 14" aria-hidden="true">

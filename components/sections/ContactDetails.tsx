@@ -8,6 +8,7 @@ import { reveal } from "@/lib/anim";
 import { trackScheduleClick } from "@/lib/analytics";
 import { useLeadForm } from "@/components/forms/useLeadForm";
 import LeadFormExtras from "@/components/forms/LeadFormExtras";
+import BriefStatus from "@/components/sections/BriefStatus";
 import WhatsAppMark from "@/components/ui/WhatsAppMark";
 import { SERVICES as ALL_SERVICES } from "@/lib/services";
 import { siteConfig } from "@/lib/site";
@@ -18,25 +19,42 @@ const SOCIALS = [
 ];
 
 /**
- * What the form actually buys you. A brief is a real piece of work to write, so
- * the column beside it says what happens to one rather than showing a stock
- * photograph of somebody else's desk.
+ * What to put in the brief.
+ *
+ * The column beside the form used to promise what would happen after sending
+ * it, which is the wrong thing to read while you are still writing — and it
+ * now has a section of its own above the form anyway. This is the help a
+ * blank textarea actually needs: the five things that turn a brief into a
+ * number, in the order they matter.
+ *
+ * The last line matters as much as the list. Told to supply five things,
+ * somebody with two of them closes the tab.
  */
-const AFTER_SEND = [
+const BRIEF_HINTS = [
   {
     number: "01",
-    title: "A person opens it",
-    body: "Not a queue and not a bot. The engineer who would run the build is the one who reads the brief.",
+    title: "The problem, in your words",
+    body: "Not a feature list. What is costing you time, money or customers right now.",
   },
   {
     number: "02",
-    title: "A scope comes back",
-    body: "Written scope, fixed estimate, a timeline — and the two projects in our work closest to yours.",
+    title: "Who uses it",
+    body: "Ten people in an office or ten thousand customers — the answer changes the whole build.",
   },
   {
     number: "03",
-    title: "An honest answer",
-    body: "Including “not us” when that is the answer, with a pointer to who would be a better fit.",
+    title: "What exists already",
+    body: "A codebase, a spreadsheet, a half-finished build somebody walked away from, or nothing at all.",
+  },
+  {
+    number: "04",
+    title: "When it has to work by",
+    body: "And what happens if it slips — a trade show is a different deadline from a preference.",
+  },
+  {
+    number: "05",
+    title: "Roughly what you can spend",
+    body: "It narrows the options rather than limiting them. A range is fine.",
   },
 ];
 
@@ -117,25 +135,28 @@ export default function ContactDetails() {
       className="w-full bg-bg pb-[80px] lg:pb-[174px]"
     >
       <div className="mx-auto flex w-full max-w-[1440px] flex-col items-start gap-[64px] px-6 lg:flex-row lg:gap-[95px] lg:px-[40px]">
-        {/* Left: what the brief buys you, then the two ways round the form */}
+        {/* Left: the desk the brief lands on — live — then what to put in it,
+            then the two ways round the form entirely. */}
         <div className="flex w-full flex-col gap-[24px] lg:w-[521px] lg:shrink-0">
+          <BriefStatus />
+
           <div className="contact-aside flex w-full flex-col gap-[28px] border-[1.265px] border-[#e6e9dd] bg-white p-[28px]">
             <div className="flex w-full flex-col gap-[10px]">
               <p className="font-body text-[14px] font-medium uppercase leading-[1.2] tracking-[0.5px] text-primary-green">
-                [ After you hit send ]
+                [ What to include ]
               </p>
               <p className="font-display text-[28px] font-medium leading-[1.15] tracking-[-0.75px] text-[#111]">
-                Three steps, four business hours
+                Five things that turn a brief into a number
               </p>
             </div>
 
             <ol className="flex w-full flex-col">
-              {AFTER_SEND.map((step, index) => (
+              {BRIEF_HINTS.map((step, index) => (
                 <li
                   key={step.number}
                   className={`contact-step flex w-full gap-[18px] py-[20px] ${
                     index === 0 ? "pt-0" : "border-t border-[#e6e9dd]"
-                  } ${index === AFTER_SEND.length - 1 ? "pb-0" : ""}`}
+                  } ${index === BRIEF_HINTS.length - 1 ? "pb-0" : ""}`}
                 >
                   <span className="mt-[2px] font-mono text-[13px] font-medium leading-[1.2] tracking-[0.5px] text-primary-green">
                     {step.number}
@@ -151,6 +172,17 @@ export default function ContactDetails() {
                 </li>
               ))}
             </ol>
+
+            {/* The escape hatch. A list of five demands is a reason not to
+                start; this is what actually gets a conversation going. */}
+            <p className="contact-step border-t border-[#e6e9dd] pt-[20px] font-body text-[14px] leading-[21px] tracking-[-0.1px] text-[#646464]">
+              None of it is required. A paragraph and a way to reach you is enough — we
+              will ask for the rest.{" "}
+              <span className="text-[#111]">
+                Need an NDA before you say anything specific? Ask in the first line and it
+                is signed the same day.
+              </span>
+            </p>
           </div>
 
           <div className="contact-aside flex w-full flex-col gap-[16px] border-[1.265px] border-[#e6e9dd] p-[28px]">
