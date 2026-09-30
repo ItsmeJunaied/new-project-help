@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
@@ -7,6 +8,7 @@ import { prefersReducedMotion } from "@/lib/anim";
 import { trackScheduleClick } from "@/lib/analytics";
 import { useLeadForm } from "@/components/forms/useLeadForm";
 import LeadFormExtras from "@/components/forms/LeadFormExtras";
+import { CLIENTS } from "@/lib/clients";
 import { HEADLINE_SERVICES } from "@/lib/services";
 import { TEAM } from "@/lib/team";
 import { siteConfig } from "@/lib/site";
@@ -62,13 +64,12 @@ export const PROMISES: Promise[] = [
 export const PROMISE_LINES = PROMISES.map(({ lead, tail }) => `${lead} ${tail}`);
 
 /**
- * Who the brief goes to.
+ * Who the brief goes to — the first real person in lib/team.ts.
  *
- * The concept names a person and shows their photograph. lib/team.ts is empty
- * on purpose — the rebuild had shipped six invented colleagues with stock
- * portraits — so this falls back to the desk rather than inventing a seventh.
- * Add the real person to TEAM and their name and role appear here with no
- * change to this file.
+ * Held there rather than written in here so the contact page and the About
+ * page can never disagree about somebody's title. With the list empty this
+ * still falls back to the desk and a monogram rather than to a stock portrait,
+ * which is the rule that file sets out at length.
  */
 const READER = TEAM[0];
 
@@ -212,45 +213,65 @@ export default function ContactDetails() {
         className="cd-tray grid w-full scroll-mt-[90px] grid-cols-1 gap-[10px] rounded-[32px] bg-black p-[10px] shadow-[0_40px_100px_rgba(10,10,10,0.16)] min-[1080px]:grid-cols-[minmax(0,5fr)_minmax(0,8fr)]"
       >
         {/* Left: who reads it, what you get, and the three direct routes. */}
-        <aside className="flex flex-col justify-between gap-[40px] p-[clamp(20px,2.4vw,32px)] text-bg">
-          <div className="flex flex-col gap-[24px]">
+        <aside className="flex flex-col justify-between gap-[32px] p-[clamp(20px,2.4vw,32px)] text-bg">
+          <div className="flex flex-1 flex-col gap-[26px]">
             <span className="font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-primary-green">
               Your brief goes to
             </span>
 
-            <div className="flex items-center gap-[16px]">
+            <div className="flex items-center gap-[18px]">
               <div className="relative flex-none">
+                {READER?.photo ? (
+                  // Square, not a disc: the portrait is square and the crop a
+                  // circle would take off its corners is the shoulders, which
+                  // is most of what makes a headshot read as a person.
+                  <Image
+                    src={READER.photo}
+                    alt={`${READER.name}, ${READER.role}`}
+                    width={360}
+                    height={360}
+                    sizes="96px"
+                    className="block size-[96px] rounded-[20px] bg-[#262624] object-cover"
+                  />
+                ) : (
+                  <span
+                    aria-hidden
+                    className="flex size-[96px] items-center justify-center rounded-[20px] bg-[#262624] font-display text-[30px] font-semibold tracking-[-0.03em] text-primary-green"
+                  >
+                    PH
+                  </span>
+                )}
                 <span
                   aria-hidden
-                  className="flex size-[72px] items-center justify-center rounded-full bg-[#262624] font-display text-[24px] font-semibold tracking-[-0.03em] text-primary-green"
-                >
-                  PH
-                </span>
-                <span
-                  aria-hidden
-                  className="absolute bottom-[2px] right-[2px] size-[15px] rounded-full border-[3px] border-black bg-primary-green"
+                  className="absolute -bottom-[3px] -right-[3px] size-[18px] rounded-full border-[3px] border-black bg-primary-green"
                 />
               </div>
 
-              <div className="flex flex-col gap-[4px]">
-                <span className="font-display text-[20px] font-semibold leading-[1.15] tracking-[-0.02em]">
+              <div className="flex flex-col gap-[6px]">
+                <span className="font-display text-[26px] font-semibold leading-[1.1] tracking-[-0.03em]">
                   {READER?.name ?? "The engineering desk"}
                 </span>
-                <span className="font-body text-[14px] leading-[1.3] tracking-[-0.1px] text-white/60">
+                <span className="font-body text-[15px] leading-[1.3] tracking-[-0.1px] text-white/60">
                   {READER?.role ?? "Read by the engineers who build"}
                 </span>
               </div>
             </div>
 
-            <ul className="m-0 flex list-none flex-col gap-[14px] p-0">
+            {/* Set larger than the concept's 14px and spaced wider. The aside
+                is the shorter of the two columns and the tray stretches it to
+                the form's height, so at the concept's size this list left a
+                hole in the middle of a black panel. The type does the filling
+                rather than a spacer, which also makes the four claims the
+                loudest thing in the column. */}
+            <ul className="m-0 flex flex-1 list-none flex-col justify-between gap-[20px] p-0">
               {PROMISES.map(({ lead, tail }) => (
                 <li
                   key={lead}
-                  className="flex items-start gap-[12px] font-body text-[14px] leading-[1.45] tracking-[-0.1px]"
+                  className="flex items-start gap-[14px] font-body text-[17px] leading-[1.5] tracking-[-0.15px]"
                 >
                   <span
                     aria-hidden
-                    className="mt-[1px] flex size-[20px] flex-none items-center justify-center rounded-full bg-primary-green text-[11px] font-bold leading-none text-black"
+                    className="mt-[3px] flex size-[22px] flex-none items-center justify-center rounded-full bg-primary-green text-[12px] font-bold leading-none text-black"
                   >
                     ✓
                   </span>
@@ -263,6 +284,35 @@ export default function ContactDetails() {
                 </li>
               ))}
             </ul>
+
+            {/* Who has already sent one. The marks are the ones lib/clients.ts
+                holds permission for, each on its own pale chip.
+                NOT knocked through to white: one of the three is a filled
+                square rather than a transparent glyph, so a brightness-0
+                invert turns it into a solid white block. A chip works for any
+                artwork, which is what a list somebody else will add to needs. */}
+            <div className="flex flex-col gap-[14px] border-t border-white/12 pt-[22px]">
+              <span className="font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-white/60">
+                Briefs already answered for
+              </span>
+              <ul className="m-0 flex list-none flex-wrap items-center gap-[8px] p-0">
+                {CLIENTS.map((client) => (
+                  <li
+                    key={client.name}
+                    className="flex items-center rounded-[10px] bg-white/90 px-[12px] py-[8px]"
+                  >
+                    <Image
+                      src={client.src}
+                      alt={client.name}
+                      width={client.width}
+                      height={client.height}
+                      sizes="161px"
+                      className={`${client.rowClassName} w-auto`}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
           <div className="flex flex-col border-t border-white/12">
@@ -275,7 +325,7 @@ export default function ContactDetails() {
                 href={route.href}
                 onClick={route.onClick}
                 {...(route.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                className="flex items-center justify-between gap-[12px] break-all border-b border-white/12 py-[14px] font-body text-[15px] font-medium leading-[1.3] tracking-[-0.1px] text-bg transition-colors hover:text-primary-green"
+                className="flex items-center justify-between gap-[12px] break-all border-b border-white/12 py-[16px] font-body text-[16px] font-medium leading-[1.3] tracking-[-0.1px] text-bg transition-colors hover:text-primary-green"
               >
                 {route.label}
                 <span aria-hidden className="shrink-0 text-primary-green">

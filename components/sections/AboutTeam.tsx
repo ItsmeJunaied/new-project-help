@@ -72,6 +72,19 @@ function TeamCard({ member }: { member: TeamMember }) {
   );
 }
 
+/** The full row this grid is drawn for, and the gutter between its columns. */
+const COLUMNS = 3;
+const GUTTER = 28.74;
+
+/**
+ * The width `n` columns of that row occupy, as a CSS expression. Used to cap
+ * the grid when there are fewer people than columns, so the cards keep the
+ * size the design gives them instead of stretching to the container.
+ */
+function gridWidthFor(n: number) {
+  return `calc((100% - ${GUTTER * (COLUMNS - 1)}px) / ${COLUMNS} * ${n} + ${GUTTER * (n - 1)}px)`;
+}
+
 /** Renders nothing until lib/team.ts carries real people — see the note there. */
 export default function AboutTeam() {
   if (TEAM.length === 0) return null;
@@ -146,7 +159,22 @@ function AboutTeamGrid() {
 
         <div className="team-divider mt-[40px] h-px w-full bg-[#313131]" />
 
-        <div className="team-grid mt-[48px] grid w-full grid-cols-1 gap-x-[28.74px] gap-y-[44.92px] sm:grid-cols-2 lg:mt-[60px] lg:grid-cols-3">
+        {/* Columns are capped at however many people there actually are: a
+            three-column grid holding one card is one card and two holes, which
+            reads as a section that failed to load rather than as a small team.
+            The grid's own width is capped to match, so a short list gives
+            cards the size they would have had in a full row rather than one
+            portrait stretched across the page. */}
+        <div
+          style={
+            TEAM.length >= COLUMNS
+              ? undefined
+              : { maxWidth: gridWidthFor(Math.max(1, TEAM.length)) }
+          }
+          className={`team-grid mt-[48px] grid w-full grid-cols-1 gap-x-[28.74px] gap-y-[44.92px] lg:mt-[60px] ${
+            TEAM.length >= 2 ? "sm:grid-cols-2" : ""
+          } ${TEAM.length >= COLUMNS ? "lg:grid-cols-3" : ""}`}
+        >
           {TEAM.map((member) => (
             <TeamCard key={`${member.name}-${member.role}`} member={member} />
           ))}
