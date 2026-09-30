@@ -4,62 +4,21 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/anim";
-import { HEADLINE_SERVICES } from "@/lib/services";
 
 /**
- * The v1 hero: a centred headline, a 124px round call to action, and two
- * marquee rows running in opposite directions underneath it.
+ * The concept's Hero header, to its own measurements.
  *
- * The concept drives its marquees from JavaScript, measuring the track and
- * stepping a transform every frame. These run on a CSS keyframe over a track
- * printed twice, so the loop is seamless at any width with nothing measured
- * and nothing running on the main thread — and it stops dead for anyone who
- * has asked for reduced motion, which a JS transform loop would not.
+ * Two columns on an auto-fit grid that breaks at 440px, aligned to their
+ * bottom edges: the status pill and the headline on the left, the standfirst
+ * on the right capped at 480px. The section's own bottom padding belongs to
+ * the brief tray that follows, so this one stops at the header's
+ * `clamp(36px,4vw,56px)` and ContactDetails carries the rest — together they
+ * reproduce the single section the concept draws.
+ *
+ * The headline is not masked. The concept does not mask it either, and at this
+ * size the italic descenders of the serif half fall well outside the line box,
+ * so a mask would clip them; it settles on opacity and y instead.
  */
-
-/** Top row: what we build. Bottom row: what you get for sending a brief. */
-const ROW_ONE = HEADLINE_SERVICES.map((service) => service.title);
-
-const ROW_TWO = [
-  "An engineer reads every brief",
-  "NDA signed the same day you ask",
-  "A real number, never “starting from”",
-  "No bots, no auto-replies",
-];
-
-function Marquee({
-  items,
-  reverse = false,
-}: {
-  items: string[];
-  reverse?: boolean;
-}) {
-  // Printed twice: the animation travels exactly one copy's width, so the
-  // second copy is already in place when it snaps back.
-  const track = [...items, ...items];
-
-  return (
-    <div className="overflow-hidden border-t border-black/15 py-[18px]">
-      <div
-        className={`flex w-max items-center gap-[28px] ${
-          reverse ? "animate-[marquee-reverse_38s_linear_infinite]" : "animate-[marquee_38s_linear_infinite]"
-        } motion-reduce:animate-none`}
-      >
-        {track.map((item, index) => (
-          <span key={`${item}-${index}`} className="flex items-center gap-[28px]">
-            <span className="whitespace-nowrap font-display text-[clamp(22px,2.6vw,36px)] font-medium tracking-[-0.035em] text-neutral-paragraph">
-              {item}
-            </span>
-            <span aria-hidden className="text-[clamp(20px,2.2vw,30px)] leading-none text-primary-green">
-              ✳
-            </span>
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 export default function ContactHero() {
   const sectionRef = useRef<HTMLElement>(null);
 
@@ -67,79 +26,60 @@ export default function ContactHero() {
     () => {
       if (prefersReducedMotion()) return;
 
-      gsap.from(".ch-eyebrow", {
-        y: 16,
+      gsap.from(".ch-pill", {
+        y: 14,
         opacity: 0,
-        duration: 0.7,
+        duration: 0.6,
         ease: "power2.out",
-        delay: 0.1,
+        delay: 0.05,
       });
 
-      gsap.from(".ch-line", {
-        yPercent: 110,
-        duration: 1.1,
+      gsap.from(".ch-title", {
+        y: 26,
+        opacity: 0,
+        duration: 0.9,
         ease: "power3.out",
-        stagger: 0.1,
-        delay: 0.15,
+        delay: 0.12,
       });
 
-      gsap.from(".ch-disc", {
-        scale: 0,
+      gsap.from(".ch-lede", {
+        y: 18,
         opacity: 0,
         duration: 0.8,
-        ease: "back.out(1.6)",
-        delay: 0.55,
+        ease: "power2.out",
+        delay: 0.26,
       });
     },
     { scope: sectionRef },
   );
 
   return (
-    <section ref={sectionRef} className="relative w-full overflow-hidden bg-bg pt-[56px] lg:pt-[96px]">
-      <div className="mx-auto flex w-full max-w-[1440px] flex-col items-center gap-[32px] px-6 text-center lg:px-[40px]">
-        <span className="ch-eyebrow inline-flex items-center gap-[10px] rounded-full border border-black/10 bg-white py-[8px] pl-[10px] pr-[14px]">
-          <span className="size-[8px] shrink-0 rounded-full bg-primary-green shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-primary-green)_22%,transparent)]" />
-          <span className="font-body text-[13px] font-medium leading-none tracking-[-0.1px] text-black">
-            Reply within 4 business hours
+    <section
+      ref={sectionRef}
+      className="mx-auto w-full max-w-[1360px] px-[clamp(20px,4vw,48px)] pb-[clamp(36px,4vw,56px)] pt-[clamp(48px,6vw,88px)]"
+    >
+      <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,440px),1fr))] items-end gap-x-[64px] gap-y-[24px]">
+        <div className="flex flex-col items-start gap-[24px]">
+          <span className="ch-pill inline-flex items-center gap-[10px] rounded-full border border-black/12 bg-white py-[8px] pl-[10px] pr-[14px] font-body text-[13px] font-medium leading-none tracking-[-0.1px] text-black">
+            <span
+              aria-hidden
+              className="size-[8px] shrink-0 rounded-full bg-primary-green shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-primary-green)_22%,transparent)]"
+            />
+            REPLY WITHIN 4 BUSINESS HOURS
           </span>
-        </span>
 
-        {/* The mask each line rises out of crops anything below the line box,
-            and at this size the italic descenders fall well below it — so the
-            inner span carries bottom padding and the mask takes the same
-            amount back off its own height. */}
-        <h1 className="font-display text-[clamp(52px,7vw,108px)] font-semibold leading-[0.94] tracking-[-0.055em] text-balance text-black">
-          <span className="block -mb-[0.16em] overflow-hidden">
-            <span className="ch-line block pb-[0.16em]">Send the brief.</span>
-          </span>
-          <span className="block -mb-[0.16em] overflow-hidden">
-            <span className="ch-line block pb-[0.16em] font-serif font-normal italic tracking-[-0.02em]">
-              We read it first
+          <h1 className="ch-title m-0 font-display text-[clamp(48px,6.4vw,96px)] font-semibold leading-[0.94] tracking-[-0.055em] text-balance text-black">
+            Tell us what{" "}
+            <span className="font-serif font-normal italic tracking-[-0.02em]">
+              you&rsquo;re building
             </span>
-          </span>
-        </h1>
+          </h1>
+        </div>
 
-        <a
-          href="#brief"
-          className="ch-disc group flex size-[124px] flex-col items-center justify-center gap-[6px] rounded-full bg-black text-bg transition-colors duration-300 hover:bg-primary-green hover:text-white"
-        >
-          <span className="font-mono text-[11px] uppercase leading-[1.3] tracking-[0.08em]">
-            I&rsquo;m ready
-            <br />
-            to talk
-          </span>
-          <span
-            aria-hidden
-            className="text-[18px] leading-none text-primary-green transition-colors duration-300 group-hover:text-white"
-          >
-            ↗
-          </span>
-        </a>
-      </div>
-
-      <div className="mt-[48px] flex flex-col lg:mt-[72px]">
-        <Marquee items={ROW_ONE} />
-        <Marquee items={ROW_TWO} reverse />
+        <p className="ch-lede m-0 max-w-[480px] font-body text-[18px] leading-[1.55] tracking-[-0.1px] text-pretty text-neutral-paragraph">
+          An engineer reads every brief and replies within four business hours with a real
+          number and the two projects closest to your scope.
+        </p>
       </div>
     </section>
   );

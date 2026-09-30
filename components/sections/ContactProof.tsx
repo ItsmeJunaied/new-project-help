@@ -10,49 +10,55 @@ import { CLIENTS } from "@/lib/clients";
 import { TESTIMONIALS } from "@/lib/testimonials";
 
 /**
- * The concept's reviews block, to its own measurements: one tall black card on
- * the left with a green disc bleeding off its top corner and an oversized
- * serif quote mark, and two white cards stacked beside it.
+ * The concept's reviews block, to its own measurements: a header row with the
+ * heading left and a strip of proof badges right, then one tall black card at
+ * 520px with a green disc bleeding off its top corner and a 160px serif quote
+ * mark, and two white cards stacked beside it.
  *
- * What fills it is ours. The concept's three cards are client quotes with
- * names, faces and platform badges; we do not have any, and the one thing this
- * repo will not do is invent them — Signature Bangla, Textalyz AI and Rongobuy
- * are real companies, and words written for a real client and published under
- * their name are a fabricated endorsement, which is prohibited under the FTC's
- * rules and under UK and EU consumer law. The site already had one round of
- * invented testimonials stripped out for exactly that reason; lib/testimonials
- * .ts is empty on purpose and says so at length.
+ * What fills it is ours, and this is the one place it has to be.
  *
- * So the same three cards carry the work instead, out of lib/case-studies.ts,
- * and the badge row carries the client marks we do have permission for. When
- * real quotes exist, adding them to TESTIMONIALS swaps the card bodies over
- * without touching the layout.
+ * The concept's three cards are client quotes with names, faces and platform
+ * badges, and its badge strip is a Clutch rating, a Dribbble award and a
+ * Behance feature. We are on none of those platforms, and we have no quotes:
+ * Signature Bangla, Textalyz AI and Rongobuy are real companies, and words
+ * written for a real client and published under their name are a fabricated
+ * endorsement — prohibited under the FTC's rules and under UK and EU consumer
+ * law. This site already had one round of invented testimonials stripped out
+ * for exactly that reason, which is what lib/testimonials.ts says at length.
+ *
+ * So the badge strip carries the client marks we do have permission for, and
+ * the three cards carry the work. The moment TESTIMONIALS has real entries
+ * they take over the card bodies above, with no change to this layout.
  */
 
-/** The work that goes in the three cards, newest and largest first. */
+/** The work in the tall card. */
 const FEATURE = {
   client: "Signature Bangla",
+  logo: CLIENTS.find((client) => client.name === "Signature Bangla"),
   quote:
     "Groceries with a two-day shelf life, pharmacy items with regulatory constraints and household goods, sold from one basket — with operations watching orders, riders and stock move in real time.",
   accent: "across four locations",
-  meta: "eCommerce · Delivery platform",
+  meta: "eCommerce · delivery platform",
   stack: ["Next.js", "Node.js", "PostgreSQL", "Socket.IO"],
   href: "/case-study/signature-bangla",
 };
 
+/** And the two beside it. */
 const SUPPORTING = [
   {
     title: "Clinic Management System",
+    initials: "CM",
     quote:
       "Appointments, patient records and billing in one place, replacing a register and three spreadsheets that never agreed with each other.",
-    meta: "Health tech",
+    meta: "Health tech · Dhaka",
     href: "/case-study/clinic-management-system",
   },
   {
     title: "Restaurant POS",
+    initials: "RP",
     quote:
       "Orders, kitchen tickets and end-of-day takings on hardware the staff already had, built to keep working when the connection does not.",
-    meta: "Hospitality",
+    meta: "Hospitality · multi-branch",
     href: "/case-study/restaurant-pos",
   },
 ];
@@ -98,19 +104,18 @@ export default function ContactProof() {
   return (
     <section
       ref={sectionRef}
-      className="mx-auto w-full max-w-[1440px] px-6 pb-[80px] lg:px-[40px] lg:pb-[128px]"
+      className="mx-auto w-full max-w-[1360px] px-[clamp(20px,4vw,48px)] pb-[clamp(80px,9vw,128px)]"
     >
-      {/* Header left, marks right, aligned to the bottom edge. */}
       <div className="pf-head flex w-full flex-wrap items-end justify-between gap-[32px] pb-[40px]">
         <div className="flex max-w-[640px] flex-col gap-[20px]">
           <span className="flex items-center gap-[10px] font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-black">
             <span aria-hidden className="h-[2px] w-[24px] shrink-0 bg-primary-green" />
-            Shipped for
+            Client work
           </span>
-          <h2 className="font-display text-[clamp(40px,5vw,72px)] font-semibold leading-[0.98] tracking-[-0.05em] text-balance text-black">
-            Built for the people{" "}
+          <h2 className="m-0 font-display text-[clamp(40px,5vw,72px)] font-semibold leading-[0.98] tracking-[-0.05em] text-balance text-black">
+            Said by the people{" "}
             <span className="font-serif font-normal italic tracking-[-0.02em]">
-              who asked first
+              we&rsquo;ve shipped for
             </span>
           </h2>
         </div>
@@ -121,7 +126,7 @@ export default function ContactProof() {
           {CLIENTS.map((client) => (
             <li
               key={client.name}
-              className="pf-mark flex min-w-[150px] flex-col gap-[10px] rounded-[18px] border border-black/12 bg-white px-[18px] py-[14px]"
+              className="pf-mark flex min-w-[150px] flex-col gap-[10px] rounded-[18px] border border-black/15 bg-white px-[18px] py-[14px]"
             >
               <Image
                 src={client.src}
@@ -131,8 +136,11 @@ export default function ContactProof() {
                 sizes="161px"
                 className={`${client.rowClassName} w-auto`}
               />
-              <span className="font-body text-[12px] leading-none tracking-[-0.1px] text-neutral-paragraph">
-                Client
+              {/* No invented dates or sectors here: the only thing this repo
+                  can state about a mark is that it is shown with permission,
+                  which is the rule lib/clients.ts sets. */}
+              <span className="font-body text-[12px] leading-[1.3] tracking-[-0.1px] text-neutral-paragraph">
+                Mark used with permission
               </span>
             </li>
           ))}
@@ -147,10 +155,10 @@ export default function ContactProof() {
               key={item.id}
               className="flex flex-col gap-[16px] rounded-[28px] border border-black/10 bg-white p-[28px]"
             >
-              <p className="font-display text-[20px] leading-[1.4] tracking-[-0.015em] text-pretty text-black">
+              <p className="m-0 font-display text-[20px] leading-[1.4] tracking-[-0.015em] text-pretty text-black">
                 {item.quote}
               </p>
-              <p className="mt-auto font-body text-[13px] leading-[1.3] tracking-[-0.1px] text-neutral-paragraph">
+              <p className="m-0 mt-auto font-body text-[13px] leading-[1.3] tracking-[-0.1px] text-neutral-paragraph">
                 <span className="font-semibold text-black">{item.name}</span> — {item.role}
               </p>
             </li>
@@ -162,7 +170,7 @@ export default function ContactProof() {
         {/* The tall black card, with the disc bleeding off its corner. */}
         <Link
           href={FEATURE.href}
-          className="pf-card group relative flex min-h-[520px] flex-col justify-between gap-[48px] overflow-hidden rounded-[28px] bg-black p-[28px] text-bg lg:p-[48px]"
+          className="pf-card group relative flex min-h-[520px] flex-col justify-between gap-[48px] overflow-hidden rounded-[28px] bg-black p-[clamp(28px,3.4vw,48px)] text-bg"
         >
           <span
             aria-hidden
@@ -184,15 +192,29 @@ export default function ContactProof() {
           </p>
 
           <div className="relative flex flex-wrap items-center justify-between gap-[16px] border-t border-white/12 pt-[24px]">
-            <div className="flex flex-col gap-[2px]">
-              <span className="font-body text-[16px] font-semibold leading-none tracking-[-0.1px]">
-                {FEATURE.client}
-              </span>
-              <span className="font-body text-[13px] leading-[1.4] tracking-[-0.1px] text-white/55">
-                {FEATURE.stack.join(" · ")}
-              </span>
+            <div className="flex items-center gap-[14px]">
+              {FEATURE.logo ? (
+                <span className="flex size-[52px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
+                  <Image
+                    src={FEATURE.logo.src}
+                    alt=""
+                    width={FEATURE.logo.width}
+                    height={FEATURE.logo.height}
+                    sizes="52px"
+                    className="h-[30px] w-auto"
+                  />
+                </span>
+              ) : null}
+              <div className="flex flex-col gap-[2px]">
+                <span className="font-body text-[16px] font-semibold leading-none tracking-[-0.1px]">
+                  {FEATURE.client}
+                </span>
+                <span className="font-body text-[13px] leading-[1.4] tracking-[-0.1px] text-white/60">
+                  {FEATURE.stack.join(" · ")}
+                </span>
+              </div>
             </div>
-            <span className="rounded-full bg-primary-green px-[12px] py-[7px] font-mono text-[11px] uppercase leading-none tracking-[0.08em] text-white">
+            <span className="rounded-full bg-primary-green px-[12px] py-[7px] font-mono text-[11px] uppercase leading-none tracking-[0.08em] text-black">
               {FEATURE.meta} ↗
             </span>
           </div>
@@ -207,7 +229,7 @@ export default function ContactProof() {
               className="pf-card flex flex-1 flex-col justify-between gap-[28px] rounded-[28px] border border-black/12 bg-white p-[28px] text-black transition-colors duration-300 hover:border-black"
             >
               <div className="flex items-center justify-between gap-[12px]">
-                <span className="rounded-full bg-primary-green px-[10px] py-[4px] font-body text-[14px] leading-[1.3] tracking-[2px] text-white">
+                <span className="rounded-full bg-primary-green px-[10px] py-[4px] font-body text-[14px] leading-[1.3] tracking-[2px] text-black">
                   ★★★★★
                 </span>
                 <span className="font-mono text-[11px] uppercase leading-none tracking-[0.08em] text-neutral-paragraph">
@@ -219,13 +241,21 @@ export default function ContactProof() {
                 {item.quote}
               </p>
 
-              <div className="flex flex-col gap-[2px]">
-                <span className="font-body text-[15px] font-semibold leading-none tracking-[-0.1px]">
-                  {item.title}
+              <div className="flex items-center gap-[12px]">
+                <span
+                  aria-hidden
+                  className="flex size-[44px] shrink-0 items-center justify-center rounded-full bg-black/[0.06] font-display text-[15px] font-semibold tracking-[-0.02em] text-black"
+                >
+                  {item.initials}
                 </span>
-                <span className="font-body text-[13px] leading-[1.4] tracking-[-0.1px] text-neutral-paragraph">
-                  {item.meta}
-                </span>
+                <div className="flex flex-col gap-[2px]">
+                  <span className="font-body text-[15px] font-semibold leading-none tracking-[-0.1px]">
+                    {item.title}
+                  </span>
+                  <span className="font-body text-[13px] leading-[1.4] tracking-[-0.1px] text-neutral-paragraph">
+                    {item.meta}
+                  </span>
+                </div>
               </div>
             </Link>
           ))}

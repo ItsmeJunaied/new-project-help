@@ -109,7 +109,7 @@ export default function ContactFaq() {
   return (
     <section
       ref={sectionRef}
-      className="mx-auto grid w-full max-w-[1440px] grid-cols-[repeat(auto-fit,minmax(min(100%,400px),1fr))] gap-x-[48px] gap-y-[48px] px-6 pb-[80px] lg:gap-x-[96px] lg:px-[40px] lg:pb-[128px]"
+      className="mx-auto grid w-full max-w-[1360px] grid-cols-[repeat(auto-fit,minmax(min(100%,400px),1fr))] gap-x-[clamp(48px,6vw,96px)] gap-y-[48px] px-[clamp(20px,4vw,48px)] pb-[clamp(80px,9vw,128px)]"
     >
       <div className="fq-head flex flex-col gap-[20px] self-start lg:sticky lg:top-[100px]">
         <span className="flex items-center gap-[10px] font-mono text-[12px] uppercase leading-none tracking-[0.1em] text-black">
@@ -148,7 +148,7 @@ export default function ContactFaq() {
                     aria-hidden
                     className={`flex size-[36px] shrink-0 items-center justify-center rounded-full text-[20px] leading-none transition-[transform,background-color,color] duration-300 ${
                       open
-                        ? "rotate-45 bg-primary-green text-white"
+                        ? "rotate-45 bg-primary-green text-black"
                         : "bg-black/[0.055] text-black"
                     }`}
                   >

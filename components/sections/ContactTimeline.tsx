@@ -1,23 +1,27 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useGSAP } from "@gsap/react";
+import { BRAND_GREEN } from "@/lib/brand";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
 
 /**
- * The concept's process block, to its own measurements: a rounded black slab
- * inset from the page edges rather than a full-bleed band, seven steps, and a
- * 56px circular node carrying the number at the head of each one.
+ * The concept's process block, to its own measurements and with its own
+ * mechanism: a rounded black slab inset from the page edges, seven steps
+ * across on one row above 1080px and stacked below it, and a wire drawn
+ * through the centre of every 56px node with a comet running along it.
  *
- * The concept draws the line between nodes into an SVG from JavaScript, sized
- * against the laid-out grid. This does it in CSS instead — a one-pixel span
- * whose long axis flips at the breakpoint, scaled on both axes so the same
- * element draws a horizontal rule between the circles on a desktop and a
- * vertical one down the gutter on a phone. Same picture, nothing to measure
- * and nothing to recompute on resize.
+ * The wire is the part that has to be measured rather than styled — it joins
+ * seven points that a fluid grid puts wherever it likes, and it flips from a
+ * horizontal run to a vertical one at the breakpoint. So it is built the way
+ * the concept builds it: read the laid-out node centres, write one polyline,
+ * and animate `stroke-dasharray` along it. A ResizeObserver rebuilds it when
+ * the layout moves, and an IntersectionObserver keeps the loop off while the
+ * section is off screen.
  *
- * The copy is ours; the shape is theirs.
+ * Under reduced motion the wire is drawn complete and every node is lit, with
+ * no comet and no loop — the finished picture, held still.
  */
 
 type Step = {
@@ -64,8 +68,187 @@ const STEPS: Step[] = [
   },
 ];
 
+const NS = "http://www.w3.org/2000/svg";
+
+/** One full pass of the comet, and how much of that pass it spends running. */
+const CYCLE = 9000;
+const RUN = 7000;
+
 export default function ContactTimeline() {
   const sectionRef = useRef<HTMLElement>(null);
+  const flowRef = useRef<HTMLDivElement>(null);
+  const wireRef = useRef<SVGSVGElement>(null);
+
+  useEffect(() => {
+    const box = flowRef.current;
+    const svg = wireRef.current;
+    if (!box || !svg) return;
+
+    // Canvas-free, but SVG attributes still take colour strings rather than CSS
+    // values. BRAND_GREEN is the documented fallback for exactly this — see
+    // lib/brand.ts — rather than a second copy of the hex.
+    const green =
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--color-primary-green")
+        .trim() || BRAND_GREEN;
+
+    const still = prefersReducedMotion();
+
+    type Flow = {
+      pts: [number, number][];
+      cum: number[];
+      len: number;
+      lit: SVGPathElement;
+      comet: SVGPathElement;
+      head: SVGCircleElement;
+      nodes: HTMLElement[];
+      /** Last lit/unlit state written, so the loop only touches what changed. */
+      on: boolean[];
+    };
+
+    let flow: Flow | null = null;
+    let dirty = true;
+    let visible = false;
+    let frame: number | null = null;
+
+    const build = () => {
+      dirty = false;
+      const bounds = box.getBoundingClientRect();
+      const nodes = Array.from(box.querySelectorAll<HTMLElement>("[data-node]"));
+      const pts = nodes.map((node): [number, number] => {
+        const rect = node.getBoundingClientRect();
+        return [
+          rect.left + rect.width / 2 - bounds.left,
+          rect.top + rect.height / 2 - bounds.top,
+        ];
+      });
+      if (pts.length < 2) return;
+
+      const d = "M" + pts.map(([x, y]) => `${x.toFixed(1)} ${y.toFixed(1)}`).join(" L");
+
+      const cum = [0];
+      for (let i = 1; i < pts.length; i += 1) {
+        cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+      }
+
+      svg.innerHTML = "";
+      const add = <K extends keyof SVGElementTagNameMap>(
+        tag: K,
+        attrs: Record<string, string | number>,
+      ) => {
+        const el = document.createElementNS(NS, tag);
+        for (const key in attrs) el.setAttribute(key, String(attrs[key]));
+        svg.appendChild(el);
+        return el;
+      };
+
+      add("path", { d, stroke: "rgba(255,255,255,0.16)", "stroke-width": 2, fill: "none" });
+      const lit = add("path", {
+        d,
+        stroke: green,
+        "stroke-width": 2,
+        "stroke-opacity": 0.4,
+        fill: "none",
+      });
+      const comet = add("path", {
+        d,
+        stroke: green,
+        "stroke-width": 3,
+        fill: "none",
+        "stroke-linecap": "round",
+      });
+      comet.style.filter = `drop-shadow(0 0 6px ${green})`;
+      const head = add("circle", { r: 6, fill: "#eaf7dd" });
+      head.style.filter = `drop-shadow(0 0 8px ${green}) drop-shadow(0 0 16px ${green})`;
+
+      flow = {
+        pts,
+        cum,
+        len: cum[cum.length - 1],
+        lit,
+        comet,
+        head,
+        nodes,
+        on: nodes.map(() => false),
+      };
+    };
+
+    const light = (node: HTMLElement, on: boolean) => {
+      node.style.background = on ? green : "#141413";
+      node.style.color = on ? "#151515" : "";
+      node.style.borderColor = on ? green : "";
+      node.style.boxShadow = on
+        ? `0 0 0 6px color-mix(in srgb, ${green} 14%, transparent), 0 0 28px color-mix(in srgb, ${green} 45%, transparent)`
+        : "none";
+    };
+
+    const paint = (now: number) => {
+      if (!flow) return;
+
+      const t = now % CYCLE;
+      const length = still ? flow.len : Math.min(1, t / RUN) * flow.len;
+
+      flow.lit.setAttribute("stroke-dasharray", `${length} ${flow.len + 20}`);
+
+      const tail = Math.min(140, length);
+      flow.comet.setAttribute("stroke-dasharray", `${tail} ${flow.len * 2 + 200}`);
+      flow.comet.setAttribute("stroke-dashoffset", String(-(length - tail)));
+
+      let k = 0;
+      while (k < flow.cum.length - 2 && flow.cum[k + 1] < length) k += 1;
+      const segment = flow.cum[k + 1] - flow.cum[k] || 1;
+      const u = Math.max(0, Math.min(1, (length - flow.cum[k]) / segment));
+      flow.head.setAttribute("cx", String(flow.pts[k][0] + (flow.pts[k + 1][0] - flow.pts[k][0]) * u));
+      flow.head.setAttribute("cy", String(flow.pts[k][1] + (flow.pts[k + 1][1] - flow.pts[k][1]) * u));
+      flow.head.style.opacity = still ? "0" : "1";
+
+      flow.nodes.forEach((node, i) => {
+        const on = length >= flow!.cum[i] - 1;
+        if (on === flow!.on[i]) return;
+        flow!.on[i] = on;
+        light(node, on);
+      });
+    };
+
+    const loop = (now: number) => {
+      if (visible) {
+        if (dirty) build();
+        paint(now);
+      }
+      frame = window.requestAnimationFrame(loop);
+    };
+
+    const io = new IntersectionObserver((entries) => {
+      for (const entry of entries) visible = entry.isIntersecting;
+    });
+    io.observe(box);
+
+    const ro = new ResizeObserver(() => {
+      dirty = true;
+      // With the loop running, the next frame consumes this. With motion off
+      // there is no loop, so the rebuild has to happen here or a resize would
+      // leave the wire drawn against the old node positions for good.
+      if (still) {
+        build();
+        paint(RUN);
+      }
+    });
+    ro.observe(box);
+
+    if (still) {
+      // One pass is the whole animation: the finished wire, every node lit.
+      build();
+      paint(RUN);
+    } else {
+      frame = window.requestAnimationFrame(loop);
+    }
+
+    return () => {
+      if (frame !== null) window.cancelAnimationFrame(frame);
+      io.disconnect();
+      ro.disconnect();
+    };
+  }, []);
 
   useGSAP(
     () => {
@@ -81,40 +264,13 @@ export default function ContactTimeline() {
         scrollTrigger: trigger,
       });
 
-      gsap.from(".tl-node", {
-        scale: 0,
-        duration: 0.5,
-        ease: "back.out(2)",
-        stagger: 0.08,
-        delay: 0.2,
-        scrollTrigger: trigger,
-      });
-
-      // fromTo rather than from, so the finished state is written down — a
-      // `from` tween takes whatever it finds as its destination, which is fine
-      // once and a trap on any replay.
-      gsap.fromTo(
-        ".tl-wire",
-        { scaleX: 0, scaleY: 0 },
-        {
-          scaleX: 1,
-          scaleY: 1,
-          duration: 0.5,
-          ease: "power2.out",
-          stagger: 0.08,
-          delay: 0.26,
-          transformOrigin: "left top",
-          scrollTrigger: trigger,
-        },
-      );
-
       gsap.from(".tl-copy", {
         y: 18,
         opacity: 0,
         duration: 0.6,
         ease: "power2.out",
         stagger: 0.08,
-        delay: 0.3,
+        delay: 0.2,
         scrollTrigger: trigger,
       });
     },
@@ -124,16 +280,16 @@ export default function ContactTimeline() {
   return (
     <section
       ref={sectionRef}
-      className="mx-[8px] rounded-[clamp(24px,3vw,40px)] bg-black text-bg lg:mx-[16px]"
+      className="mx-[clamp(8px,1.2vw,16px)] rounded-[clamp(24px,3vw,40px)] bg-black text-bg"
     >
-      <div className="mx-auto w-full max-w-[1440px] px-6 py-[72px] lg:px-[40px] lg:py-[128px]">
-        <div className="tl-head grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,440px),1fr))] items-end gap-x-[64px] gap-y-[24px] pb-[48px] lg:pb-[88px]">
+      <div className="mx-auto w-full max-w-[1360px] px-[clamp(20px,4vw,48px)] py-[clamp(72px,9vw,128px)]">
+        <div className="tl-head grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,440px),1fr))] items-end gap-x-[64px] gap-y-[24px] pb-[clamp(48px,6vw,88px)]">
           <div className="flex flex-col gap-[20px]">
-            <span className="flex items-center gap-[10px] font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-white/55">
+            <span className="flex items-center gap-[10px] font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-white/60">
               <span aria-hidden className="h-[2px] w-[24px] shrink-0 bg-primary-green" />
               From first message to launch
             </span>
-            <h2 className="font-display text-[clamp(40px,5vw,72px)] font-semibold leading-[0.98] tracking-[-0.05em] text-balance text-bg">
+            <h2 className="m-0 font-display text-[clamp(40px,5vw,72px)] font-semibold leading-[0.98] tracking-[-0.05em] text-balance text-bg">
               Your project,{" "}
               <span className="font-serif font-normal italic tracking-[-0.02em] text-primary-green">
                 start to finish
@@ -141,32 +297,26 @@ export default function ContactTimeline() {
             </h2>
           </div>
 
-          <p className="m-0 max-w-[500px] font-body text-[18px] leading-[1.55] tracking-[-0.1px] text-pretty text-white/55">
+          <p className="m-0 max-w-[500px] font-body text-[18px] leading-[1.55] tracking-[-0.1px] text-pretty text-white/60">
             Seven steps, each with an owner and a deadline. You always know who has your
             project and what happens next.
           </p>
         </div>
 
-        {/* Four across on a wide screen, then two, then one — the concept's
-            grid reflows the same way. */}
-        <ol className="relative grid w-full list-none grid-cols-1 gap-x-[24px] gap-y-[36px] p-0 sm:grid-cols-2 lg:grid-cols-4 lg:gap-y-[64px]">
-          {STEPS.map((step, index) => {
-            // No wire off the last node in a row, or off the last node.
-            const last = index === STEPS.length - 1;
-            const endsRow = (index + 1) % 4 === 0;
+        <div ref={flowRef} className="relative">
+          <svg
+            ref={wireRef}
+            aria-hidden
+            className="pointer-events-none absolute left-0 top-0 z-0 h-full w-full overflow-visible"
+          />
 
-            return (
-              <li key={step.title} className="relative flex gap-[24px]">
-                {!last && !endsRow ? (
-                  <span
-                    aria-hidden
-                    className="tl-wire absolute left-[28px] top-[64px] hidden h-px w-px bg-white/15 lg:left-[56px] lg:top-[28px] lg:block lg:h-px lg:w-[calc(100%-32px)]"
-                  />
-                ) : null}
-
+          <ol className="relative z-[1] m-0 grid list-none grid-cols-1 gap-[40px] p-0 min-[1080px]:grid-cols-7 min-[1080px]:gap-[16px]">
+            {STEPS.map((step, index) => (
+              <li key={step.title} className="flex flex-row gap-[24px] min-[1080px]:flex-col">
                 <span
+                  data-node
                   aria-hidden
-                  className="tl-node flex size-[56px] shrink-0 items-center justify-center rounded-full border border-white/15 bg-[#141413] font-mono text-[12px] leading-none tracking-[0.08em] text-white/55"
+                  className="flex size-[56px] flex-none items-center justify-center rounded-full border border-white/15 bg-[#141413] font-mono text-[12px] leading-none tracking-[0.08em] text-white/60 transition-[background-color,color,border-color,box-shadow] duration-300"
                 >
                   {String(index + 1).padStart(2, "0")}
                 </span>
@@ -178,14 +328,14 @@ export default function ContactTimeline() {
                   <h3 className="m-0 font-display text-[20px] font-semibold leading-[1.2] tracking-[-0.02em] text-bg">
                     {step.title}
                   </h3>
-                  <p className="m-0 font-body text-[14px] leading-[1.55] tracking-[-0.1px] text-pretty text-white/55">
+                  <p className="m-0 font-body text-[14px] leading-[1.55] tracking-[-0.1px] text-pretty text-white/60">
                     {step.body}
                   </p>
                 </div>
               </li>
-            );
-          })}
-        </ol>
+            ))}
+          </ol>
+        </div>
       </div>
     </section>
   );

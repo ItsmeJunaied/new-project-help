@@ -3,13 +3,12 @@ import type { Metadata } from "next";
 import JsonLd from "@/components/JsonLd";
 import Header from "@/components/sections/Header";
 import ContactHero from "@/components/sections/ContactHero";
-import ContactProof from "@/components/sections/ContactProof";
-import ContactPaths from "@/components/sections/ContactPaths";
-import ContactTimeline from "@/components/sections/ContactTimeline";
 import ContactDetails from "@/components/sections/ContactDetails";
+import ContactProof from "@/components/sections/ContactProof";
+import ContactTimeline from "@/components/sections/ContactTimeline";
 import ContactCoverage from "@/components/sections/ContactCoverage";
 import ContactFaq from "@/components/sections/ContactFaq";
-import TeamCta from "@/components/sections/TeamCta";
+import ContactClosing from "@/components/sections/ContactClosing";
 import Footer from "@/components/sections/Footer";
 import { breadcrumbJsonLd, buildMetadata } from "@/lib/seo";
 import { siteConfig } from "@/lib/site";
@@ -25,27 +24,30 @@ export const metadata: Metadata = buildMetadata({
   ],
 });
 
+/**
+ * The page follows the supplied concept section for section, in its order, with
+ * only the header and the footer left as ours.
+ */
 export default function ContactPage() {
   return (
     <>
       <Header />
       <main id="main">
-        {/* Centred headline, round call to action, two ribbons. */}
+        {/* Hero: the headline and the standfirst … */}
         <ContactHero />
-        {/* Proof on the left, the brief on a black card on the right. */}
+        {/* … then the brief tray it runs into — the aside and the form. */}
         <ContactDetails />
-        {/* Who has already sent one, and the work that came out of it. */}
+        {/* Reviews. */}
         <ContactProof />
-        {/* Four routes to the same engineers; the call is the recommended one. */}
-        <ContactPaths />
-        {/* From first message to launch. */}
+        {/* Process: seven steps with the wire running through them. */}
         <ContactTimeline />
-        {/* The globe, with the figures riding over it. */}
+        {/* Global reach: the dotted map, the markets and the figures. */}
         <ContactCoverage />
         {/* A contact-specific FAQ rather than the shared one: these answer
             what happens if you send the form, not what the company does. */}
         <ContactFaq />
-        <TeamCta />
+        {/* Closing CTA: back up to the form, the ribbons, the wordmark. */}
+        <ContactClosing />
       </main>
       <Footer />
       <JsonLd
