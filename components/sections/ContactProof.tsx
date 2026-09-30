@@ -142,7 +142,10 @@ function CardShell({
 }
 
 function Avatar({ card, size }: { card: Card; size: 52 | 44 }) {
-  if (card.logo) {
+  // A circle is a bad container for a wordmark: Rongobuy's mark is 161x36, so
+  // fitting it inside a 44px disc leaves it about eight pixels tall and
+  // unreadable. Square-ish marks get the logo, long ones get the monogram.
+  if (card.logo && card.logo.width / card.logo.height < 1.6) {
     return (
       <span
         style={{ width: size, height: size }}

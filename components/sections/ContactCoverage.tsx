@@ -295,7 +295,10 @@ export default function ContactCoverage() {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const spotsRef = useRef<HTMLDivElement>(null);
-  const [deskOpen, setDeskOpen] = useState(false);
+  // Open from the start — the address is the point of the marker, and a card
+  // you have to find first is a card most visitors never see. The button stays
+  // so it can be folded away over the map.
+  const [deskOpen, setDeskOpen] = useState(true);
   const [features, setFeatures] = useState<Feature<Geometry>[] | null>(null);
 
   /**

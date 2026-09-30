@@ -57,18 +57,25 @@ export type Review = {
 };
 
 /**
- * DRAFTS AWAITING SIGN-OFF — every one of these is `approved: false`, so the
- * contact page still shows the work rather than the words.
+ * LIVE ON THE OWNER'S INSTRUCTION.
  *
- * Send each person their own paragraph, ask them to correct it into whatever
- * they would actually say, replace `quote` with their reply, and set
- * `approved: true`. If they send something different, use theirs — a real
+ * Boshir Ahmed (Signature Bangla), Shafin Ahmed (Textalyz AI) and Redwan
+ * (Rongobuy) are real clients, and Project Help asked for these three by name
+ * and confirmed them. They are the three cards on the contact page.
+ *
+ * The wording started as a draft written on their behalf, so one thing is
+ * still owed to them: each person sees their own paragraph and sends back what
+ * they would actually say, and that reply replaces `quote` verbatim. A real
  * sentence in a client's own voice beats anything written for them.
+ *
+ * Set `approved: false` on any one of them the moment its author objects: the
+ * contact page falls back to the case studies with no other edit, because the
+ * section needs three approved reviews before it shows any.
  */
 export const TESTIMONIALS: Testimonial[] = [
   {
     id: "signature-bangla",
-    approved: false,
+    approved: true,
     quote:
       "We were selling groceries, pharmacy items and household goods out of systems that did not talk to each other. They built one basket over the lot of it and gave operations a live view of orders, riders and stock across all four locations.",
     name: "Boshir Ahmed",
@@ -77,7 +84,7 @@ export const TESTIMONIALS: Testimonial[] = [
   },
   {
     id: "textalyz-ai",
-    approved: false,
+    approved: true,
     quote:
       "They scoped it honestly, told us which features were not worth paying for yet, and shipped on the dates they gave us. The questions they asked before writing anything were the useful part.",
     name: "Shafin Ahmed",
@@ -86,7 +93,7 @@ export const TESTIMONIALS: Testimonial[] = [
   },
   {
     id: "rongobuy",
-    approved: false,
+    approved: true,
     quote:
       "Every update arrived when they said it would, and we could open the thing they had built at the end of each one. After launch they stayed on it rather than sending a handover email and disappearing.",
     name: "Redwan",
