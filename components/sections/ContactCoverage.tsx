@@ -6,6 +6,7 @@ import { geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import type { Feature, Geometry } from "geojson";
 import { BRAND_GREEN } from "@/lib/brand";
+import { siteConfig } from "@/lib/site";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
 
@@ -33,19 +34,19 @@ import { prefersReducedMotion, reveal } from "@/lib/anim";
  * PLACEHOLDER — confirm or replace before this page goes live.
  *
  * `id` is the ISO 3166-1 numeric code as world-atlas keys it, `p` is the
- * [lon, lat] the arc lands on, and `label` is the pill drawn beside it; a
- * destination with no label still gets a dot and an arc, which is how the
- * concept keeps the European cluster from turning into a stack of pills.
+ * [lon, lat] the arc lands on, and `name` is what the marker and the chip row
+ * both call it. We do not publish a client-country list, so this is the
+ * concept's own list carried over; it is the one place to edit.
  */
 const MARKETS = [
-  { id: "840", p: [-96, 39] as [number, number], label: "USA", name: "United States" },
-  { id: "826", p: [-1.8, 52.8] as [number, number], label: "UK", left: true, name: "United Kingdom" },
-  { id: "276", p: [10.4, 51.1] as [number, number], label: "Europe", dy: -14, name: "Germany" },
+  { id: "840", p: [-96, 39] as [number, number], name: "United States" },
+  { id: "826", p: [-1.8, 52.8] as [number, number], name: "United Kingdom" },
+  { id: "276", p: [10.4, 51.1] as [number, number], name: "Germany" },
   { id: "250", p: [2.4, 46.8] as [number, number], name: "France" },
   { id: "528", p: [5.6, 52.2] as [number, number], name: "Netherlands" },
   { id: "724", p: [-3.7, 40.2] as [number, number], name: "Spain" },
   { id: "752", p: [15.5, 61] as [number, number], name: "Sweden" },
-  { id: "036", p: [134, -25] as [number, number], label: "Australia", name: "Australia" },
+  { id: "036", p: [134, -25] as [number, number], name: "Australia" },
 ];
 
 /** Bangladesh, and Antarctica — the one the concept drops from the map. */
@@ -62,12 +63,11 @@ const STATS = [
 ];
 
 type Arc = {
+  id: string;
+  name: string;
   p0: [number, number];
   p1: [number, number];
   p2: [number, number];
-  label?: string;
-  left?: boolean;
-  dy?: number;
 };
 
 type Built = {
@@ -82,6 +82,8 @@ type Built = {
 export default function ContactCoverage() {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const spotsRef = useRef<HTMLDivElement>(null);
+  const [deskOpen, setDeskOpen] = useState(false);
   const [features, setFeatures] = useState<Feature<Geometry>[] | null>(null);
 
   /**
@@ -276,7 +278,7 @@ export default function ContactCoverage() {
 
       const hq = projection(HQ) as [number, number];
       const arcs: Arc[] = [];
-      for (const market of MARKETS) {
+      for (const [index, market] of MARKETS.entries()) {
         const p2 = projection(market.p);
         if (!p2) continue;
         const mid: [number, number] = [(hq[0] + p2[0]) / 2, (hq[1] + p2[1]) / 2];
@@ -290,17 +292,43 @@ export default function ContactCoverage() {
           nx = -nx;
           ny = -ny;
         }
+        // The concept bows every arc by a third of its own length, which sends
+        // the long westward legs up over the pole and drops them back down
+        // through the European cluster. These are shallower, so each one reads
+        // as a direct route, and the bow is fanned a little per destination so
+        // six legs to one corner of Europe separate instead of becoming one
+        // rope.
+        const bow = 0.12 + (index % 3) * 0.035;
         arcs.push({
+          id: market.id,
+          name: market.name,
           p0: hq,
-          p1: [mid[0] + nx * dist * 0.32, Math.max(8 * dpr, mid[1] + ny * dist * 0.32)],
+          p1: [mid[0] + nx * dist * bow, Math.max(8 * dpr, mid[1] + ny * dist * bow)],
           p2: p2 as [number, number],
-          label: market.label,
-          left: market.left,
-          dy: market.dy,
         });
       }
 
       built = { width, height, dpr, base, hq, arcs };
+
+      /**
+       * The markers are ordinary DOM over the canvas, so the browser lays the
+       * country names out, they are reachable by keyboard and readable by a
+       * screen reader, and the six European ones can overlap without a pile-up
+       * of pills burned into the bitmap. Their positions are the projection's,
+       * converted back from device pixels to CSS pixels and written straight
+       * onto the elements — no state, so this never re-renders the section.
+       */
+      const layer = spotsRef.current;
+      if (layer) {
+        const place = (id: string, point: [number, number]) => {
+          const el = layer.querySelector<HTMLElement>(`[data-spot="${id}"]`);
+          if (!el) return;
+          el.style.left = `${((point[0] / dpr / (width / dpr)) * 100).toFixed(3)}%`;
+          el.style.top = `${((point[1] / dpr / (height / dpr)) * 100).toFixed(3)}%`;
+        };
+        for (const arc of arcs) place(arc.id, arc.p2);
+        place(HQ_ID, hq);
+      }
     };
 
     const at = (arc: Arc, u: number): [number, number] => [
@@ -397,12 +425,12 @@ export default function ContactCoverage() {
 
       ctx.font = `600 ${12 * dpr}px Geist, system-ui, sans-serif`;
       ctx.textBaseline = "middle";
-      const pill = (x: number, y: number, text: string, isHq: boolean, left?: boolean) => {
+      const pill = (x: number, y: number, text: string, isHq: boolean) => {
         const textWidth = ctx.measureText(text).width;
         const padX = 10 * dpr;
         const boxH = 26 * dpr;
         const w = textWidth + padX * 2;
-        const bx = left ? x - 12 * dpr - w : x + 12 * dpr;
+        const bx = x + 12 * dpr;
         ctx.beginPath();
         ctx.roundRect(bx, y - boxH / 2, w, boxH, boxH / 2);
         ctx.fillStyle = isHq ? green : ink;
@@ -411,9 +439,11 @@ export default function ContactCoverage() {
         ctx.fillText(text, bx + padX, y + 0.5 * dpr);
       };
 
-      for (const arc of arcs) {
-        if (arc.label) pill(arc.p2[0], arc.p2[1] + (arc.dy ?? 0) * dpr, arc.label, false, arc.left);
-      }
+      // Only Dhaka is named on the canvas. Six European destinations sit
+      // inside seventy pixels of each other at world scale, so pills drawn at
+      // their own points landed on top of one another — the country names are
+      // on the markers over the top instead, where the browser can lay them
+      // out and get out of the way again.
       pill(hq[0], hq[1] + 22 * dpr, "Dhaka HQ", true);
     };
 
@@ -508,12 +538,67 @@ export default function ContactCoverage() {
       </div>
 
       <div className="w-full overflow-hidden rounded-[32px] border border-black/12 bg-white">
-        <div className="px-[clamp(8px,1.4vw,20px)] pt-[clamp(12px,2vw,28px)]">
+        <div className="relative px-[clamp(8px,1.4vw,20px)] pt-[clamp(12px,2vw,28px)]">
           {/* The ratio the 78°N/48°S crop actually produces, so the box the
               canvas reserves before it is built is the box it ends up at and
               nothing reflows when the topology lands. The concept writes 2.3
               here and then overwrites it from JS, which shifts the page. */}
           <canvas ref={canvasRef} aria-hidden className="block aspect-[2.54/1] w-full" />
+
+          <div
+            ref={spotsRef}
+            className="pointer-events-none absolute inset-x-[clamp(8px,1.4vw,20px)] top-[clamp(12px,2vw,28px)] bottom-0"
+          >
+            {MARKETS.map((market) => (
+              <span
+                key={market.id}
+                data-spot={market.id}
+                tabIndex={0}
+                role="img"
+                aria-label={`${market.name} — covered from Dhaka`}
+                className="group pointer-events-auto absolute -ml-[13px] -mt-[13px] flex size-[26px] cursor-default items-center justify-center rounded-full outline-none"
+              >
+                {/* The dot itself is painted on the canvas; this is the hit
+                    area and the name that comes with it. */}
+                <span className="pointer-events-none absolute bottom-[calc(100%-2px)] left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-full bg-black px-[10px] py-[6px] font-body text-[12px] font-semibold leading-none text-bg shadow-[0_6px_18px_rgba(10,10,10,0.25)] group-hover:block group-focus-visible:block">
+                  {market.name}
+                </span>
+                <span className="size-[18px] rounded-full ring-black/0 transition-[box-shadow] group-hover:shadow-[0_0_0_6px_color-mix(in_srgb,var(--color-primary-green)_28%,transparent)] group-focus-visible:shadow-[0_0_0_6px_color-mix(in_srgb,var(--color-primary-green)_28%,transparent)]" />
+              </span>
+            ))}
+
+            {/* Dhaka is the one that opens rather than just naming itself. */}
+            <span data-spot={HQ_ID} className="pointer-events-auto absolute">
+              <button
+                type="button"
+                onClick={() => setDeskOpen((open) => !open)}
+                aria-expanded={deskOpen}
+                aria-label={`The ${siteConfig.name} office in Dhaka — show the address`}
+                className="absolute -left-[16px] -top-[16px] size-[32px] cursor-pointer rounded-full outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-black"
+              />
+
+              {deskOpen ? (
+                <span className="absolute bottom-[20px] left-1/2 z-[2] flex w-[248px] -translate-x-1/2 flex-col gap-[10px] rounded-[16px] border border-black/10 bg-white p-[16px] text-left shadow-[0_18px_44px_rgba(10,10,10,0.22)]">
+                  <span className="flex items-center gap-[8px] font-mono text-[11px] uppercase leading-none tracking-[0.08em] text-neutral-paragraph">
+                    <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-primary-green" />
+                    {siteConfig.name} · Dhaka
+                  </span>
+                  <span className="font-body text-[14px] leading-[1.45] tracking-[-0.1px] text-black">
+                    {siteConfig.addressLine}
+                  </span>
+                  <a
+                    href={siteConfig.mapsHref}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-[6px] font-body text-[13px] font-semibold leading-none tracking-[-0.1px] text-black underline decoration-primary-green decoration-[2px] underline-offset-[4px]"
+                  >
+                    Open in Google Maps
+                    <span aria-hidden>↗</span>
+                  </a>
+                </span>
+              ) : null}
+            </span>
+          </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-[6px] border-t border-black/10 px-[clamp(16px,2vw,28px)] pb-[24px] pt-[20px]">

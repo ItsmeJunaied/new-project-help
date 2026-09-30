@@ -24,6 +24,17 @@
 
 export type Testimonial = {
   id: string;
+  /**
+   * Whether the named person has confirmed this wording.
+   *
+   * Nothing renders until this is true. A quote drafted on a client's behalf
+   * is a normal part of asking for a testimonial; PUBLISHING one they have not
+   * signed off is a fabricated endorsement, which is prohibited under the
+   * FTC's endorsement rules in the US and under consumer-protection law in the
+   * UK and EU — and it is their name on it, not ours. So a draft sits here
+   * until they reply, and turning it on is a one-word edit.
+   */
+  approved: boolean;
   /** The client's own words. Do not paraphrase into marketing copy. */
   quote: string;
   name: string;
@@ -45,7 +56,47 @@ export type Review = {
   author: { name: string; bio?: string; avatar?: string };
 };
 
-export const TESTIMONIALS: Testimonial[] = [];
+/**
+ * DRAFTS AWAITING SIGN-OFF — every one of these is `approved: false`, so the
+ * contact page still shows the work rather than the words.
+ *
+ * Send each person their own paragraph, ask them to correct it into whatever
+ * they would actually say, replace `quote` with their reply, and set
+ * `approved: true`. If they send something different, use theirs — a real
+ * sentence in a client's own voice beats anything written for them.
+ */
+export const TESTIMONIALS: Testimonial[] = [
+  {
+    id: "signature-bangla",
+    approved: false,
+    quote:
+      "We were selling groceries, pharmacy items and household goods out of systems that did not talk to each other. They built one basket over the lot of it and gave operations a live view of orders, riders and stock across all four locations.",
+    name: "Boshir Ahmed",
+    role: "Signature Bangla",
+    logo: { src: "/images/clients/signature-bangla.png", alt: "Signature Bangla" },
+  },
+  {
+    id: "textalyz-ai",
+    approved: false,
+    quote:
+      "They scoped it honestly, told us which features were not worth paying for yet, and shipped on the dates they gave us. The questions they asked before writing anything were the useful part.",
+    name: "Shafin Ahmed",
+    role: "Textalyz AI",
+    logo: { src: "/images/clients/textalyz-ai.png", alt: "Textalyz AI" },
+  },
+  {
+    id: "rongobuy",
+    approved: false,
+    quote:
+      "Every update arrived when they said it would, and we could open the thing they had built at the end of each one. After launch they stayed on it rather than sending a handover email and disappearing.",
+    name: "Redwan",
+    role: "Rongobuy",
+    logo: { src: "/images/clients/rongobuy.png", alt: "Rongobuy" },
+  },
+];
+
+/** The ones that may actually be shown. */
+export const APPROVED_TESTIMONIALS = TESTIMONIALS.filter((item) => item.approved);
 
 export const REVIEWS: Review[] = [];
 
@@ -55,6 +106,7 @@ export const REVIEWS: Review[] = [];
  */
 export const EXAMPLE_TESTIMONIAL: Testimonial = {
   id: "example",
+  approved: false,
   quote:
     "They scoped honestly, told us which features were not worth the money, and still shipped every fortnight.",
   name: "Full Name",

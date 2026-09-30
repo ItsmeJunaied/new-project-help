@@ -31,6 +31,15 @@ type Step = {
   when: string;
   title: string;
   body: string;
+  /**
+   * This stage's own hue.
+   *
+   * Seven cards lit in one colour is a band of green on black, which is both
+   * loud and uninformative. A hue per stage lets the eye track one of them
+   * across the canvas, and it keeps the brand green for the one thing that
+   * should own it — the light running along the wire.
+   */
+  accent: string;
   /** Where it sits on the four-by-two canvas. Ignored once the cards stack. */
   place: string;
 };
@@ -43,6 +52,7 @@ type Step = {
 const STEPS: Step[] = [
   {
     id: "brief",
+    accent: "#5b8cff",
     number: "01",
     when: "Hour 0",
     title: "Brief lands",
@@ -51,6 +61,7 @@ const STEPS: Step[] = [
   },
   {
     id: "reply",
+    accent: "#a78bfa",
     number: "02",
     when: "4 hours",
     title: "A human replies",
@@ -59,6 +70,7 @@ const STEPS: Step[] = [
   },
   {
     id: "call",
+    accent: "#f472b6",
     number: "03",
     when: "Day 1–2",
     title: "Strategy call",
@@ -67,6 +79,7 @@ const STEPS: Step[] = [
   },
   {
     id: "quote",
+    accent: "#2dd4bf",
     number: "04",
     when: "Day 2–5",
     title: "Written quote",
@@ -75,6 +88,7 @@ const STEPS: Step[] = [
   },
   {
     id: "kickoff",
+    accent: "#fbbf24",
     number: "05",
     when: "Week 1",
     title: "Kickoff",
@@ -83,6 +97,7 @@ const STEPS: Step[] = [
   },
   {
     id: "build",
+    accent: "#38bdf8",
     number: "06",
     when: "Every 2 weeks",
     title: "Design & build",
@@ -91,6 +106,7 @@ const STEPS: Step[] = [
   },
   {
     id: "delivery",
+    accent: "#fb923c",
     number: "07",
     when: "Launch",
     title: "Delivery",
@@ -132,61 +148,93 @@ const LANE_ABOVE = 30;
  *
  * Drawn rather than fetched, on one 24-unit box at one stroke weight, so the
  * set reads as a family instead of as seven icons from seven places. Each is
- * the plainest object that stands for its stage: a tray for the brief landing,
- * a reply arrow for the answer, a handset for the call, a page for the quote,
- * a flag for kickoff, stacked layers for the build, a sealed box for delivery.
+ * two-tone: the object is white line-work and one element inside it — the
+ * letter dropping into the tray, the flag on the pole, the tick on the box —
+ * is filled in that stage's own colour. That way the marks carry the colour on
+ * this section and the brand green is left to the wire, where the travelling
+ * light is the only thing that should be claiming attention.
+ *
+ * `base` inherits currentColor, which the card drives from unlit stone to
+ * white. `tint` is the accent and is painted whatever the stage's hue is.
  */
-const MARKS: Record<string, React.ReactNode> = {
-  brief: (
-    <>
-      <path d="M3 13.5h5l1.2 2.2h5.6L16 13.5h5" />
-      <path d="M3 13.5 5.6 5.2A1.6 1.6 0 0 1 7.1 4h9.8a1.6 1.6 0 0 1 1.5 1.2L21 13.5V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
-    </>
-  ),
-  reply: (
-    <>
-      <path d="M9 7 4 11.5 9 16" />
-      <path d="M4 11.5h9.5a6 6 0 0 1 6 6V20" />
-    </>
-  ),
-  call: (
-    <>
-      <path d="M4 10.5a8 8 0 0 1 16 0" />
-      <path d="M4 10.5v4a2.5 2.5 0 0 0 2.5 2.5H8v-7H6.5A2.5 2.5 0 0 0 4 12.5Z" />
-      <path d="M20 10.5v4a2.5 2.5 0 0 1-2.5 2.5H16v-7h1.5A2.5 2.5 0 0 1 20 12.5Z" />
-      <path d="M20 15.5v1A3.5 3.5 0 0 1 16.5 20H13" />
-    </>
-  ),
-  quote: (
-    <>
-      <path d="M6 3.5h7.5L19 9v11.5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z" />
-      <path d="M13.5 3.5V9H19" />
-      <path d="M8.5 13h8M8.5 16.5h5" />
-    </>
-  ),
-  kickoff: (
-    <>
-      <path d="M6 21V3.5" />
-      <path d="M6 4.5h10.5l-2.2 3.6 2.2 3.6H6" />
-    </>
-  ),
-  build: (
-    <>
-      <path d="m12 3 8.5 4.5L12 12 3.5 7.5 12 3Z" />
-      <path d="m3.5 12 8.5 4.5 8.5-4.5" />
-      <path d="m3.5 16.5 8.5 4.5 8.5-4.5" />
-    </>
-  ),
-  delivery: (
-    <>
-      <path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5Z" />
-      <path d="m3.5 7.5 8.5 4.5 8.5-4.5M12 12v9" />
-      <path d="m8.8 14.4 2 2 4.2-4.2" />
-    </>
-  ),
+const MARKS: Record<string, { base: React.ReactNode; tint: React.ReactNode }> = {
+  brief: {
+    base: (
+      <>
+        <path d="M3 13.5h5l1.2 2.2h5.6L16 13.5h5" />
+        <path d="M3 13.5 5.6 5.2A1.6 1.6 0 0 1 7.1 4h9.8a1.6 1.6 0 0 1 1.5 1.2L21 13.5V18a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z" />
+      </>
+    ),
+    tint: <path d="M12 3.2v6.4m0 0 2.3-2.3M12 9.6 9.7 7.3" />,
+  },
+  reply: {
+    base: (
+      <>
+        <path d="M9 7 4 11.5 9 16" />
+        <path d="M4 11.5h9.5a6 6 0 0 1 6 6V20" />
+      </>
+    ),
+    tint: <circle cx="19.5" cy="6.2" r="2.4" fill="currentColor" stroke="none" />,
+  },
+  call: {
+    base: (
+      <>
+        <path d="M4 12.2v2.3A2.5 2.5 0 0 0 6.5 17H8v-7H6.5A2.5 2.5 0 0 0 4 12.5Z" />
+        <path d="M20 12.2v2.3A2.5 2.5 0 0 1 17.5 17H16v-7h1.5A2.5 2.5 0 0 1 20 12.5Z" />
+        <path d="M20 15.8v0.7A3.5 3.5 0 0 1 16.5 20H13" />
+      </>
+    ),
+    tint: <path d="M4 10.6a8 8 0 0 1 16 0" />,
+  },
+  quote: {
+    base: (
+      <>
+        <path d="M6 3.5h7.5L19 9v11.5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z" />
+        <path d="M13.5 3.5V9H19" />
+      </>
+    ),
+    tint: <path d="M8.5 13h8M8.5 16.5h5" />,
+  },
+  kickoff: {
+    base: <path d="M6 21V3.5" />,
+    tint: (
+      <path
+        d="M6 4.6h10.4l-2.2 3.5 2.2 3.5H6z"
+        fill="currentColor"
+        fillOpacity="0.9"
+        stroke="none"
+      />
+    ),
+  },
+  build: {
+    base: (
+      <>
+        <path d="m3.5 12 8.5 4.5 8.5-4.5" />
+        <path d="m3.5 16.5 8.5 4.5 8.5-4.5" />
+      </>
+    ),
+    tint: (
+      <path
+        d="m12 3 8.5 4.5L12 12 3.5 7.5 12 3Z"
+        fill="currentColor"
+        fillOpacity="0.85"
+        stroke="none"
+      />
+    ),
+  },
+  delivery: {
+    base: (
+      <>
+        <path d="M3.5 7.5 12 3l8.5 4.5v9L12 21l-8.5-4.5Z" />
+        <path d="m3.5 7.5 8.5 4.5 8.5-4.5M12 12v9" />
+      </>
+    ),
+    tint: <path d="m8.7 14.3 2.1 2.1 4.3-4.3" strokeWidth={1.9} />,
+  },
 };
 
-function Mark({ id }: { id: string }) {
+function Mark({ id, accent }: { id: string; accent: string }) {
+  const mark = MARKS[id];
   return (
     <svg
       viewBox="0 0 24 24"
@@ -196,9 +244,10 @@ function Mark({ id }: { id: string }) {
       strokeLinecap="round"
       strokeLinejoin="round"
       aria-hidden
-      className="size-[20px]"
+      className="size-[21px]"
     >
-      {MARKS[id]}
+      {mark.base}
+      <g style={{ color: accent }}>{mark.tint}</g>
     </svg>
   );
 }
@@ -509,45 +558,52 @@ export default function ContactTimeline() {
               <li key={step.id} className={`relative flex ${step.place}`}>
                 <article
                   data-node={step.id}
-                  style={{ "--lit": 0 } as CSSProperties}
+                  style={{ "--lit": 0, "--accent": step.accent } as CSSProperties}
                   className="tl-card relative flex w-full flex-col gap-[10px] rounded-[16px] bg-[#141413] p-[16px]"
                 >
                   {/* Border and glow both read off the one lit value, drawn as
-                      overlays so neither disturbs the card's own box. */}
+                      overlays so neither disturbs the card's own box. The
+                      border goes white rather than green — green on this
+                      section belongs to the wire — and only the glow carries
+                      the stage's own colour. */}
                   <span
                     aria-hidden
                     style={{
                       borderColor:
-                        "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 62%), rgba(255,255,255,0.10))",
+                        "color-mix(in srgb, var(--color-white) calc(10% + var(--lit) * 26%), transparent)",
                     }}
                     className="pointer-events-none absolute inset-0 rounded-[16px] border"
                   />
                   <span
                     aria-hidden
-                    style={{ opacity: "var(--lit)" }}
-                    className="pointer-events-none absolute -inset-[3px] rounded-[19px] bg-[radial-gradient(70%_70%_at_50%_0%,color-mix(in_srgb,var(--color-primary-green)_26%,transparent),transparent_72%)] blur-[4px]"
+                    style={{
+                      opacity: "var(--lit)",
+                      background:
+                        "radial-gradient(70% 70% at 50% 0%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 72%)",
+                    }}
+                    className="pointer-events-none absolute -inset-[3px] rounded-[19px] blur-[4px]"
                   />
 
                   <div className="relative flex items-center justify-between gap-[10px]">
                     <span
                       style={{
                         color:
-                          "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 100%), #8a8a83)",
+                          "color-mix(in srgb, var(--color-white) calc(var(--lit) * 100%), #8a8a83)",
                         borderColor:
-                          "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 45%), rgba(255,255,255,0.10))",
+                          "color-mix(in srgb, var(--accent) calc(18% + var(--lit) * 52%), rgba(255,255,255,0.10))",
                         backgroundColor:
-                          "color-mix(in srgb, var(--color-primary-green) calc(var(--lit) * 12%), rgba(255,255,255,0.03))",
+                          "color-mix(in srgb, var(--accent) calc(6% + var(--lit) * 14%), rgba(255,255,255,0.03))",
                       }}
-                      className="flex size-[38px] shrink-0 items-center justify-center rounded-[11px] border"
+                      className="flex size-[40px] shrink-0 items-center justify-center rounded-[12px] border"
                     >
-                      <Mark id={step.id} />
+                      <Mark id={step.id} accent={step.accent} />
                     </span>
 
                     <span className="flex flex-col items-end gap-[5px]">
                       <span
                         style={{
                           color:
-                            "color-mix(in srgb, var(--color-primary-green) calc(40% + var(--lit) * 60%), #8a8a83)",
+                            "color-mix(in srgb, var(--accent) calc(55% + var(--lit) * 45%), #8a8a83)",
                         }}
                         className="font-mono text-[10px] font-semibold uppercase leading-none tracking-[0.1em]"
                       >

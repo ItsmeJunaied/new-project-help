@@ -23,19 +23,18 @@ export const siteConfig = {
   directionsHref:
     "https://www.google.com/maps/dir/?api=1&destination=23.7902366%2C90.4101466",
   /**
-   * The office as a plain map view, by coordinate.
+   * The office as Google's own place embed.
    *
-   * The embed this replaces was built around the Codesk listing, and a listing
-   * embed brings Google's own furniture with it: a place card over the top-left
-   * corner and a marker of its own. The contact page draws both itself, so this
-   * one asks for the view and nothing else — same centre, same zoom, no
-   * chrome. Google issues this form itself when you ask maps.google.com for
-   * `?ll=<lat>,<lng>&z=16&output=embed`.
+   * This is the listing for Project Help itself rather than a coordinate view,
+   * so the marker, the name and the place card are Google's and are correct
+   * without us drawing anything over the top. Supplied by the office.
    */
   mapEmbedSrc:
-    "https://www.google.com/maps/embed?pb=!1m10!1m8!1m3!1d7301.5940937088581!2d90.4101466!3d23.7902366!3m2!1i1024!2i768!4f13.1!6i16!3m1!1sen!5m1!1sen",
+    "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d14602.62487983703!2d90.3797689871582!3d23.79525330000001!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3755c7cbac58cad1%3A0x87e09007f5541b3c!2sProject%20Help!5e0!3m2!1sen!2sbd!4v1790761844820!5m2!1sen!2sbd",
+  /** The address on one line, for a label that has no room for a block. */
+  addressLine: "3rd Floor, House 76, Road 11, Banani, Dhaka 1213",
   address: {
-    street: "3rd Floor, House 76/A, Road 11, Banani",
+    street: "3rd Floor, House 76, Road 11, Banani",
     locality: "Dhaka",
     postalCode: "1213",
     country: "BD",

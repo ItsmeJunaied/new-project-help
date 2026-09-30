@@ -7,31 +7,29 @@ import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { reveal } from "@/lib/anim";
 import { CLIENTS } from "@/lib/clients";
-import { TESTIMONIALS } from "@/lib/testimonials";
+import { APPROVED_TESTIMONIALS } from "@/lib/testimonials";
 
 /**
  * The concept's reviews block, to its own measurements: a header row with the
- * heading left and a strip of proof badges right, then one tall black card at
- * 520px with a green disc bleeding off its top corner and a 160px serif quote
- * mark, and two white cards stacked beside it.
+ * heading left and a strip of proof right, then one tall black card at 520px
+ * with a green disc bleeding off its top corner and a 160px serif quote mark,
+ * and two white cards stacked beside it.
  *
- * What fills it is ours, and this is the one place it has to be.
+ * The three cards carry client reviews as soon as there are three approved
+ * ones in lib/testimonials.ts, and the work until then.
  *
- * The concept's three cards are client quotes with names, faces and platform
- * badges, and its badge strip is a Clutch rating, a Dribbble award and a
- * Behance feature. We are on none of those platforms, and we have no quotes:
- * Signature Bangla, Textalyz AI and Rongobuy are real companies, and words
- * written for a real client and published under their name are a fabricated
- * endorsement — prohibited under the FTC's rules and under UK and EU consumer
- * law. This site already had one round of invented testimonials stripped out
- * for exactly that reason, which is what lib/testimonials.ts says at length.
- *
- * So the badge strip carries the client marks we do have permission for, and
- * the three cards carry the work. The moment TESTIMONIALS has real entries
- * they take over the card bodies above, with no change to this layout.
+ * That gate is deliberate and it is the one thing in this section that is not
+ * a design decision. Signature Bangla, Textalyz AI and Rongobuy are real
+ * companies and the people quoted are real people; a paragraph drafted on
+ * someone's behalf is a normal way to ASK for a testimonial, but publishing
+ * one they have not signed off is a fabricated endorsement — prohibited under
+ * the FTC's endorsement rules in the US and under consumer-protection law in
+ * the UK and EU, with their name on it rather than ours. The three drafts are
+ * written and waiting in that file; each goes live on a one-word edit once its
+ * author confirms the wording.
  */
 
-/** The work in the tall card. */
+/** What the three cards show until three reviews are approved. */
 const FEATURE = {
   client: "Signature Bangla",
   logo: CLIENTS.find((client) => client.name === "Signature Bangla"),
@@ -39,11 +37,10 @@ const FEATURE = {
     "Groceries with a two-day shelf life, pharmacy items with regulatory constraints and household goods, sold from one basket — with operations watching orders, riders and stock move in real time.",
   accent: "across four locations",
   meta: "eCommerce · delivery platform",
-  stack: ["Next.js", "Node.js", "PostgreSQL", "Socket.IO"],
+  sub: "Next.js · Node.js · PostgreSQL · Socket.IO",
   href: "/case-study/signature-bangla",
 };
 
-/** And the two beside it. */
 const SUPPORTING = [
   {
     title: "Clinic Management System",
@@ -62,6 +59,117 @@ const SUPPORTING = [
     href: "/case-study/restaurant-pos",
   },
 ];
+
+/** One shape for both, so the cards below are written once. */
+type Card = {
+  key: string;
+  quote: string;
+  /** The tail of the quote, set in the serif — reviews do not get one. */
+  accent?: string;
+  title: string;
+  sub: string;
+  /** The mono tag at the foot of the black card, or the chip on a white one. */
+  tag: string;
+  href?: string;
+  logo?: { src: string; alt: string; width: number; height: number };
+  initials?: string;
+};
+
+const reviews = APPROVED_TESTIMONIALS;
+const showReviews = reviews.length >= 3;
+
+const CARDS: Card[] = showReviews
+  ? reviews.slice(0, 3).map((item) => ({
+      key: item.id,
+      quote: item.quote,
+      title: item.name,
+      sub: item.role,
+      tag: "Client review",
+      logo: item.logo
+        ? { src: item.logo.src, alt: item.logo.alt, width: 161, height: 161 }
+        : undefined,
+      initials: item.name
+        .split(" ")
+        .slice(0, 2)
+        .map((word) => word[0])
+        .join(""),
+    }))
+  : [
+      {
+        key: "feature",
+        quote: FEATURE.quote,
+        accent: FEATURE.accent,
+        title: FEATURE.client,
+        sub: FEATURE.sub,
+        tag: FEATURE.meta,
+        href: FEATURE.href,
+        logo: FEATURE.logo
+          ? {
+              src: FEATURE.logo.src,
+              alt: FEATURE.logo.name,
+              width: FEATURE.logo.width,
+              height: FEATURE.logo.height,
+            }
+          : undefined,
+      },
+      ...SUPPORTING.map((item) => ({
+        key: item.title,
+        quote: item.quote,
+        title: item.title,
+        sub: item.meta,
+        tag: "Case study",
+        href: item.href,
+        initials: item.initials,
+      })),
+    ];
+
+/** A card is a link only when there is somewhere for it to go. */
+function CardShell({
+  href,
+  className,
+  children,
+}: {
+  href?: string;
+  className: string;
+  children: React.ReactNode;
+}) {
+  if (!href) return <div className={className}>{children}</div>;
+  return (
+    <Link href={href} className={className}>
+      {children}
+    </Link>
+  );
+}
+
+function Avatar({ card, size }: { card: Card; size: 52 | 44 }) {
+  if (card.logo) {
+    return (
+      <span
+        style={{ width: size, height: size }}
+        className="flex shrink-0 items-center justify-center overflow-hidden rounded-full bg-white"
+      >
+        <Image
+          src={card.logo.src}
+          alt=""
+          width={card.logo.width}
+          height={card.logo.height}
+          sizes="52px"
+          className="h-[62%] w-auto max-w-[76%] object-contain"
+        />
+      </span>
+    );
+  }
+
+  return (
+    <span
+      aria-hidden
+      style={{ width: size, height: size }}
+      className="flex shrink-0 items-center justify-center rounded-full bg-black/[0.06] font-display text-[15px] font-semibold tracking-[-0.02em] text-black"
+    >
+      {card.initials}
+    </span>
+  );
+}
 
 export default function ContactProof() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -101,6 +209,8 @@ export default function ContactProof() {
     { scope: sectionRef },
   );
 
+  const [lead, ...rest] = CARDS;
+
   return (
     <section
       ref={sectionRef}
@@ -126,19 +236,20 @@ export default function ContactProof() {
           {CLIENTS.map((client) => (
             <li
               key={client.name}
-              className="pf-mark flex min-w-[150px] flex-col gap-[10px] rounded-[18px] border border-black/15 bg-white px-[18px] py-[14px]"
+              className="pf-mark flex min-w-[164px] flex-col gap-[12px] rounded-[18px] border border-black/15 bg-white px-[18px] py-[16px]"
             >
+              {/* self-start and object-contain, both load-bearing: the card is
+                  a flex column, so without them a 120x120 square mark gets
+                  stretched to the card's full width and squashed to the row
+                  height. */}
               <Image
                 src={client.src}
                 alt={client.name}
                 width={client.width}
                 height={client.height}
                 sizes="161px"
-                className={`${client.rowClassName} w-auto`}
+                className={`${client.rowClassName} w-auto max-w-full self-start object-contain`}
               />
-              {/* No invented dates or sectors here: the only thing this repo
-                  can state about a mark is that it is shown with permission,
-                  which is the rule lib/clients.ts sets. */}
               <span className="font-body text-[12px] leading-[1.3] tracking-[-0.1px] text-neutral-paragraph">
                 Mark used with permission
               </span>
@@ -147,30 +258,11 @@ export default function ContactProof() {
         </ul>
       </div>
 
-      {/* Real quotes take over the card bodies the moment any exist. */}
-      {TESTIMONIALS.length > 0 ? (
-        <ul className="mb-[16px] grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,440px),1fr))] gap-[16px]">
-          {TESTIMONIALS.slice(0, 3).map((item) => (
-            <li
-              key={item.id}
-              className="flex flex-col gap-[16px] rounded-[28px] border border-black/10 bg-white p-[28px]"
-            >
-              <p className="m-0 font-display text-[20px] leading-[1.4] tracking-[-0.015em] text-pretty text-black">
-                {item.quote}
-              </p>
-              <p className="m-0 mt-auto font-body text-[13px] leading-[1.3] tracking-[-0.1px] text-neutral-paragraph">
-                <span className="font-semibold text-black">{item.name}</span> — {item.role}
-              </p>
-            </li>
-          ))}
-        </ul>
-      ) : null}
-
       <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(min(100%,440px),1fr))] gap-[16px]">
         {/* The tall black card, with the disc bleeding off its corner. */}
-        <Link
-          href={FEATURE.href}
-          className="pf-card group relative flex min-h-[520px] flex-col justify-between gap-[48px] overflow-hidden rounded-[28px] bg-black p-[clamp(28px,3.4vw,48px)] text-bg"
+        <CardShell
+          href={lead.href}
+          className="pf-card relative flex min-h-[520px] flex-col justify-between gap-[48px] overflow-hidden rounded-[28px] bg-black p-[clamp(28px,3.4vw,48px)] text-bg"
         >
           <span
             aria-hidden
@@ -185,47 +277,42 @@ export default function ContactProof() {
           </span>
 
           <p className="relative m-0 font-display text-[clamp(26px,2.6vw,38px)] font-medium leading-[1.2] tracking-[-0.03em] text-pretty">
-            {FEATURE.quote}{" "}
-            <span className="font-serif font-normal italic tracking-[-0.02em] text-primary-green">
-              {FEATURE.accent}
-            </span>
+            {lead.quote}
+            {lead.accent ? (
+              <>
+                {" "}
+                <span className="font-serif font-normal italic tracking-[-0.02em] text-primary-green">
+                  {lead.accent}
+                </span>
+              </>
+            ) : null}
           </p>
 
           <div className="relative flex flex-wrap items-center justify-between gap-[16px] border-t border-white/12 pt-[24px]">
             <div className="flex items-center gap-[14px]">
-              {FEATURE.logo ? (
-                <span className="flex size-[52px] shrink-0 items-center justify-center overflow-hidden rounded-full bg-white">
-                  <Image
-                    src={FEATURE.logo.src}
-                    alt=""
-                    width={FEATURE.logo.width}
-                    height={FEATURE.logo.height}
-                    sizes="52px"
-                    className="h-[30px] w-auto"
-                  />
-                </span>
-              ) : null}
+              <Avatar card={lead} size={52} />
               <div className="flex flex-col gap-[2px]">
                 <span className="font-body text-[16px] font-semibold leading-none tracking-[-0.1px]">
-                  {FEATURE.client}
+                  {lead.title}
                 </span>
                 <span className="font-body text-[13px] leading-[1.4] tracking-[-0.1px] text-white/60">
-                  {FEATURE.stack.join(" · ")}
+                  {lead.sub}
                 </span>
               </div>
             </div>
             <span className="rounded-full bg-primary-green px-[12px] py-[7px] font-mono text-[11px] uppercase leading-none tracking-[0.08em] text-black">
-              {FEATURE.meta} ↗
+              {lead.tag}
+              {lead.href ? " ↗" : ""}
             </span>
           </div>
-        </Link>
+        </CardShell>
 
         {/* Two white cards stacked beside it. */}
         <div className="flex flex-col gap-[16px]">
-          {SUPPORTING.map((item) => (
-            <Link
-              key={item.title}
-              href={item.href}
+          {rest.map((card) => (
+            <CardShell
+              key={card.key}
+              href={card.href}
               className="pf-card flex flex-1 flex-col justify-between gap-[28px] rounded-[28px] border border-black/12 bg-white p-[28px] text-black transition-colors duration-300 hover:border-black"
             >
               <div className="flex items-center justify-between gap-[12px]">
@@ -233,31 +320,27 @@ export default function ContactProof() {
                   ★★★★★
                 </span>
                 <span className="font-mono text-[11px] uppercase leading-none tracking-[0.08em] text-neutral-paragraph">
-                  Case study ↗
+                  {card.tag}
+                  {card.href ? " ↗" : ""}
                 </span>
               </div>
 
               <p className="m-0 font-display text-[20px] leading-[1.4] tracking-[-0.015em] text-pretty">
-                {item.quote}
+                {card.quote}
               </p>
 
               <div className="flex items-center gap-[12px]">
-                <span
-                  aria-hidden
-                  className="flex size-[44px] shrink-0 items-center justify-center rounded-full bg-black/[0.06] font-display text-[15px] font-semibold tracking-[-0.02em] text-black"
-                >
-                  {item.initials}
-                </span>
+                <Avatar card={card} size={44} />
                 <div className="flex flex-col gap-[2px]">
                   <span className="font-body text-[15px] font-semibold leading-none tracking-[-0.1px]">
-                    {item.title}
+                    {card.title}
                   </span>
                   <span className="font-body text-[13px] leading-[1.4] tracking-[-0.1px] text-neutral-paragraph">
-                    {item.meta}
+                    {card.sub}
                   </span>
                 </div>
               </div>
-            </Link>
+            </CardShell>
           ))}
         </div>
       </div>

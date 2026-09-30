@@ -22,6 +22,60 @@ import { HEADLINE_SERVICES } from "@/lib/services";
 
 const ROW_ONE = HEADLINE_SERVICES.map((service) => service.title);
 
+/**
+ * A mark for each ribbon item, and a sparkle between them.
+ *
+ * The concept separates its ribbon items with a typographic asterisk, which at
+ * 36px is whatever glyph the font happens to have. These are drawn instead: a
+ * four-point sparkle for the separator, and one line mark per item so the top
+ * row says what each service IS at a glance rather than only naming it. Same
+ * 24-unit box and stroke weight as the process marks, so the two sets are
+ * obviously the same family.
+ */
+const SPARKLE = (
+  <svg viewBox="0 0 24 24" aria-hidden className="size-[0.74em] shrink-0">
+    <path
+      d="M12 2c.5 5.2 4.3 9 9.5 9.5C16.3 12 12.5 15.8 12 21c-.5-5.2-4.3-9-9.5-9.5C7.7 11 11.5 7.2 12 2Z"
+      fill="currentColor"
+    />
+  </svg>
+);
+
+/** Keyed by the words in the item, so a reordered list keeps its marks. */
+const RIBBON_MARKS: { match: RegExp; path: React.ReactNode }[] = [
+  { match: /saas/i, path: <><path d="M4 7.5h16v11H4z" /><path d="M4 11h16M8 15h5" /></> },
+  { match: /commerce|shop/i, path: <><path d="M4 6h2.2l2 10.5h9.6L20 9H7" /><circle cx="9.5" cy="20" r="1.4" /><circle cx="17" cy="20" r="1.4" /></> },
+  { match: /devops|cloud/i, path: <><path d="M7.5 18a4 4 0 0 1-.4-8 5.5 5.5 0 0 1 10.6 1.4A3.6 3.6 0 0 1 17 18Z" /><path d="M12 15.5v-5m0 0-1.8 1.8M12 10.5l1.8 1.8" /></> },
+  { match: /ai|machine|data/i, path: <><circle cx="12" cy="12" r="3" /><path d="M12 4v5M12 15v5M4 12h5M15 12h5M6.7 6.7l3 3M14.3 14.3l3 3M17.3 6.7l-3 3M9.7 14.3l-3 3" /></> },
+  { match: /mobile|app/i, path: <><rect x="7" y="3" width="10" height="18" rx="2.4" /><path d="M11 18h2" /></> },
+  { match: /security|cyber/i, path: <><path d="M12 3.2 19 6v6c0 4.2-3 7.4-7 8.8-4-1.4-7-4.6-7-8.8V6Z" /><path d="m9.3 12 2 2 3.4-3.6" /></> },
+  { match: /consult|strategy/i, path: <><path d="M4 19V9m5 10V5m5 14v-7m5 7V7" /></> },
+  { match: /engineer|brief/i, path: <><path d="M6 3.5h7.5L19 9v11.5a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1Z" /><path d="M13.5 3.5V9H19M8.5 13.5h7M8.5 17h4" /></> },
+  { match: /nda|sign/i, path: <><path d="M4 18.5c2.5.6 4-3.5 6-3.5s2 3 4 3 4.5-2.5 6-5.5" /><path d="M7 14c2-3.5 4.5-8 7.5-8.8 1.4-.4 2.5.7 2 2C15.8 10.4 10.5 13 7 14Z" /></> },
+  { match: /number|price|quote|starting/i, path: <><circle cx="12" cy="12" r="8.5" /><path d="M12 7.2v9.6M14.6 9.4c-.6-.8-1.6-1.2-2.8-1.2-1.6 0-2.7.8-2.7 2 0 2.8 5.5 1.4 5.5 4.2 0 1.3-1.2 2.1-2.8 2.1-1.3 0-2.4-.5-3-1.4" /></> },
+  { match: /bot|auto-repl|chatbot/i, path: <><rect x="4" y="8" width="16" height="11" rx="3" /><path d="M12 8V4.5M8.5 13v1.5M15.5 13v1.5" /><circle cx="12" cy="3.6" r="1.2" /></> },
+];
+
+function RibbonMark({ label }: { label: string }) {
+  const found = RIBBON_MARKS.find((mark) => mark.match.test(label));
+  if (!found) return null;
+
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.4}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden
+      className="size-[0.86em] shrink-0 opacity-70"
+    >
+      {found.path}
+    </svg>
+  );
+}
+
 function Marquee({
   items,
   reverse = false,
@@ -54,17 +108,18 @@ function Marquee({
         {track.map((item, index) => (
           <span key={`${item}-${index}`} className="flex items-center gap-[28px]">
             <span
-              className={`whitespace-nowrap font-display text-[clamp(22px,2.6vw,36px)] font-medium tracking-[-0.035em] ${
+              className={`flex items-center gap-[14px] whitespace-nowrap font-display text-[clamp(22px,2.6vw,36px)] font-medium tracking-[-0.035em] ${
                 dim ? "text-neutral-paragraph" : "text-black"
               }`}
             >
+              <RibbonMark label={item} />
               {item}
             </span>
             <span
               aria-hidden
-              className="text-[clamp(20px,2.2vw,30px)] leading-none text-primary-green"
+              className="flex items-center text-[clamp(20px,2.2vw,30px)] leading-none text-primary-green"
             >
-              ✳
+              {SPARKLE}
             </span>
           </span>
         ))}

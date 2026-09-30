@@ -8,7 +8,6 @@ import { prefersReducedMotion } from "@/lib/anim";
 import { trackScheduleClick } from "@/lib/analytics";
 import { useLeadForm } from "@/components/forms/useLeadForm";
 import LeadFormExtras from "@/components/forms/LeadFormExtras";
-import { CLIENTS } from "@/lib/clients";
 import { HEADLINE_SERVICES } from "@/lib/services";
 import { TEAM } from "@/lib/team";
 import { siteConfig } from "@/lib/site";
@@ -285,38 +284,34 @@ export default function ContactDetails() {
               ))}
             </ul>
 
-            {/* Who has already sent one. The marks are the ones lib/clients.ts
-                holds permission for, each on its own pale chip.
-                NOT knocked through to white: one of the three is a filled
-                square rather than a transparent glyph, so a brightness-0
-                invert turns it into a solid white block. A chip works for any
-                artwork, which is what a list somebody else will add to needs. */}
-            <div className="flex flex-col gap-[14px] border-t border-white/12 pt-[22px]">
-              <span className="font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-white/60">
-                Briefs already answered for
-              </span>
-              <ul className="m-0 flex list-none flex-wrap items-center gap-[8px] p-0">
-                {CLIENTS.map((client) => (
-                  <li
-                    key={client.name}
-                    className="flex items-center rounded-[10px] bg-white/90 px-[12px] py-[8px]"
-                  >
-                    <Image
-                      src={client.src}
-                      alt={client.name}
-                      width={client.width}
-                      height={client.height}
-                      sizes="161px"
-                      className={`${client.rowClassName} w-auto`}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </div>
           </div>
 
           <div className="flex flex-col border-t border-white/12">
-            <span className="pb-[4px] pt-[18px] font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-white/60">
+            {/* The office first, then the three routes — one block, so the foot
+                of the column is a single list instead of two competing ones. */}
+            <a
+              href={siteConfig.mapsHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group flex items-start gap-[12px] py-[18px] transition-colors hover:text-primary-green"
+            >
+              <span aria-hidden className="mt-[2px] shrink-0 text-primary-green">
+                <svg width="15" height="15" viewBox="0 0 16 16" fill="none">
+                  <path
+                    d="M8 14.5s5-4.2 5-8a5 5 0 1 0-10 0c0 3.8 5 8 5 8Z"
+                    stroke="currentColor"
+                    strokeWidth="1.4"
+                    strokeLinejoin="round"
+                  />
+                  <circle cx="8" cy="6.4" r="1.8" stroke="currentColor" strokeWidth="1.4" />
+                </svg>
+              </span>
+              <span className="font-body text-[14px] leading-[1.45] tracking-[-0.1px] text-white/70 transition-colors group-hover:text-primary-green">
+                {siteConfig.addressLine}
+              </span>
+            </a>
+
+            <span className="border-t border-white/12 pb-[4px] pt-[18px] font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-white/60">
               Or reach us directly
             </span>
             {DIRECT.map((route) => (
