@@ -250,8 +250,8 @@ export default function ContactProof() {
                 sizes="161px"
                 className={`${client.rowClassName} w-auto max-w-full self-start object-contain`}
               />
-              <span className="font-body text-[12px] leading-[1.3] tracking-[-0.1px] text-neutral-paragraph">
-                Mark used with permission
+              <span className="font-body text-[12px] font-semibold leading-[1.3] tracking-[-0.1px] text-black">
+                {client.name}
               </span>
             </li>
           ))}

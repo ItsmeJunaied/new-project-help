@@ -17,11 +17,15 @@ import { prefersReducedMotion, reveal } from "@/lib/anim";
  * four figures below that.
  *
  * The dots are built the way the concept builds them, which is a nice trick
- * worth keeping: the countries are filled into an offscreen canvas in three
- * flat key colours, the pixels are read back on a fixed grid, and each sample
- * becomes a dot whose colour is decided by which key it landed on. That gives
- * a halftone of real coastlines without hand-placing anything, and it reflows
- * at any width because the grid is derived from the width.
+ * worth keeping: the countries are filled into an offscreen canvas in flat key
+ * colours, the pixels are read back on a fixed grid, and each sample becomes a
+ * dot whose colour is decided by which key it landed on. That gives a halftone
+ * of real coastlines without hand-placing anything, and it reflows at any width
+ * because the grid is derived from the width.
+ *
+ * Every country we ship to is keyed separately, so its dots, its arc, its
+ * landing ring and its label all carry its own flag colour rather than one
+ * blanket green.
  *
  * ONE THING NEEDS YOUR CONFIRMATION. The concept names eight countries as its
  * coverage zones. We do not publish a client-country list, so MARKETS below is
@@ -30,29 +34,212 @@ import { prefersReducedMotion, reveal } from "@/lib/anim";
  * The four figures are ours and are the ones the service pages already quote.
  */
 
+type Market = {
+  id: string;
+  p: [number, number];
+  name: string;
+  /** What fits in a label pinned to a 44px-wide corner of Europe. */
+  short: string;
+  /** The flag's dominant colour — the country's dots, arc and label take it. */
+  colour: string;
+  /** A second colour from the same flag, for the label's flag-side rule. */
+  accent: string;
+  /**
+   * Where the label sits relative to the country, in pixels at a 1000px-wide
+   * map, scaled with the map. Six of the eight destinations are inside a 44 by
+   * 64 pixel corner of Europe at world scale, so a label drawn at its own
+   * point lands on top of five others. These fan the six out over the Atlantic
+   * and Asia, each on a leader line back to its dot.
+   */
+  off: [number, number];
+};
+
 /**
  * PLACEHOLDER — confirm or replace before this page goes live.
  *
  * `id` is the ISO 3166-1 numeric code as world-atlas keys it, `p` is the
- * [lon, lat] the arc lands on, and `name` is what the marker and the chip row
- * both call it. We do not publish a client-country list, so this is the
- * concept's own list carried over; it is the one place to edit.
+ * [lon, lat] the arc lands on, and `name` is what the chip row calls it. We do
+ * not publish a client-country list, so this is the concept's own list carried
+ * over; it is the one place to edit.
  */
-const MARKETS = [
-  { id: "840", p: [-96, 39] as [number, number], name: "United States" },
-  { id: "826", p: [-1.8, 52.8] as [number, number], name: "United Kingdom" },
-  { id: "276", p: [10.4, 51.1] as [number, number], name: "Germany" },
-  { id: "250", p: [2.4, 46.8] as [number, number], name: "France" },
-  { id: "528", p: [5.6, 52.2] as [number, number], name: "Netherlands" },
-  { id: "724", p: [-3.7, 40.2] as [number, number], name: "Spain" },
-  { id: "752", p: [15.5, 61] as [number, number], name: "Sweden" },
-  { id: "036", p: [134, -25] as [number, number], name: "Australia" },
+const MARKETS: Market[] = [
+  {
+    id: "840",
+    p: [-96, 39],
+    name: "United States",
+    short: "USA",
+    colour: "#b22234",
+    accent: "#3c3b6e",
+    off: [0, -56],
+  },
+  {
+    id: "826",
+    p: [-1.8, 52.8],
+    name: "United Kingdom",
+    short: "UK",
+    colour: "#012169",
+    accent: "#c8102e",
+    off: [-112, -8],
+  },
+  {
+    id: "276",
+    p: [10.4, 51.1],
+    name: "Germany",
+    short: "Germany",
+    colour: "#e3a600",
+    accent: "#1a1a1a",
+    off: [96, 14],
+  },
+  {
+    id: "250",
+    p: [2.4, 46.8],
+    name: "France",
+    short: "France",
+    colour: "#0055a4",
+    accent: "#ef4135",
+    off: [-108, 34],
+  },
+  {
+    id: "528",
+    p: [5.6, 52.2],
+    name: "Netherlands",
+    short: "Netherlands",
+    colour: "#ae1c28",
+    accent: "#21468b",
+    off: [-72, -46],
+  },
+  {
+    id: "724",
+    p: [-3.7, 40.2],
+    name: "Spain",
+    short: "Spain",
+    colour: "#c60b1e",
+    accent: "#f1bf00",
+    off: [-96, 58],
+  },
+  {
+    id: "752",
+    p: [15.5, 61],
+    name: "Sweden",
+    short: "Sweden",
+    colour: "#006aa7",
+    accent: "#fecc00",
+    off: [92, -18],
+  },
+  {
+    id: "036",
+    p: [134, -25],
+    name: "Australia",
+    short: "Australia",
+    colour: "#00247d",
+    accent: "#cf142b",
+    off: [-30, 46],
+  },
 ];
 
 /** Bangladesh, and Antarctica — the one the concept drops from the map. */
 const HQ_ID = "050";
 const ANTARCTICA_ID = "010";
 const HQ: [number, number] = [90.4, 23.8];
+/** The flag's bottle green and its red disc. */
+const HQ_COLOUR = "#006a4e";
+/** Where the Dhaka pill sits, in the same units as a market's `off`. */
+const HQ_OFF: [number, number] = [0, 34];
+
+/**
+ * Flags at 16x12, drawn rather than set as emoji.
+ *
+ * Windows ships no colour flag glyphs, so a country flag written as an emoji
+ * renders there as a two-letter box — the platform the site is built on is the
+ * one it would fail on. These are geometry instead: right everywhere, and they
+ * take the same colours the map does.
+ */
+const FLAGS: Record<string, React.ReactNode> = {
+  "840": (
+    <>
+      <rect width="16" height="12" fill="#fff" />
+      <g fill="#b22234">
+        <rect width="16" height="1.7" />
+        <rect y="3.4" width="16" height="1.7" />
+        <rect y="6.8" width="16" height="1.7" />
+        <rect y="10.2" width="16" height="1.7" />
+      </g>
+      <rect width="7" height="6.8" fill="#3c3b6e" />
+    </>
+  ),
+  "826": (
+    <>
+      <rect width="16" height="12" fill="#012169" />
+      <path d="M0 0 16 12M16 0 0 12" stroke="#fff" strokeWidth="2.6" />
+      <path d="M0 0 16 12M16 0 0 12" stroke="#c8102e" strokeWidth="1.2" />
+      <path d="M8 0V12M0 6H16" stroke="#fff" strokeWidth="4" />
+      <path d="M8 0V12M0 6H16" stroke="#c8102e" strokeWidth="2.2" />
+    </>
+  ),
+  "276": (
+    <>
+      <rect width="16" height="4" fill="#000" />
+      <rect y="4" width="16" height="4" fill="#dd0000" />
+      <rect y="8" width="16" height="4" fill="#ffce00" />
+    </>
+  ),
+  "250": (
+    <>
+      <rect width="16" height="12" fill="#fff" />
+      <rect width="5.34" height="12" fill="#0055a4" />
+      <rect x="10.66" width="5.34" height="12" fill="#ef4135" />
+    </>
+  ),
+  "528": (
+    <>
+      <rect width="16" height="4" fill="#ae1c28" />
+      <rect y="4" width="16" height="4" fill="#fff" />
+      <rect y="8" width="16" height="4" fill="#21468b" />
+    </>
+  ),
+  "724": (
+    <>
+      <rect width="16" height="12" fill="#c60b1e" />
+      <rect y="3" width="16" height="6" fill="#f1bf00" />
+    </>
+  ),
+  "752": (
+    <>
+      <rect width="16" height="12" fill="#006aa7" />
+      <rect x="4.6" width="2.6" height="12" fill="#fecc00" />
+      <rect y="4.7" width="16" height="2.6" fill="#fecc00" />
+    </>
+  ),
+  "036": (
+    <>
+      <rect width="16" height="12" fill="#00247d" />
+      <path d="M0 0 8 6M8 0 0 6" stroke="#fff" strokeWidth="1.5" />
+      <path d="M4 0V6M0 3H8" stroke="#fff" strokeWidth="2.4" />
+      <path d="M4 0V6M0 3H8" stroke="#cf142b" strokeWidth="1.1" />
+      <circle cx="4" cy="9.3" r="1.2" fill="#fff" />
+      <circle cx="12.3" cy="3.6" r="0.85" fill="#fff" />
+      <circle cx="13.4" cy="8.2" r="0.75" fill="#fff" />
+    </>
+  ),
+  "050": (
+    <>
+      <rect width="16" height="12" fill="#006a4e" />
+      <circle cx="7.2" cy="6" r="3.4" fill="#f42a41" />
+    </>
+  ),
+};
+
+function Flag({ id, className = "" }: { id: string; className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 16 12"
+      aria-hidden
+      className={`block shrink-0 rounded-[2px] ${className}`}
+    >
+      {FLAGS[id]}
+    </svg>
+  );
+}
 
 /** The figures the service pages already quote. */
 const STATS = [
@@ -65,10 +252,35 @@ const STATS = [
 type Arc = {
   id: string;
   name: string;
+  channels: [number, number, number];
+  /** Which slot of the flight cycle this leg departs in. */
+  slot: number;
   p0: [number, number];
   p1: [number, number];
   p2: [number, number];
 };
+
+/**
+ * One leg is in the air at a time, near enough.
+ *
+ * Eight comets running at once over a bundle of eight routes is the knot: the
+ * arcs converge because the destinations do, and no amount of bowing separates
+ * six countries that sit inside thirty-seven pixels of each other at world
+ * scale. So the routes stay faint and each leg gets its own slot of the cycle,
+ * lit only while it flies. Slots are handed out with a stride, so the leg that
+ * follows one into Europe is somewhere else entirely.
+ */
+const CYCLE = 0.08;
+/** Slots a leg stays in the air for — a little over one, so they just overlap. */
+const TRAVEL_SLOTS = 1.5;
+
+const gcd = (a: number, b: number): number => (b ? gcd(b, a % b) : a);
+
+function strideFor(count: number) {
+  let stride = Math.max(2, Math.round(count / 3));
+  while (stride > 1 && gcd(stride, count) !== 1) stride -= 1;
+  return stride;
+}
 
 type Built = {
   width: number;
@@ -141,14 +353,13 @@ export default function ContactCoverage() {
     const style = getComputedStyle(document.documentElement);
     const green = style.getPropertyValue("--color-primary-green").trim() || BRAND_GREEN;
     const ink = style.getPropertyValue("--color-black").trim() || "#151515";
-    const paper = style.getPropertyValue("--color-bg").trim() || "#fffdfb";
 
     /**
-     * Everything that fades needs the green at a given alpha, and a canvas
-     * fill is not a stylesheet: `color-mix()` is only parsed by some engines
-     * there, and a fill string the engine cannot read is silently ignored
-     * rather than throwing. So the token is resolved to channels once and the
-     * fades are plain rgba(), which every canvas has understood forever.
+     * Everything that fades needs a colour at a given alpha, and a canvas fill
+     * is not a stylesheet: `color-mix()` is only parsed by some engines there,
+     * and a fill string the engine cannot read is silently ignored rather than
+     * throwing. So colours are resolved to channels once and the fades are
+     * plain rgba(), which every canvas has understood forever.
      */
     const toChannels = (colour: string): [number, number, number] | null => {
       const hex = colour.trim().replace("#", "");
@@ -174,10 +385,9 @@ export default function ContactCoverage() {
 
     // Never a second copy of the hex: if the token cannot be read, the same
     // parse runs over lib/brand.ts's single declaration instead.
-    const channels = toChannels(green) ?? toChannels(BRAND_GREEN) ?? [0, 0, 0];
-
-    const fade = (a: number) =>
-      `rgba(${channels[0]},${channels[1]},${channels[2]},${a.toFixed(2)})`;
+    const fallback = toChannels(green) ?? toChannels(BRAND_GREEN) ?? [0, 0, 0];
+    const rgba = (c: [number, number, number], a: number) =>
+      `rgba(${c[0]},${c[1]},${c[2]},${a.toFixed(2)})`;
 
     const still = prefersReducedMotion();
 
@@ -210,7 +420,27 @@ export default function ContactCoverage() {
       canvas.height = height;
       canvas.style.aspectRatio = `${width} / ${height}`;
 
-      // Three flat key colours into an offscreen canvas, then read back.
+      /**
+       * One key per country rather than the concept's three buckets, so each
+       * market's dots can be its own flag colour. The key is written into the
+       * red channel: keys are 24 apart, and a sample is only accepted within 6
+       * of one, so the blended pixels along a shared border fall through to the
+       * grey rather than being read as whichever neighbour they happen to
+       * average towards. Edges against the sea keep their key exactly —
+       * getImageData is not premultiplied, so only the alpha drops there.
+       */
+      const BASE_KEY = 8;
+      const HQ_KEY = 250;
+      const keyOf = new Map<string, number>();
+      MARKETS.forEach((market, index) => keyOf.set(market.id, 20 + index * 24));
+      const colourOf = new Map<number, string>([
+        [BASE_KEY, "#d8d8d2"],
+        [HQ_KEY, HQ_COLOUR],
+      ]);
+      for (const market of MARKETS) {
+        colourOf.set(keyOf.get(market.id) as number, market.colour);
+      }
+
       const keyed = document.createElement("canvas");
       keyed.width = width;
       keyed.height = height;
@@ -218,24 +448,18 @@ export default function ContactCoverage() {
       if (!kx) return;
       const path = geoPath(projection, kx);
 
-      const zone = new Set(MARKETS.map((market) => market.id));
-      const groups: Record<"base" | "zone" | "hq", Feature<Geometry>[]> = {
-        base: [],
-        zone: [],
-        hq: [],
-      };
+      const groups = new Map<number, Feature<Geometry>[]>();
       for (const f of features) {
         const id = String(f.id);
-        groups[id === HQ_ID ? "hq" : zone.has(id) ? "zone" : "base"].push(f);
+        const key = id === HQ_ID ? HQ_KEY : (keyOf.get(id) ?? BASE_KEY);
+        const list = groups.get(key);
+        if (list) list.push(f);
+        else groups.set(key, [f]);
       }
-      for (const [key, colour] of [
-        ["base", "#ff0000"],
-        ["zone", "#00ff00"],
-        ["hq", "#0000ff"],
-      ] as const) {
+      for (const [key, list] of groups) {
         kx.beginPath();
-        for (const f of groups[key]) path(f);
-        kx.fillStyle = colour;
+        for (const f of list) path(f);
+        kx.fillStyle = `rgb(${key},0,0)`;
         kx.fill();
       }
 
@@ -249,86 +473,149 @@ export default function ContactCoverage() {
 
       const step = Math.max(5, Math.round(width / 190));
       const radius = step * 0.3;
-      const buckets = { base: new Path2D(), zone: new Path2D(), hq: new Path2D() };
+      // Insertion order is paint order, and the grey goes down first so a dot
+      // shared with a neighbour is overpainted by the country that matters.
+      const dots = new Map<number, Path2D>([[BASE_KEY, new Path2D()]]);
 
       for (let y = step / 2; y < height; y += step) {
         for (let x = step / 2; x < width; x += step) {
           const i = (Math.floor(y) * width + Math.floor(x)) * 4;
-          const key =
-            pixels[i + 2] > 120
-              ? "hq"
-              : pixels[i + 1] > 120
-                ? "zone"
-                : pixels[i] > 120
-                  ? "base"
-                  : null;
-          if (!key) continue;
-          const r = key === "base" ? radius : radius * 1.15;
-          buckets[key].moveTo(x + r, y);
-          buckets[key].arc(x, y, r, 0, Math.PI * 2);
+          if (pixels[i + 3] < 100) continue;
+          const red = pixels[i];
+
+          let key = BASE_KEY;
+          for (const candidate of colourOf.keys()) {
+            if (Math.abs(red - candidate) <= 6) {
+              key = candidate;
+              break;
+            }
+          }
+
+          const r = key === BASE_KEY ? radius : radius * 1.2;
+          let bucket = dots.get(key);
+          if (!bucket) {
+            bucket = new Path2D();
+            dots.set(key, bucket);
+          }
+          bucket.moveTo(x + r, y);
+          bucket.arc(x, y, r, 0, Math.PI * 2);
         }
       }
 
-      bx.fillStyle = "#d8d8d2";
-      bx.fill(buckets.base);
-      bx.fillStyle = green;
-      bx.fill(buckets.zone);
-      bx.fillStyle = ink;
-      bx.fill(buckets.hq);
+      for (const [key, bucket] of dots) {
+        bx.fillStyle = colourOf.get(key) ?? "#d8d8d2";
+        bx.fill(bucket);
+      }
 
       const hq = projection(HQ) as [number, number];
-      const arcs: Arc[] = [];
-      for (const [index, market] of MARKETS.entries()) {
-        const p2 = projection(market.p);
-        if (!p2) continue;
+      const landed = MARKETS.map((market) => ({
+        market,
+        p2: projection(market.p) as [number, number] | null,
+      })).filter((entry): entry is { market: Market; p2: [number, number] } => Boolean(entry.p2));
+
+      /**
+       * The bows are nested by the heading each leg leaves Dhaka on.
+       *
+       * Six of the eight destinations sit in one corner of Europe, so their
+       * legs leave on almost the same heading; bowing them all by the same
+       * fraction stacks them into one rope, and varying the bow by anything
+       * that is not the departure angle makes them cut across each other
+       * instead. Sorted by that angle and bowed in order, they read as nested
+       * layers and no two legs ever cross.
+       */
+      const ranked = landed
+        .map((entry, index) => ({
+          index,
+          angle: Math.atan2(entry.p2[1] - hq[1], entry.p2[0] - hq[0]),
+        }))
+        .sort((a, b) => a.angle - b.angle);
+      const rank = new Map<number, number>();
+      ranked.forEach((entry, position) => rank.set(entry.index, position));
+
+      const stride = strideFor(landed.length);
+
+      const arcs: Arc[] = landed.map(({ market, p2 }, index) => {
+        const position = rank.get(index) ?? 0;
+        const spread = landed.length > 1 ? position / (landed.length - 1) : 0;
+        // Shallow, so each leg reads as a direct route. The concept bows by a
+        // third of the leg's own length, which throws the long westward ones up
+        // over the pole and drops them back down through Europe.
+        const bow = 0.1 + spread * 0.2;
+
         const mid: [number, number] = [(hq[0] + p2[0]) / 2, (hq[1] + p2[1]) / 2];
         const dx = p2[0] - hq[0];
         const dy = p2[1] - hq[1];
         const dist = Math.hypot(dx, dy) || 1;
         let nx = -dy / dist;
         let ny = dx / dist;
-        // Always bow the arc upward, whichever side of Dhaka it leaves from.
+        // Always bow upward, whichever side of Dhaka the leg leaves from.
         if (ny > 0) {
           nx = -nx;
           ny = -ny;
         }
-        // The concept bows every arc by a third of its own length, which sends
-        // the long westward legs up over the pole and drops them back down
-        // through the European cluster. These are shallower, so each one reads
-        // as a direct route, and the bow is fanned a little per destination so
-        // six legs to one corner of Europe separate instead of becoming one
-        // rope.
-        const bow = 0.12 + (index % 3) * 0.035;
-        arcs.push({
+
+        return {
           id: market.id,
           name: market.name,
+          channels: toChannels(market.colour) ?? fallback,
+          slot: (position * stride) % landed.length,
           p0: hq,
           p1: [mid[0] + nx * dist * bow, Math.max(8 * dpr, mid[1] + ny * dist * bow)],
-          p2: p2 as [number, number],
-        });
-      }
+          p2,
+        };
+      });
 
       built = { width, height, dpr, base, hq, arcs };
 
       /**
-       * The markers are ordinary DOM over the canvas, so the browser lays the
+       * The labels are ordinary DOM over the canvas, so the browser lays the
        * country names out, they are reachable by keyboard and readable by a
-       * screen reader, and the six European ones can overlap without a pile-up
-       * of pills burned into the bitmap. Their positions are the projection's,
-       * converted back from device pixels to CSS pixels and written straight
+       * screen reader, and the six European ones can be fanned out on leader
+       * lines instead of being burned into the bitmap on top of each other.
+       * Their positions are the projection's, in CSS pixels, written straight
        * onto the elements — no state, so this never re-renders the section.
        */
       const layer = spotsRef.current;
-      if (layer) {
-        const place = (id: string, point: [number, number]) => {
-          const el = layer.querySelector<HTMLElement>(`[data-spot="${id}"]`);
-          if (!el) return;
-          el.style.left = `${((point[0] / dpr / (width / dpr)) * 100).toFixed(3)}%`;
-          el.style.top = `${((point[1] / dpr / (height / dpr)) * 100).toFixed(3)}%`;
-        };
-        for (const arc of arcs) place(arc.id, arc.p2);
-        place(HQ_ID, hq);
-      }
+      if (!layer) return;
+
+      const cw = width / dpr;
+      const ch = height / dpr;
+      const scale = cw / 1000;
+
+      const leaders = layer.querySelector("svg[data-leaders]");
+      leaders?.setAttribute("viewBox", `0 0 ${cw} ${ch}`);
+
+      const place = (id: string, point: [number, number], off: [number, number]) => {
+        const x = point[0] / dpr;
+        const y = point[1] / dpr;
+
+        const spot = layer.querySelector<HTMLElement>(`[data-spot="${id}"]`);
+        if (spot) {
+          spot.style.left = `${x.toFixed(1)}px`;
+          spot.style.top = `${y.toFixed(1)}px`;
+        }
+
+        const lx = x + off[0] * scale;
+        const ly = y + off[1] * scale;
+
+        const label = layer.querySelector<HTMLElement>(`[data-label="${id}"]`);
+        if (label) {
+          label.style.left = `${lx.toFixed(1)}px`;
+          label.style.top = `${ly.toFixed(1)}px`;
+          label.style.opacity = "1";
+        }
+
+        const leader = layer.querySelector<SVGLineElement>(`[data-leader="${id}"]`);
+        if (leader) {
+          leader.setAttribute("x1", x.toFixed(1));
+          leader.setAttribute("y1", y.toFixed(1));
+          leader.setAttribute("x2", lx.toFixed(1));
+          leader.setAttribute("y2", ly.toFixed(1));
+        }
+      };
+
+      for (const { market, p2 } of landed) place(market.id, p2, market.off);
+      place(HQ_ID, hq, HQ_OFF);
     };
 
     const at = (arc: Arc, u: number): [number, number] => [
@@ -345,32 +632,42 @@ export default function ContactCoverage() {
       ctx.drawImage(base, 0, 0);
       ctx.lineCap = "round";
 
-      arcs.forEach((arc, i) => {
-        // The dotted route, always drawn in full.
+      const share = 1 / arcs.length;
+      const travel = share * TRAVEL_SLOTS;
+      const turn = (t * CYCLE) % 1;
+
+      arcs.forEach((arc) => {
+        // Where this leg is in its own slot. Past 1.3 it has landed and faded,
+        // and the route is all that is left of it until its next turn.
+        const raw = still ? 1 : ((turn - arc.slot * share + 1) % 1) / travel;
+        const flying = still || raw <= 1.3;
+
+        // The route, always drawn in full but faint, and only lit for the leg
+        // currently flying it.
         ctx.setLineDash([2 * dpr, 5 * dpr]);
         ctx.lineWidth = 1.2 * dpr;
-        ctx.strokeStyle = "rgba(21,21,21,0.28)";
+        ctx.strokeStyle = rgba(arc.channels, flying ? 0.5 : 0.2);
         ctx.beginPath();
         ctx.moveTo(arc.p0[0], arc.p0[1]);
         ctx.quadraticCurveTo(arc.p1[0], arc.p1[1], arc.p2[0], arc.p2[1]);
         ctx.stroke();
         ctx.setLineDash([]);
 
-        // The comet over it — a fixed full-length trail when motion is off.
-        const phase = still ? 1 : (t * 0.28 + i * 0.125) % 1;
-        const raw = still ? 1 : phase * 1.3;
         const u = Math.min(1, raw);
         const u0 = still ? 0 : Math.max(0, u - 0.28);
-        const segments = 16;
-        for (let k = 0; k < segments; k += 1) {
-          const a = at(arc, u0 + ((u - u0) * k) / segments);
-          const b = at(arc, u0 + ((u - u0) * (k + 1)) / segments);
-          ctx.strokeStyle = fade((k + 1) / segments);
-          ctx.lineWidth = 2.8 * dpr;
-          ctx.beginPath();
-          ctx.moveTo(a[0], a[1]);
-          ctx.lineTo(b[0], b[1]);
-          ctx.stroke();
+        if (flying) {
+          // The comet — a fixed full-length trail when motion is off.
+          const segments = 16;
+          for (let k = 0; k < segments; k += 1) {
+            const a = at(arc, u0 + ((u - u0) * k) / segments);
+            const b = at(arc, u0 + ((u - u0) * (k + 1)) / segments);
+            ctx.strokeStyle = rgba(arc.channels, (k + 1) / segments);
+            ctx.lineWidth = 2.8 * dpr;
+            ctx.beginPath();
+            ctx.moveTo(a[0], a[1]);
+            ctx.lineTo(b[0], b[1]);
+            ctx.stroke();
+          }
         }
 
         if (u < 1) {
@@ -388,15 +685,15 @@ export default function ContactCoverage() {
           ctx.lineTo(-s * 0.3, 0);
           ctx.lineTo(-s * 0.6, s * 0.55);
           ctx.closePath();
-          ctx.fillStyle = ink;
+          ctx.fillStyle = rgba(arc.channels, 1);
           ctx.fill();
           ctx.restore();
-        } else if (!still) {
+        } else if (!still && flying) {
           // Landing: one ring that opens and fades on arrival.
           const k = (raw - 1) / 0.3;
           ctx.beginPath();
           ctx.arc(arc.p2[0], arc.p2[1], (5 + k * 16) * dpr, 0, Math.PI * 2);
-          ctx.fillStyle = fade(0.55 * (1 - k));
+          ctx.fillStyle = rgba(arc.channels, 0.55 * (1 - k));
           ctx.fill();
         }
 
@@ -405,15 +702,16 @@ export default function ContactCoverage() {
         ctx.fillStyle = "#ffffff";
         ctx.fill();
         ctx.lineWidth = 2 * dpr;
-        ctx.strokeStyle = ink;
+        ctx.strokeStyle = rgba(arc.channels, 1);
         ctx.stroke();
       });
 
-      // Dhaka, pulsing.
+      // Dhaka, pulsing. The pulse stays the brand green; everything else on
+      // the map is now a flag colour, and this is the one point that is ours.
       const pulse = still ? 0 : (t * 0.8) % 1;
       ctx.beginPath();
       ctx.arc(hq[0], hq[1], (8 + pulse * 22) * dpr, 0, Math.PI * 2);
-      ctx.fillStyle = fade(0.5 * (1 - pulse));
+      ctx.fillStyle = rgba(fallback, 0.5 * (1 - pulse));
       ctx.fill();
       ctx.beginPath();
       ctx.arc(hq[0], hq[1], 7 * dpr, 0, Math.PI * 2);
@@ -423,28 +721,9 @@ export default function ContactCoverage() {
       ctx.strokeStyle = green;
       ctx.stroke();
 
-      ctx.font = `600 ${12 * dpr}px Geist, system-ui, sans-serif`;
-      ctx.textBaseline = "middle";
-      const pill = (x: number, y: number, text: string, isHq: boolean) => {
-        const textWidth = ctx.measureText(text).width;
-        const padX = 10 * dpr;
-        const boxH = 26 * dpr;
-        const w = textWidth + padX * 2;
-        const bx = x + 12 * dpr;
-        ctx.beginPath();
-        ctx.roundRect(bx, y - boxH / 2, w, boxH, boxH / 2);
-        ctx.fillStyle = isHq ? green : ink;
-        ctx.fill();
-        ctx.fillStyle = isHq ? ink : paper;
-        ctx.fillText(text, bx + padX, y + 0.5 * dpr);
-      };
-
-      // Only Dhaka is named on the canvas. Six European destinations sit
-      // inside seventy pixels of each other at world scale, so pills drawn at
-      // their own points landed on top of one another — the country names are
-      // on the markers over the top instead, where the browser can lay them
-      // out and get out of the way again.
-      pill(hq[0], hq[1] + 22 * dpr, "Dhaka HQ", true);
+      // Nothing is lettered on the canvas any more. Every name is a label in
+      // the layer above, where it can be fanned off a leader line, tabbed to
+      // and read aloud.
     };
 
     const loop = (now: number) => {
@@ -547,40 +826,97 @@ export default function ContactCoverage() {
 
           <div
             ref={spotsRef}
-            className="pointer-events-none absolute inset-x-[clamp(8px,1.4vw,20px)] top-[clamp(12px,2vw,28px)] bottom-0"
+            className="pointer-events-none absolute inset-x-[clamp(8px,1.4vw,20px)] bottom-0 top-[clamp(12px,2vw,28px)]"
           >
+            {/* The leader lines, in the same CSS-pixel frame as the labels.
+                Hidden with them below 900px, where the map is too narrow for
+                the fan to clear Europe and the chip row does the naming. */}
+            <svg
+              data-leaders
+              aria-hidden
+              className="absolute inset-0 hidden size-full min-[900px]:block"
+            >
+              {MARKETS.map((market) => (
+                <line
+                  key={market.id}
+                  data-leader={market.id}
+                  stroke={market.colour}
+                  strokeWidth={1}
+                  strokeDasharray="3 3"
+                  opacity={0.55}
+                />
+              ))}
+            </svg>
+
             {MARKETS.map((market) => (
-              <span
-                key={market.id}
-                data-spot={market.id}
-                tabIndex={0}
-                role="img"
-                aria-label={`${market.name} — covered from Dhaka`}
-                className="group pointer-events-auto absolute -ml-[13px] -mt-[13px] flex size-[26px] cursor-default items-center justify-center rounded-full outline-none"
-              >
+              <span key={market.id} className="contents">
                 {/* The dot itself is painted on the canvas; this is the hit
-                    area and the name that comes with it. */}
-                <span className="pointer-events-none absolute bottom-[calc(100%-2px)] left-1/2 hidden -translate-x-1/2 whitespace-nowrap rounded-full bg-black px-[10px] py-[6px] font-body text-[12px] font-semibold leading-none text-bg shadow-[0_6px_18px_rgba(10,10,10,0.25)] group-hover:block group-focus-visible:block">
-                  {market.name}
+                    area, and the name it carries is what a narrow screen and a
+                    screen reader get instead of the fanned label. */}
+                <span
+                  data-spot={market.id}
+                  tabIndex={0}
+                  role="img"
+                  aria-label={`${market.name} — covered from Dhaka`}
+                  className="group pointer-events-auto absolute -ml-[13px] -mt-[13px] flex size-[26px] cursor-default items-center justify-center rounded-full outline-none"
+                >
+                  <span className="pointer-events-none absolute bottom-[calc(100%-2px)] left-1/2 hidden -translate-x-1/2 items-center gap-[7px] whitespace-nowrap rounded-full bg-black px-[10px] py-[6px] font-body text-[12px] font-semibold leading-none text-bg shadow-[0_6px_18px_rgba(10,10,10,0.25)] group-hover:flex group-focus-visible:flex">
+                    <Flag id={market.id} className="w-[16px] ring-1 ring-white/25" />
+                    {market.name}
+                  </span>
+                  <span
+                    style={{ ["--spot" as string]: market.colour }}
+                    className="size-[18px] rounded-full transition-[box-shadow] group-hover:shadow-[0_0_0_6px_color-mix(in_srgb,var(--spot)_30%,transparent)] group-focus-visible:shadow-[0_0_0_6px_color-mix(in_srgb,var(--spot)_30%,transparent)]"
+                  />
                 </span>
-                <span className="size-[18px] rounded-full ring-black/0 transition-[box-shadow] group-hover:shadow-[0_0_0_6px_color-mix(in_srgb,var(--color-primary-green)_28%,transparent)] group-focus-visible:shadow-[0_0_0_6px_color-mix(in_srgb,var(--color-primary-green)_28%,transparent)]" />
+
+                {/* The fanned label: flag, name, and a rule in the flag's
+                    second colour. `off` on the market decides where it lands. */}
+                <span
+                  aria-hidden
+                  data-label={market.id}
+                  className="pointer-events-none absolute hidden -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-500 items-center gap-[6px] whitespace-nowrap rounded-full border border-black/10 bg-white/95 py-[4px] pl-[5px] pr-[10px] font-body text-[11.5px] font-semibold leading-none tracking-[-0.1px] text-black shadow-[0_4px_14px_rgba(10,10,10,0.12)] backdrop-blur-[2px] min-[900px]:flex"
+                >
+                  <Flag id={market.id} className="w-[17px] ring-1 ring-black/15" />
+                  <span
+                    aria-hidden
+                    style={{ background: market.accent }}
+                    className="h-[11px] w-[2px] shrink-0 rounded-full"
+                  />
+                  {market.short}
+                </span>
               </span>
             ))}
 
-            {/* Dhaka is the one that opens rather than just naming itself. */}
-            <span data-spot={HQ_ID} className="pointer-events-auto absolute">
+            {/* Dhaka is the one that opens rather than just naming itself, so
+                unlike the destinations its pill is always on the map and is
+                obviously a control — a bare hit area over the dot is something
+                nobody finds. */}
+            <span data-spot={HQ_ID} className="absolute" />
+            <span
+              data-label={HQ_ID}
+              className="pointer-events-auto absolute -translate-x-1/2 -translate-y-1/2 opacity-0 transition-opacity duration-500"
+            >
               <button
                 type="button"
                 onClick={() => setDeskOpen((open) => !open)}
                 aria-expanded={deskOpen}
-                aria-label={`The ${siteConfig.name} office in Dhaka — show the address`}
-                className="absolute -left-[16px] -top-[16px] size-[32px] cursor-pointer rounded-full outline-none ring-offset-2 focus-visible:ring-2 focus-visible:ring-black"
-              />
+                className="flex cursor-pointer items-center gap-[7px] whitespace-nowrap rounded-full bg-black py-[5px] pl-[6px] pr-[10px] font-body text-[11.5px] font-semibold leading-none tracking-[-0.1px] text-bg shadow-[0_6px_18px_rgba(10,10,10,0.28)] outline-none ring-offset-2 transition-colors duration-200 hover:bg-[#006a4e] focus-visible:ring-2 focus-visible:ring-black"
+              >
+                <Flag id={HQ_ID} className="w-[17px] ring-1 ring-white/25" />
+                Dhaka HQ
+                <span aria-hidden className="text-[10px] leading-none text-primary-green">
+                  {deskOpen ? "▲" : "▼"}
+                </span>
+              </button>
 
               {deskOpen ? (
-                <span className="absolute bottom-[20px] left-1/2 z-[2] flex w-[248px] -translate-x-1/2 flex-col gap-[10px] rounded-[16px] border border-black/10 bg-white p-[16px] text-left shadow-[0_18px_44px_rgba(10,10,10,0.22)]">
+                <span className="absolute left-1/2 top-[calc(100%+10px)] z-[2] flex w-[248px] -translate-x-1/2 flex-col gap-[10px] rounded-[16px] border border-black/10 bg-white p-[16px] text-left shadow-[0_18px_44px_rgba(10,10,10,0.22)]">
                   <span className="flex items-center gap-[8px] font-mono text-[11px] uppercase leading-none tracking-[0.08em] text-neutral-paragraph">
-                    <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-primary-green" />
+                    <span
+                      aria-hidden
+                      className="size-[7px] shrink-0 rounded-full bg-primary-green"
+                    />
                     {siteConfig.name} · Dhaka
                   </span>
                   <span className="font-body text-[14px] leading-[1.45] tracking-[-0.1px] text-black">
@@ -602,8 +938,8 @@ export default function ContactCoverage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-[6px] border-t border-black/10 px-[clamp(16px,2vw,28px)] pb-[24px] pt-[20px]">
-          <span className="flex items-center gap-[8px] rounded-full bg-black px-[14px] py-[8px] font-body text-[13px] font-semibold leading-none tracking-[-0.1px] text-bg">
-            <span aria-hidden className="size-[7px] shrink-0 rounded-full bg-primary-green" />
+          <span className="flex items-center gap-[8px] rounded-full bg-black px-[12px] py-[8px] font-body text-[13px] font-semibold leading-none tracking-[-0.1px] text-bg">
+            <Flag id={HQ_ID} className="w-[18px] ring-1 ring-white/25" />
             Dhaka HQ
           </span>
           <span aria-hidden className="px-[4px] font-body text-[14px] text-neutral-paragraph">
@@ -612,8 +948,10 @@ export default function ContactCoverage() {
           {MARKETS.map((market) => (
             <span
               key={market.id}
-              className="rounded-full bg-[color-mix(in_srgb,var(--color-primary-green)_22%,var(--color-white))] px-[12px] py-[8px] font-body text-[13px] font-medium leading-none tracking-[-0.1px] text-[color-mix(in_srgb,var(--color-primary-green)_30%,var(--color-black))]"
+              style={{ ["--spot" as string]: market.colour }}
+              className="flex items-center gap-[8px] rounded-full border border-[color-mix(in_srgb,var(--spot)_35%,transparent)] bg-[color-mix(in_srgb,var(--spot)_8%,var(--color-white))] px-[12px] py-[8px] font-body text-[13px] font-medium leading-none tracking-[-0.1px] text-[color-mix(in_srgb,var(--spot)_72%,var(--color-black))]"
             >
+              <Flag id={market.id} className="w-[18px] ring-1 ring-black/15" />
               {market.name}
             </span>
           ))}
