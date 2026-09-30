@@ -4,7 +4,7 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion } from "@/lib/anim";
-import { PROMISES } from "@/components/sections/ContactDetails";
+import { PROMISE_LINES } from "@/components/sections/ContactDetails";
 import { HEADLINE_SERVICES } from "@/lib/services";
 
 /**
@@ -134,7 +134,7 @@ export default function ContactClosing() {
 
       <div className="mt-[clamp(48px,6vw,72px)] flex flex-col">
         <Marquee items={ROW_ONE} dim />
-        <Marquee items={PROMISES} reverse bottomRule />
+        <Marquee items={PROMISE_LINES} reverse bottomRule />
       </div>
 
       {/* The wordmark, with the disc behind its right shoulder. The negative

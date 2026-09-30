@@ -42,15 +42,24 @@ const BUDGET_CHIPS = ["Under $5K", "$5K–$10K", "$10K–$20K", "$20K–$50K", "
 
 /**
  * What you get for sending one — the concept's four ticks, in our words.
- * Exported because the closing block runs the same four through its ribbon,
- * and the concept has them matching there on purpose.
+ *
+ * Split into a lead and a tail rather than held as one string. Four lines of
+ * evenly-weighted grey is a block a visitor skims past; setting the claim
+ * itself in white with a green rule under it and dropping the rest back to
+ * muted gives each line one thing the eye lands on, and the four leads read as
+ * a list of their own before any of the tails are read.
  */
-export const PROMISES = [
-  "An engineer reads every brief",
-  "NDA signed the same day you ask",
-  "A real number in the reply, never “starting from”",
-  "No bots, no auto-replies, no chatbots",
+type Promise = { lead: string; tail: string };
+
+export const PROMISES: Promise[] = [
+  { lead: "An engineer", tail: "reads every brief — never a sales desk" },
+  { lead: "NDA signed", tail: "the same day you ask for one" },
+  { lead: "A real number", tail: "in the reply, never “starting from”" },
+  { lead: "No bots,", tail: "no auto-replies, no chatbots" },
 ];
+
+/** The same four as plain lines, for the closing block's ribbon. */
+export const PROMISE_LINES = PROMISES.map(({ lead, tail }) => `${lead} ${tail}`);
 
 /**
  * Who the brief goes to.
@@ -233,11 +242,11 @@ export default function ContactDetails() {
               </div>
             </div>
 
-            <ul className="m-0 flex list-none flex-col gap-[12px] p-0">
-              {PROMISES.map((promise) => (
+            <ul className="m-0 flex list-none flex-col gap-[14px] p-0">
+              {PROMISES.map(({ lead, tail }) => (
                 <li
-                  key={promise}
-                  className="flex items-start gap-[12px] font-body text-[14px] leading-[1.45] tracking-[-0.1px] text-white/80"
+                  key={lead}
+                  className="flex items-start gap-[12px] font-body text-[14px] leading-[1.45] tracking-[-0.1px]"
                 >
                   <span
                     aria-hidden
@@ -245,7 +254,12 @@ export default function ContactDetails() {
                   >
                     ✓
                   </span>
-                  {promise}
+                  <span className="text-pretty text-white/55">
+                    <strong className="font-semibold text-bg underline decoration-primary-green decoration-[2px] underline-offset-[4px]">
+                      {lead}
+                    </strong>{" "}
+                    {tail}
+                  </span>
                 </li>
               ))}
             </ul>
