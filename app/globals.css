@@ -115,6 +115,30 @@ body {
   }
 }
 
+/*
+ * The contact hero's two ribbons. The track is printed twice and travels
+ * exactly one copy's width, so the second copy has already taken the first
+ * one's place by the time it snaps back and the loop has no seam — at any
+ * width, with nothing measured and nothing running on the main thread.
+ */
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes marquee-reverse {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   [style*="bob"],
   [style*="blink"],

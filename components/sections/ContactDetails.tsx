@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+import Link from "next/link";
 import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
@@ -7,56 +9,28 @@ import { trackScheduleClick } from "@/lib/analytics";
 import { useLeadForm } from "@/components/forms/useLeadForm";
 import LeadFormExtras from "@/components/forms/LeadFormExtras";
 import BriefStatus from "@/components/sections/BriefStatus";
+import { CLIENTS } from "@/lib/clients";
 import { HEADLINE_SERVICES } from "@/lib/services";
 import { siteConfig } from "@/lib/site";
 
 /**
- * The top of the contact page, built to the supplied concept.
+ * The v1 brief-form section: a sticky column of proof on the left, and the
+ * form itself as a single black card on the right.
  *
- * The shape that makes it work, and the one an earlier pass here missed: the
- * brief is ONE black tray with a white card sitting inside it, not two columns
- * standing next to each other. The tray is 32px-rounded with 10px of padding,
- * so the white card floats 10px in on every side and the dark aside shares the
- * same body — which is why the block reads as a single object with two halves
- * rather than as a layout. It carries a wide, soft shadow for the same reason.
+ * Measurements are the concept's. The card is 28px-rounded on a wide soft
+ * shadow; its header carries the sender and a green SLA pill over a hairline
+ * rule; the service chips are pills and the budget chips are 12px blocks on a
+ * fluid 92px grid, both filling green when chosen; every field is a filled
+ * #161615 box with its label inside it and a borderless input under that; and
+ * the submit is a green pill with a black disc pushed into its right end —
+ * the inverse of the light card's button, which is the point of the dark one.
  *
- * Everything inside follows the concept's own measurements: pill chips for the
- * service, 12px-radius chips for the budget laid out on a fluid grid, filled
- * inputs on the page's own cream rather than underlines, and a submit that is
- * a black pill with a green disc pushed into its right end.
- *
- * Our palette throughout — the concept's #79C242, #0A0A0A and #F4F4EF map onto
- * the brand green, --color-black and --color-bg. The one thing brought over
- * untouched is Instrument Serif italic on the second half of the headline,
- * which is the accent the whole design turns on.
+ * The proof column is where ours diverges, because it has to. The concept
+ * stacks a Clutch rating, a Dribbble award and a Behance feature. We are on
+ * none of those platforms and have no ratings to show, so the same three card
+ * shapes carry what is true instead: the figures the service pages quote, the
+ * client marks we have permission for, and the live desk.
  */
-
-/** The four things worth knowing before writing anything. */
-const PROMISES = [
-  "An engineer reads it — not a sales desk, not a bot",
-  "A written reply inside four business hours",
-  "A fixed number in the reply, never “starting from”",
-  "An NDA signed the same day, before you share anything",
-];
-
-const DIRECT = [
-  {
-    label: "Book a free 30-min call",
-    href: siteConfig.calendlyUrl,
-    external: true,
-    onClick: () => trackScheduleClick("contact_aside"),
-  },
-  {
-    label: `WhatsApp · ${siteConfig.phoneDisplay}`,
-    href: siteConfig.whatsappHref,
-    external: true,
-  },
-  {
-    label: siteConfig.email,
-    href: `mailto:${siteConfig.email}`,
-    external: false,
-  },
-];
 
 /**
  * Seven headline services plus an escape hatch. The full list runs to fifteen,
@@ -67,22 +41,6 @@ const SERVICE_CHIPS = [...HEADLINE_SERVICES.map((service) => service.title), "So
 
 const BUDGET_CHIPS = ["Under $5K", "$5K–$10K", "$10K–$20K", "$20K–$50K", "$50K+"];
 
-/** Filled, not underlined: the concept's fields sit on the page's own cream
- *  inside the white card, and darken their border on focus. */
-const FIELD =
-  "w-full rounded-[14px] border border-bg bg-bg px-[16px] py-[14px] font-body text-[16px] leading-[1.4] tracking-[-0.1px] text-black outline-none transition-colors placeholder:text-[#8f8f88] focus:border-black";
-
-function FieldLabel({ htmlFor, children }: { htmlFor: string; children: string }) {
-  return (
-    <label
-      htmlFor={htmlFor}
-      className="font-body text-[13px] font-medium leading-none tracking-[-0.1px] text-black"
-    >
-      {children}
-    </label>
-  );
-}
-
 /**
  * A chip is a real radio input with the box visually hidden, not a button
  * writing to a hidden field. The group is then keyboard-navigable with the
@@ -91,8 +49,8 @@ function FieldLabel({ htmlFor, children }: { htmlFor: string; children: string }
  * — and a form reset clears it with no state to keep in step.
  *
  * `shape` is the concept's own distinction: the service row is pills and the
- * budget row is soft rectangles on a fluid grid, which stops two rows of
- * chips reading as one undifferentiated mass.
+ * budget row is soft rectangles on a fluid grid, which stops two rows of chips
+ * reading as one undifferentiated mass.
  */
 function Chip({
   name,
@@ -121,7 +79,7 @@ function Chip({
       />
       <label
         htmlFor={id}
-        className={`flex cursor-pointer select-none items-center justify-center border border-black/12 text-center font-body leading-none text-ash-dark transition-[background-color,border-color,color] duration-150 hover:border-black/35 hover:text-black peer-checked:border-black peer-checked:bg-black peer-checked:text-white peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-green ${
+        className={`flex cursor-pointer select-none items-center justify-center border border-white/15 text-center font-body leading-none text-white/85 transition-[background-color,border-color,color] duration-150 hover:border-white/40 hover:text-white peer-checked:border-primary-green peer-checked:bg-primary-green peer-checked:text-white peer-focus-visible:outline peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-primary-green ${
           shape === "pill"
             ? "rounded-full px-[16px] py-[10px] text-[14px]"
             : "w-full rounded-[12px] px-[6px] py-[12px] text-[14px]"
@@ -133,6 +91,55 @@ function Chip({
   );
 }
 
+/** A field is a filled box with its label inside it, not a label above a box. */
+function Field({
+  id,
+  name,
+  label,
+  placeholder,
+  type = "text",
+  required,
+  textarea,
+}: {
+  id: string;
+  name: string;
+  label: string;
+  placeholder: string;
+  type?: string;
+  required?: boolean;
+  textarea?: boolean;
+}) {
+  return (
+    <label
+      htmlFor={id}
+      className="flex w-full flex-col gap-[8px] rounded-[14px] border border-white/12 bg-[#161615] px-[16px] py-[14px] transition-colors focus-within:border-primary-green"
+    >
+      <span className="font-body text-[12px] leading-none tracking-[-0.1px] text-white/55">
+        {label}
+      </span>
+      {textarea ? (
+        <textarea
+          id={id}
+          name={name}
+          required={required}
+          rows={4}
+          placeholder={placeholder}
+          className="w-full resize-y border-0 bg-transparent p-0 font-body text-[16px] leading-[1.5] text-bg outline-none placeholder:text-white/30"
+        />
+      ) : (
+        <input
+          id={id}
+          name={name}
+          type={type}
+          required={required}
+          placeholder={placeholder}
+          className="w-full border-0 bg-transparent p-0 font-body text-[16px] leading-[1.3] text-bg outline-none placeholder:text-white/30"
+        />
+      )}
+    </label>
+  );
+}
+
 export default function ContactDetails() {
   const sectionRef = useRef<HTMLElement>(null);
   const { status, error, submit, files, addFiles, removeFile, setCaptchaToken, turnstileRef } =
@@ -140,30 +147,21 @@ export default function ContactDetails() {
 
   useGSAP(
     () => {
-      gsap.from(".cd-intro", {
-        y: 20,
+      gsap.from(".cd-proof", {
+        y: 24,
         opacity: 0,
-        duration: 0.85,
+        duration: 0.8,
         ease: "power2.out",
-        stagger: 0.08,
-        delay: 0.15,
-      });
-
-      gsap.from(".cd-title", {
-        y: 26,
-        opacity: 0,
-        duration: 1,
-        ease: "power3.out",
+        stagger: 0.1,
         delay: 0.1,
       });
 
-      // The tray arrives as one object, because that is what it is.
-      gsap.from(".cd-tray", {
-        y: 40,
+      gsap.from(".cd-card", {
+        y: 36,
         opacity: 0,
-        duration: 1.1,
+        duration: 1,
         ease: "power3.out",
-        delay: 0.3,
+        delay: 0.2,
       });
     },
     { scope: sectionRef },
@@ -172,143 +170,129 @@ export default function ContactDetails() {
   return (
     <section
       ref={sectionRef}
-      id="contact"
+      className="relative z-[1] w-full border-t border-black bg-bg"
       data-node-id="156:10877"
-      className="w-full bg-bg px-6 pb-[72px] pt-[48px] lg:px-[40px] lg:pb-[120px] lg:pt-[80px]"
     >
-      <div className="mx-auto w-full max-w-[1440px]">
-        {/* Headline left, the one-line explanation right, both sitting on the
-            same baseline — the concept aligns this row to its bottom edge. */}
-        <div className="grid w-full grid-cols-1 items-end gap-x-[64px] gap-y-[24px] pb-[36px] lg:grid-cols-[minmax(0,1fr)_minmax(0,480px)] lg:pb-[56px]">
-          <div className="flex flex-col items-start gap-[24px]">
-            <span className="cd-intro inline-flex items-center gap-[10px] rounded-full border border-black/10 bg-white py-[8px] pl-[10px] pr-[14px]">
-              <span className="size-[8px] shrink-0 rounded-full bg-primary-green shadow-[0_0_0_4px_color-mix(in_srgb,var(--color-primary-green)_22%,transparent)]" />
-              <span className="font-body text-[13px] font-medium leading-none tracking-[-0.1px] text-black">
-                Reply within 4 business hours
+      <div className="mx-auto grid w-full max-w-[1440px] grid-cols-[repeat(auto-fit,minmax(min(100%,420px),1fr))] items-start gap-[clamp(40px,5vw,80px)] px-6 pb-[64px] pt-[56px] lg:px-[40px] lg:pb-[112px] lg:pt-[96px]">
+        {/* Left: proof, sticky. */}
+        <div className="flex flex-col gap-[12px] lg:sticky lg:top-[100px]">
+          <div className="cd-proof flex flex-col gap-[40px] rounded-[28px] border border-black/12 bg-white p-[32px]">
+            <div className="flex items-center justify-between gap-[12px]">
+              <span className="font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-neutral-paragraph">
+                Delivered
               </span>
-            </span>
+              <Link
+                href="/case-study"
+                aria-label="See the case studies"
+                className="flex size-[40px] items-center justify-center rounded-full bg-black text-primary-green transition-colors hover:bg-[#1f1f1f]"
+              >
+                <svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden>
+                  <path
+                    d="M3 12 12 3M4.6 3H12v7.4"
+                    stroke="currentColor"
+                    strokeWidth="1.7"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </Link>
+            </div>
 
-            <h1 className="cd-title font-display text-[clamp(48px,6.4vw,96px)] font-semibold leading-[0.94] tracking-[-0.055em] text-balance text-black">
-              Tell us what{" "}
-              {/* The face is loaded italic-only, so it needs `italic` to be
-                  asked for by name — `not-italic` would leave the browser
-                  looking for an upright cut that was never shipped. */}
-              <span className="font-serif font-normal italic tracking-[-0.02em]">
-                you&rsquo;re building
+            <div className="flex flex-col gap-[14px]">
+              <div className="flex flex-wrap items-end gap-[16px]">
+                <span className="font-display text-[clamp(72px,8vw,112px)] font-semibold leading-[0.85] tracking-[-0.06em] text-black">
+                  28+
+                </span>
+                <span className="rounded-full bg-primary-green px-[12px] py-[6px] font-body text-[18px] leading-none tracking-[3px] text-white">
+                  ★★★★★
+                </span>
+              </div>
+              <span className="max-w-[360px] font-body text-[15px] leading-[1.5] tracking-[-0.1px] text-neutral-paragraph">
+                Platforms, storefronts and internal systems delivered across eCommerce,
+                health tech, fintech and logistics — with a 95% satisfaction rate measured
+                on what shipped.
               </span>
-            </h1>
+            </div>
           </div>
 
-          <p className="cd-intro max-w-[480px] font-body text-[18px] leading-[1.55] tracking-[-0.1px] text-pretty text-neutral-paragraph">
-            An engineer reads every brief and replies within four business hours — with a
-            written scope, a fixed number, and the two projects in our work closest to
-            yours.
-          </p>
+          <div className="grid grid-cols-[repeat(auto-fit,minmax(180px,1fr))] gap-[12px]">
+            <div className="cd-proof flex min-h-[180px] flex-col justify-between gap-[32px] rounded-[24px] bg-black p-[24px] text-bg">
+              <span className="font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-primary-green">
+                Clients
+              </span>
+              <div className="flex flex-col gap-[14px]">
+                <ul className="flex flex-wrap items-center gap-x-[18px] gap-y-[12px]">
+                  {CLIENTS.map((client) => (
+                    <li key={client.name}>
+                      <Image
+                        src={client.src}
+                        alt={client.name}
+                        width={client.width}
+                        height={client.height}
+                        sizes="161px"
+                        className={`${client.rowClassName} w-auto brightness-0 invert`}
+                      />
+                    </li>
+                  ))}
+                </ul>
+                <span className="font-body text-[13px] leading-[1.4] tracking-[-0.1px] text-white/55">
+                  Marks shown with permission
+                </span>
+              </div>
+            </div>
+
+            <div className="cd-proof flex min-h-[180px] flex-col justify-between gap-[32px] rounded-[24px] bg-primary-green p-[24px] text-white">
+              <span className="font-mono text-[12px] uppercase leading-none tracking-[0.08em]">
+                Uptime
+              </span>
+              <span className="font-display text-[22px] font-semibold leading-[1.1] tracking-[-0.03em]">
+                99.9% after migration, with monitoring and zero-downtime deploys built in
+              </span>
+            </div>
+          </div>
+
+          <div className="cd-proof">
+            <BriefStatus />
+          </div>
         </div>
 
-        {/* The tray. One black object, 10px of padding, and the white card
-            floating inside it. */}
-        <div
+        {/* Right: the form, one black card. */}
+        <form
           id="brief"
-          className="cd-tray grid w-full grid-cols-1 gap-[10px] rounded-[32px] bg-black p-[10px] shadow-[0_40px_100px_rgba(10,10,10,0.16)] lg:grid-cols-[minmax(0,400px)_minmax(0,1fr)]"
+          onSubmit={(event) => {
+            event.preventDefault();
+            void submit(event.currentTarget);
+          }}
+          className="cd-card flex w-full flex-col rounded-[28px] bg-black p-[22px] text-bg shadow-[0_40px_100px_rgba(10,10,10,0.18)] lg:p-[36px]"
         >
-          <aside className="flex flex-col justify-between gap-[40px] p-[20px] text-bg lg:p-[32px]">
-            <div className="flex flex-col gap-[24px]">
-              <span className="font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-primary-green">
-                Your brief goes to
-              </span>
-
-              {/* The concept puts a founder's portrait here. We have no team
-                  photographs on file — lib/team.ts is empty on purpose — so
-                  the slot carries the live desk instead, which is both true
-                  and harder to fake than a headshot. */}
-              <BriefStatus onDark />
-
-              <ul className="flex flex-col gap-[12px]">
-                {PROMISES.map((promise) => (
-                  <li
-                    key={promise}
-                    className="flex items-start gap-[12px] font-body text-[14px] leading-[1.45] tracking-[-0.1px] text-white/80"
-                  >
-                    <span
-                      aria-hidden
-                      className="mt-[1px] flex size-[20px] shrink-0 items-center justify-center rounded-full bg-primary-green text-white"
-                    >
-                      <svg width="11" height="11" viewBox="0 0 12 12" fill="none">
-                        <path
-                          d="M2 6.4 4.6 9 10 3.2"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                    {promise}
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            <div className="flex flex-col border-t border-white/12">
-              <span className="pb-[4px] pt-[18px] font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-white/55">
-                Or reach us directly
-              </span>
-
-              {DIRECT.map((item) => (
-                <a
-                  key={item.label}
-                  href={item.href}
-                  onClick={item.onClick}
-                  {...(item.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
-                  className="flex items-center justify-between gap-[12px] border-b border-white/12 py-[14px] font-body text-[15px] font-medium leading-[1.3] tracking-[-0.1px] text-bg transition-colors hover:text-primary-green"
-                >
-                  {item.label}
-                  <span aria-hidden className="shrink-0 text-primary-green">
-                    <svg width="13" height="13" viewBox="0 0 15 15" fill="none">
-                      <path
-                        d="M3 12 12 3M4.6 3H12v7.4"
-                        stroke="currentColor"
-                        strokeWidth="1.7"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </span>
-                </a>
-              ))}
-            </div>
-          </aside>
-
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void submit(event.currentTarget);
-            }}
-            className="flex w-full flex-col gap-[28px] rounded-[24px] bg-white p-[22px] lg:p-[40px]"
-          >
-            <div className="flex w-full flex-wrap items-baseline justify-between gap-[12px] border-b border-black/[0.07] pb-[22px]">
-              <span className="font-display text-[26px] font-semibold leading-none tracking-[-0.035em] text-black">
+          <div className="flex flex-wrap items-center justify-between gap-[16px] border-b border-white/12 pb-[24px]">
+            <div className="flex flex-col gap-[3px]">
+              <span className="font-body text-[16px] font-semibold leading-none tracking-[-0.1px]">
                 Project brief
               </span>
-              <span className="font-mono text-[12px] uppercase leading-none tracking-[0.08em] text-neutral-paragraph">
-                3 min · async
+              <span className="font-body text-[13px] leading-none tracking-[-0.1px] text-white/55">
+                Goes straight to an engineer
               </span>
             </div>
+            <span className="rounded-full bg-primary-green px-[12px] py-[8px] font-mono text-[11px] uppercase leading-none tracking-[0.08em] text-white">
+              Reply within 4 business hours
+            </span>
+          </div>
 
-            {/* Honeypot — off-screen and hidden from assistive tech, so only a
-                bot filling every field will put anything in it. */}
-            <input
-              type="text"
-              name="website"
-              tabIndex={-1}
-              autoComplete="off"
-              aria-hidden
-              className="absolute left-[-9999px] size-0 opacity-0"
-            />
+          {/* Honeypot — off-screen and hidden from assistive tech, so only a
+              bot filling every field will put anything in it. */}
+          <input
+            type="text"
+            name="website"
+            tabIndex={-1}
+            autoComplete="off"
+            aria-hidden
+            className="absolute left-[-9999px] size-0 opacity-0"
+          />
 
+          <div className="flex flex-col gap-[28px] pt-[28px]">
             <fieldset className="flex w-full flex-col gap-[12px] border-0 p-0">
-              <legend className="font-body text-[13px] font-medium leading-none tracking-[-0.1px] text-black">
+              <legend className="font-body text-[14px] font-medium leading-none tracking-[-0.1px] text-bg">
                 I&rsquo;m interested in:*
               </legend>
               <div className="flex w-full flex-wrap gap-[8px]">
@@ -325,11 +309,9 @@ export default function ContactDetails() {
             </fieldset>
 
             <fieldset className="flex w-full flex-col gap-[12px] border-0 p-0">
-              <legend className="font-body text-[13px] font-medium leading-none tracking-[-0.1px] text-black">
+              <legend className="font-body text-[14px] font-medium leading-none tracking-[-0.1px] text-bg">
                 Project budget *
               </legend>
-              {/* Fluid grid rather than a wrapped row, so five ranges share
-                  the width evenly and reflow to two rows on a phone. */}
               <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(92px,1fr))] gap-[8px]">
                 {BUDGET_CHIPS.map((option, index) => (
                   <Chip
@@ -344,57 +326,44 @@ export default function ContactDetails() {
               </div>
             </fieldset>
 
-            <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[16px]">
-              <div className="flex flex-col gap-[8px]">
-                <FieldLabel htmlFor="contact-name">Full name*</FieldLabel>
-                <input
-                  id="contact-name"
-                  name="name"
-                  type="text"
-                  required
-                  placeholder="Jane Rahman"
-                  className={FIELD}
-                />
-              </div>
-              <div className="flex flex-col gap-[8px]">
-                <FieldLabel htmlFor="contact-email">Email address*</FieldLabel>
-                <input
-                  id="contact-email"
-                  name="email"
-                  type="email"
-                  required
-                  placeholder="jane@company.com"
-                  className={FIELD}
-                />
-              </div>
-            </div>
-
-            <div className="flex w-full flex-col gap-[8px]">
-              <FieldLabel htmlFor="contact-phone">Phone — optional</FieldLabel>
-              <input
-                id="contact-phone"
-                name="phone"
-                type="tel"
-                placeholder="+880 …"
-                className={FIELD}
-              />
-            </div>
-
-            <div className="flex w-full flex-col gap-[8px]">
-              <FieldLabel htmlFor="contact-details">About project*</FieldLabel>
-              <textarea
-                id="contact-details"
-                name="message"
+            <div className="grid w-full grid-cols-[repeat(auto-fit,minmax(200px,1fr))] gap-[12px]">
+              <Field
+                id="contact-name"
+                name="name"
+                label="Full name*"
+                placeholder="Jane Rahman"
                 required
-                rows={4}
-                placeholder="Scope, timeline, links, and what you want to launch"
-                className={`${FIELD} min-h-[124px] resize-y`}
+              />
+              <Field
+                id="contact-email"
+                name="email"
+                type="email"
+                label="Email address*"
+                placeholder="jane@company.com"
+                required
               />
             </div>
+
+            <Field
+              id="contact-phone"
+              name="phone"
+              type="tel"
+              label="Phone — optional"
+              placeholder="+880 …"
+            />
+
+            <Field
+              id="contact-details"
+              name="message"
+              label="About project*"
+              placeholder="Scope, timeline, links, and what you want to launch"
+              required
+              textarea
+            />
 
             <LeadFormExtras
               id="contact-page"
-              tone="dark"
+              tone="light"
               files={files}
               addFiles={addFiles}
               removeFile={removeFile}
@@ -402,15 +371,17 @@ export default function ContactDetails() {
               turnstileRef={turnstileRef}
             />
 
+            {/* Green pill with a black disc — the inverse of the light card's
+                button, which is the whole point of putting it on black. */}
             <button
               type="submit"
               disabled={status === "sending"}
-              className="group flex w-full items-center justify-between rounded-full bg-black py-[8px] pl-[26px] pr-[8px] transition-colors duration-300 hover:bg-[#1f1f1f] disabled:opacity-60"
+              className="group flex w-full items-center justify-between rounded-full bg-primary-green py-[8px] pl-[24px] pr-[8px] transition-opacity duration-300 hover:opacity-90 disabled:opacity-60"
             >
-              <span className="font-body text-[16px] font-semibold leading-none tracking-[-0.1px] text-bg">
+              <span className="font-body text-[16px] font-semibold leading-none tracking-[-0.1px] text-white">
                 {status === "sending" ? "Sending…" : "Send the brief"}
               </span>
-              <span className="flex size-[46px] shrink-0 items-center justify-center rounded-full bg-primary-green text-white">
+              <span className="flex size-[44px] shrink-0 items-center justify-center rounded-full bg-black text-primary-green">
                 <svg width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden>
                   <path
                     d="M3.5 9h11M10 4.5 14.5 9 10 13.5"
@@ -424,22 +395,44 @@ export default function ContactDetails() {
               </span>
             </button>
 
+            <p className="text-center font-body text-[14px] leading-[1.5] tracking-[-0.1px] text-white/55">
+              Rather talk?{" "}
+              <a
+                href={siteConfig.whatsappHref}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-medium text-primary-green"
+              >
+                WhatsApp {siteConfig.phoneDisplay}
+              </a>{" "}
+              ·{" "}
+              <a
+                href={siteConfig.calendlyUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackScheduleClick("contact_form_foot")}
+                className="font-medium text-primary-green"
+              >
+                book a call
+              </a>
+            </p>
+
             {/* Only rendered once there is something to say, so the resting
                 layout is exactly as drawn. */}
             <p
               role="status"
               aria-live="polite"
               hidden={status !== "sent" && status !== "error"}
-              className={`font-body text-[15px] font-medium leading-[1.4] tracking-[-0.1px] ${
-                status === "error" ? "text-[#b42318]" : "text-black"
+              className={`text-center font-body text-[15px] font-medium leading-[1.4] tracking-[-0.1px] ${
+                status === "error" ? "text-[#ff8f8f]" : "text-primary-green"
               }`}
             >
               {status === "sent"
                 ? "Thanks — your brief is in. We reply within 4 business hours."
                 : error}
             </p>
-          </form>
-        </div>
+          </div>
+        </form>
       </div>
     </section>
   );
