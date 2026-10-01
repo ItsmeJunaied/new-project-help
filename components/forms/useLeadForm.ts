@@ -1,18 +1,14 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 
 import { trackLead } from "@/lib/analytics";
-import type { TurnstileHandle } from "@/components/ui/Turnstile";
 
 export type LeadStatus = "idle" | "sending" | "sent" | "error";
 
 const REQUIRED_MESSAGE = "Please fill in your name, email and project details.";
 const FAILED_MESSAGE =
   "We couldn't send that. Please try again, or email hello@projecthelpbd.com.";
-const CAPTCHA_MESSAGE = "Please complete the verification check before submitting.";
-
-export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export const MAX_ATTACHMENTS = 3;
 export const MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024;
@@ -45,8 +41,7 @@ export function useLeadForm() {
   const [status, setStatus] = useState<LeadStatus>("idle");
   const [error, setError] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  const turnstileRef = useRef<TurnstileHandle>(null);
+
 
   const reset = useCallback(() => {
     setStatus("idle");
@@ -104,13 +99,6 @@ export function useLeadForm() {
         return;
       }
 
-      // Only enforced where a site key is configured; with Turnstile switched
-      // off the backend skips verification too, so the form still works.
-      if (TURNSTILE_SITE_KEY && !captchaToken) {
-        setStatus("error");
-        setError(CAPTCHA_MESSAGE);
-        return;
-      }
 
       setStatus("sending");
       setError("");
@@ -140,8 +128,6 @@ export function useLeadForm() {
             company: value(data, "company") || undefined,
             service: value(data, "service") || undefined,
             budget: value(data, "budget") || undefined,
-            // The backend requires the field even where no bot check runs.
-            captchaToken: captchaToken ?? "turnstile-not-configured",
             attachments: attachments.length ? attachments : undefined,
             source,
             utmSource: params.get("utm_source") ?? undefined,
@@ -169,14 +155,9 @@ export function useLeadForm() {
       } catch (cause) {
         setStatus("error");
         setError(cause instanceof Error && cause.message ? cause.message : FAILED_MESSAGE);
-      } finally {
-        // A Turnstile token is single-use, so a second submit from the same
-        // page needs a fresh one whether the first succeeded or not.
-        setCaptchaToken(null);
-        turnstileRef.current?.reset();
       }
     },
-    [captchaToken, files],
+    [files],
   );
 
   return {
@@ -187,7 +168,5 @@ export function useLeadForm() {
     files,
     addFiles,
     removeFile,
-    setCaptchaToken,
-    turnstileRef,
   };
 }

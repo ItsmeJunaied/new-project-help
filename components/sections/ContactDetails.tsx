@@ -184,7 +184,7 @@ const DIRECT = [
 
 export default function ContactDetails() {
   const sectionRef = useRef<HTMLElement>(null);
-  const { status, error, submit, files, addFiles, removeFile, setCaptchaToken, turnstileRef } =
+  const { status, error, submit, files, addFiles, removeFile } =
     useLeadForm();
 
   useGSAP(
@@ -453,8 +453,6 @@ export default function ContactDetails() {
                 files={files}
                 addFiles={addFiles}
                 removeFile={removeFile}
-                setCaptchaToken={setCaptchaToken}
-                turnstileRef={turnstileRef}
               />
 
               <button

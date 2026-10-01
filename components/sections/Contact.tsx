@@ -39,7 +39,7 @@ export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
   const whatsappRef = useRef<HTMLAnchorElement>(null);
-  const { status, error, submit, files, addFiles, removeFile, setCaptchaToken, turnstileRef } =
+  const { status, error, submit, files, addFiles, removeFile } =
     useLeadForm();
 
   useGSAP(
@@ -362,8 +362,6 @@ export default function Contact() {
               files={files}
               addFiles={addFiles}
               removeFile={removeFile}
-              setCaptchaToken={setCaptchaToken}
-              turnstileRef={turnstileRef}
             />
 
             <div className="flex w-full flex-col items-start gap-[16px]">

@@ -1,36 +1,29 @@
 "use client";
 
-import { type ChangeEvent, type RefObject } from "react";
+import { type ChangeEvent } from "react";
 
-import { Turnstile, type TurnstileHandle } from "@/components/ui/Turnstile";
 import {
   formatBytes,
   MAX_ATTACHMENTS,
-  TURNSTILE_SITE_KEY,
 } from "@/components/forms/useLeadForm";
 
 type LeadFormExtrasProps = {
   files: File[];
   addFiles: (files: File[]) => void;
   removeFile: (index: number) => void;
-  setCaptchaToken: (token: string | null) => void;
-  turnstileRef: RefObject<TurnstileHandle | null>;
   /** Light copy for the dark contact panel, dark for the pale one. */
   tone?: "light" | "dark";
   id: string;
 };
 
 /**
- * The two parts both contact forms need but neither design drew: file
- * attachments (the live site accepts up to three) and the Cloudflare Turnstile
- * check. Kept in one place so the two forms cannot drift apart on either.
+ * Shared extras for both contact forms: file attachments and privacy copy.
+ * Kept in one place so the two forms cannot drift apart.
  */
 export default function LeadFormExtras({
   files,
   addFiles,
   removeFile,
-  setCaptchaToken,
-  turnstileRef,
   tone = "dark",
   id,
 }: LeadFormExtrasProps) {
@@ -88,14 +81,6 @@ export default function LeadFormExtras({
         )}
       </div>
 
-      {TURNSTILE_SITE_KEY ? (
-        <Turnstile
-          ref={turnstileRef}
-          siteKey={TURNSTILE_SITE_KEY}
-          onVerify={setCaptchaToken}
-          onExpire={() => setCaptchaToken(null)}
-        />
-      ) : null}
 
       <p className={`font-body text-[12px] leading-[18px] tracking-[-0.16px] ${body} opacity-70`}>
         We reply within one business day. Your details are never shared or sold.
