@@ -184,8 +184,17 @@ const DIRECT = [
 
 export default function ContactDetails() {
   const sectionRef = useRef<HTMLElement>(null);
-  const { status, error, submit, files, addFiles, removeFile, setCaptchaToken, turnstileRef } =
-    useLeadForm();
+  const {
+    status,
+    error,
+    submit,
+    warm,
+    files,
+    addFiles,
+    removeFile,
+    setCaptchaToken,
+    turnstileRef,
+  } = useLeadForm();
 
   useGSAP(
     () => {
@@ -363,6 +372,8 @@ export default function ContactDetails() {
                 event.preventDefault();
                 void submit(event.currentTarget);
               }}
+              // Wakes the sleeping API while the brief is still being written.
+              onFocusCapture={warm}
               className="flex flex-col gap-[28px]"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-[12px] border-b border-black/10 pb-[22px]">

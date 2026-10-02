@@ -11,6 +11,17 @@ const REQUIRED_MESSAGE = "Please fill in your name, email and project details.";
 const FAILED_MESSAGE =
   "We couldn't send that. Please try again, or email hello@projecthelpbd.com.";
 const CAPTCHA_MESSAGE = "Please complete the verification check before submitting.";
+const CAPTCHA_MISSING_MESSAGE =
+  "The verification check isn't available right now, so the form can't be sent. Please email hello@projecthelpbd.com and we'll pick it up from there.";
+const SLOW_MESSAGE =
+  "The API didn't answer in time. Please try once more, or email hello@projecthelpbd.com.";
+
+/**
+ * Generous enough to cover a backend cold start (around thirty seconds on the
+ * current hosting tier) plus the upload of three attachments, while still
+ * ending in a message rather than a spinner that never stops.
+ */
+const SUBMIT_TIMEOUT_MS = 75_000;
 
 export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
@@ -47,10 +58,23 @@ export function useLeadForm() {
   const [files, setFiles] = useState<File[]>([]);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
   const turnstileRef = useRef<TurnstileHandle>(null);
+  const warmedRef = useRef(false);
 
   const reset = useCallback(() => {
     setStatus("idle");
     setError("");
+  }, []);
+
+  // The backend sleeps when idle and takes about half a minute to come back,
+  // which would otherwise be half a minute of the visitor staring at
+  // "Sending…". Touching the form wakes it, so by the time the brief is
+  // written the instance is already up. Once per mount is enough.
+  const warm = useCallback(() => {
+    if (warmedRef.current) return;
+    warmedRef.current = true;
+    void fetch("/api/warm", { method: "GET", cache: "no-store" }).catch(() => {
+      // Nothing to do: the submit itself still works, just slowly.
+    });
   }, []);
 
   const addFiles = useCallback(
@@ -104,9 +128,17 @@ export function useLeadForm() {
         return;
       }
 
-      // Only enforced where a site key is configured; with Turnstile switched
-      // off the backend skips verification too, so the form still works.
-      if (TURNSTILE_SITE_KEY && !captchaToken) {
+      // The backend verifies every token and rejects anything it cannot check,
+      // so a missing site key is a broken form rather than a form without a
+      // bot check. Say so plainly instead of sending a request that is certain
+      // to come back as "Captcha verification failed".
+      if (!TURNSTILE_SITE_KEY) {
+        setStatus("error");
+        setError(CAPTCHA_MISSING_MESSAGE);
+        return;
+      }
+
+      if (!captchaToken) {
         setStatus("error");
         setError(CAPTCHA_MESSAGE);
         return;
@@ -132,6 +164,7 @@ export function useLeadForm() {
         const response = await fetch("/api/contact", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(SUBMIT_TIMEOUT_MS),
           body: JSON.stringify({
             name,
             email,
@@ -140,8 +173,7 @@ export function useLeadForm() {
             company: value(data, "company") || undefined,
             service: value(data, "service") || undefined,
             budget: value(data, "budget") || undefined,
-            // The backend requires the field even where no bot check runs.
-            captchaToken: captchaToken ?? "turnstile-not-configured",
+            captchaToken,
             attachments: attachments.length ? attachments : undefined,
             source,
             utmSource: params.get("utm_source") ?? undefined,
@@ -168,7 +200,11 @@ export function useLeadForm() {
         trackLead(source);
       } catch (cause) {
         setStatus("error");
-        setError(cause instanceof Error && cause.message ? cause.message : FAILED_MESSAGE);
+        if (cause instanceof DOMException && cause.name === "TimeoutError") {
+          setError(SLOW_MESSAGE);
+        } else {
+          setError(cause instanceof Error && cause.message ? cause.message : FAILED_MESSAGE);
+        }
       } finally {
         // A Turnstile token is single-use, so a second submit from the same
         // page needs a fresh one whether the first succeeded or not.
@@ -183,6 +219,7 @@ export function useLeadForm() {
     status,
     error,
     submit,
+    warm,
     reset,
     files,
     addFiles,

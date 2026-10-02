@@ -39,8 +39,17 @@ export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
   const whatsappRef = useRef<HTMLAnchorElement>(null);
-  const { status, error, submit, files, addFiles, removeFile, setCaptchaToken, turnstileRef } =
-    useLeadForm();
+  const {
+    status,
+    error,
+    submit,
+    warm,
+    files,
+    addFiles,
+    removeFile,
+    setCaptchaToken,
+    turnstileRef,
+  } = useLeadForm();
 
   useGSAP(
     () => {
@@ -234,6 +243,8 @@ export default function Contact() {
             event.preventDefault();
             void submit(event.currentTarget);
           }}
+          // Wakes the sleeping API while the brief is still being written.
+          onFocusCapture={warm}
           className="contact-form-card flex w-full flex-col items-center justify-center bg-[#f7f7f7] px-[24px] py-[40px] shadow-[6px_-4px_80px_0px_rgba(167,167,167,0.03),0px_6px_111.8px_0px_rgba(0,0,0,0.1)] sm:px-[32px] lg:min-h-[710px] lg:w-[594px] lg:min-w-0 lg:max-w-[594px] lg:flex-1 lg:py-[66px]"
         >
           {/* Honeypot — off-screen and hidden from assistive tech, so only a bot

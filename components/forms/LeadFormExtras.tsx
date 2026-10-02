@@ -95,7 +95,23 @@ export default function LeadFormExtras({
           onVerify={setCaptchaToken}
           onExpire={() => setCaptchaToken(null)}
         />
-      ) : null}
+      ) : (
+        // The backend rejects every lead whose token it cannot verify, so with
+        // no site key the form cannot be sent at all. Rendering nothing here
+        // hid that: the page looked finished and submits failed with the
+        // backend's "Captcha verification failed". Say it on the form instead.
+        <p
+          role="status"
+          className={`border-l-2 border-current pl-[12px] font-body text-[13px] leading-[19px] tracking-[-0.16px] ${body} opacity-80`}
+        >
+          Verification is unavailable, so the form can&rsquo;t be sent right now.
+          Please email{" "}
+          <a href="mailto:hello@projecthelpbd.com" className="underline">
+            hello@projecthelpbd.com
+          </a>{" "}
+          and we&rsquo;ll pick it up from there.
+        </p>
+      )}
 
       <p className={`font-body text-[12px] leading-[18px] tracking-[-0.16px] ${body} opacity-70`}>
         We reply within one business day. Your details are never shared or sold.
