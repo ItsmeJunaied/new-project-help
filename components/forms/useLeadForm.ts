@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { trackLead } from "@/lib/analytics";
 import type { TurnstileHandle } from "@/components/ui/Turnstile";
@@ -67,15 +67,21 @@ export function useLeadForm() {
 
   // The backend sleeps when idle and takes about half a minute to come back,
   // which would otherwise be half a minute of the visitor staring at
-  // "Sending…". Touching the form wakes it, so by the time the brief is
-  // written the instance is already up. Once per mount is enough.
+  // "Sending…". Waking it as soon as a page carrying the form renders puts
+  // that boot under the scroll, the read and the writing — all of which come
+  // before anyone can press send — rather than on top of the submit.
+  //
+  // Nothing waits on it and nothing reads the result: a failed wake just
+  // leaves the submit to take the slow path on its own.
   const warm = useCallback(() => {
     if (warmedRef.current) return;
     warmedRef.current = true;
-    void fetch("/api/warm", { method: "GET", cache: "no-store" }).catch(() => {
-      // Nothing to do: the submit itself still works, just slowly.
-    });
+    void fetch("/api/warm", { method: "GET", cache: "no-store" }).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    warm();
+  }, [warm]);
 
   const addFiles = useCallback(
     (selected: File[]) => {
@@ -219,7 +225,6 @@ export function useLeadForm() {
     status,
     error,
     submit,
-    warm,
     reset,
     files,
     addFiles,

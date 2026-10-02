@@ -188,7 +188,6 @@ export default function ContactDetails() {
     status,
     error,
     submit,
-    warm,
     files,
     addFiles,
     removeFile,
@@ -372,8 +371,6 @@ export default function ContactDetails() {
                 event.preventDefault();
                 void submit(event.currentTarget);
               }}
-              // Wakes the sleeping API while the brief is still being written.
-              onFocusCapture={warm}
               className="flex flex-col gap-[28px]"
             >
               <div className="flex flex-wrap items-baseline justify-between gap-[12px] border-b border-black/10 pb-[22px]">
