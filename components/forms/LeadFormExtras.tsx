@@ -14,6 +14,8 @@ type LeadFormExtrasProps = {
   addFiles: (files: File[]) => void;
   removeFile: (index: number) => void;
   setCaptchaToken: (token: string | null) => void;
+  captchaBroken: boolean;
+  setCaptchaBroken: (broken: boolean) => void;
   turnstileRef: RefObject<TurnstileHandle | null>;
   /** Light copy for the dark contact panel, dark for the pale one. */
   tone?: "light" | "dark";
@@ -30,6 +32,8 @@ export default function LeadFormExtras({
   addFiles,
   removeFile,
   setCaptchaToken,
+  captchaBroken,
+  setCaptchaBroken,
   turnstileRef,
   tone = "dark",
   id,
@@ -88,18 +92,20 @@ export default function LeadFormExtras({
         )}
       </div>
 
-      {TURNSTILE_SITE_KEY ? (
+      {TURNSTILE_SITE_KEY && !captchaBroken ? (
         <Turnstile
           ref={turnstileRef}
           siteKey={TURNSTILE_SITE_KEY}
           onVerify={setCaptchaToken}
           onExpire={() => setCaptchaToken(null)}
+          onError={() => setCaptchaBroken(true)}
         />
       ) : (
-        // The backend rejects every lead whose token it cannot verify, so with
-        // no site key the form cannot be sent at all. Rendering nothing here
-        // hid that: the page looked finished and submits failed with the
-        // backend's "Captcha verification failed". Say it on the form instead.
+        // The backend rejects every lead whose token it cannot verify, so a
+        // missing key — or a widget that cannot run — means the form cannot be
+        // sent at all. Rendering nothing here hid that: the page looked
+        // finished and submits failed with the backend's "Captcha
+        // verification failed". Say it on the form instead.
         <p
           role="status"
           className={`border-l-2 border-current pl-[12px] font-body text-[13px] leading-[19px] tracking-[-0.16px] ${body} opacity-80`}

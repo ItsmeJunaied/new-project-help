@@ -192,6 +192,8 @@ export default function ContactDetails() {
     addFiles,
     removeFile,
     setCaptchaToken,
+    captchaBroken,
+    setCaptchaBroken,
     turnstileRef,
   } = useLeadForm();
 
@@ -462,6 +464,8 @@ export default function ContactDetails() {
                 addFiles={addFiles}
                 removeFile={removeFile}
                 setCaptchaToken={setCaptchaToken}
+                captchaBroken={captchaBroken}
+                setCaptchaBroken={setCaptchaBroken}
                 turnstileRef={turnstileRef}
               />
 

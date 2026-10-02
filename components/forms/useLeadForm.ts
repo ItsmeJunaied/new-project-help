@@ -11,8 +11,9 @@ const REQUIRED_MESSAGE = "Please fill in your name, email and project details.";
 const FAILED_MESSAGE =
   "We couldn't send that. Please try again, or email hello@projecthelpbd.com.";
 const CAPTCHA_MESSAGE = "Please complete the verification check before submitting.";
-const CAPTCHA_MISSING_MESSAGE =
-  "The verification check isn't available right now, so the form can't be sent. Please email hello@projecthelpbd.com and we'll pick it up from there.";
+// Deliberately short: the notice in the widget's place has already explained
+// the situation, so this only has to confirm the button did something.
+const CAPTCHA_MISSING_MESSAGE = "Please email hello@projecthelpbd.com instead.";
 const SLOW_MESSAGE =
   "The API didn't answer in time. Please try once more, or email hello@projecthelpbd.com.";
 
@@ -57,6 +58,10 @@ export function useLeadForm() {
   const [error, setError] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  // Set when Turnstile reports it could not run. Treated exactly like a
+  // missing site key: no token can arrive, so the form says so up front
+  // rather than asking for a check the visitor has no way to complete.
+  const [captchaBroken, setCaptchaBroken] = useState(false);
   const turnstileRef = useRef<TurnstileHandle>(null);
   const warmedRef = useRef(false);
 
@@ -138,7 +143,7 @@ export function useLeadForm() {
       // so a missing site key is a broken form rather than a form without a
       // bot check. Say so plainly instead of sending a request that is certain
       // to come back as "Captcha verification failed".
-      if (!TURNSTILE_SITE_KEY) {
+      if (!TURNSTILE_SITE_KEY || captchaBroken) {
         setStatus("error");
         setError(CAPTCHA_MISSING_MESSAGE);
         return;
@@ -218,7 +223,7 @@ export function useLeadForm() {
         turnstileRef.current?.reset();
       }
     },
-    [captchaToken, files],
+    [captchaToken, captchaBroken, files],
   );
 
   return {
@@ -230,6 +235,8 @@ export function useLeadForm() {
     addFiles,
     removeFile,
     setCaptchaToken,
+    captchaBroken,
+    setCaptchaBroken,
     turnstileRef,
   };
 }
