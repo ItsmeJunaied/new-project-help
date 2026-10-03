@@ -6,265 +6,135 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { reveal } from "@/lib/anim";
+import { SERVICES, type Service } from "@/lib/services";
 import { SERVICE_IMAGE_ALT } from "@/lib/service-image-alt";
 
 /**
- * How much of the twelve-column row a card takes, and where its artwork sits.
+ * The artwork file for each service.
  *
- * `wide` runs the copy down the left with the artwork beside it; `tall` stacks
- * the copy over artwork that fills the foot of the card. Alternating the two
- * across the rows is what gives the section its rhythm — seven equal cards in a
- * plain grid read as a list, and this is meant to read as a shelf.
+ * Seven of the fifteen were drawn first and their files carry the service's own
+ * slug. The eight added later were named after the capability rather than the
+ * page — `erp-systems.webp` for `erp-software-development` — and the generated
+ * alt-text map in lib/service-image-alt.ts is keyed the same way. Listing the
+ * seven that differ is cheaper than renaming files and regenerating that map.
  */
-type Shape = "wide" | "tall" | "banner";
-
-type ServiceCardData = {
-  id: string;
-  index: string;
-  title: string;
-  copy: string;
-  shape: Shape;
+const ART: Record<string, string> = {
+  "custom-software-development": "custom-software",
+  "web-application-development": "web-applications",
+  "erp-software-development": "erp-systems",
+  "crm-software-development": "crm-systems",
+  "enterprise-software-development": "enterprise-software",
+  "microservices-architecture": "microservices",
+  "business-process-automation": "business-automation",
 };
+
+const artKey = (slug: string) => ART[slug] ?? slug;
 
 /**
- * The seven services, in the order they are sold.
+ * The panel heading, upright except for its last word.
  *
- * The copy here is card copy — one line, the thing a reader needs to know
- * before deciding whether to open the page. The full description, the stack and
- * what each engagement delivers all live on the service's own page; repeating
- * any of it here only makes seven cards nobody finishes reading.
- *
- * Artwork is built from assets/ by `npm run build:service-images`, which also
- * writes the alt text these cards import.
+ * The site already sets the accent half of a headline in italic serif — the
+ * contact pages do it in six places — so the rule here is that one applied
+ * mechanically: everything but the final word stays in the display face, the
+ * final word turns. A single-word title ("Cybersecurity", "Microservices")
+ * turns completely, which is the same gesture rather than an exception to it.
  */
-const SERVICES: ServiceCardData[] = [
-  {
-    id: "saas-platform-development",
-    index: "01",
-    title: "SaaS Platform Development",
-    copy: "Multi-tenant platforms with subscription billing, usage metering and the tenancy model settled before the first feature.",
-    shape: "wide",
-  },
-  {
-    id: "ecommerce-digital-commerce",
-    index: "02",
-    title: "eCommerce & Commerce",
-    copy: "Storefronts, marketplaces and payment flows that hold up on campaign day.",
-    shape: "tall",
-  },
-  {
-    id: "devops-cloud-infrastructure",
-    index: "03",
-    title: "DevOps & Cloud",
-    copy: "Pipelines, infrastructure as code and monitoring on AWS, Azure or Google Cloud.",
-    shape: "tall",
-  },
-  {
-    id: "ai-ml-data-analytics",
-    index: "04",
-    title: "AI/ML & Data Analytics",
-    copy: "Models, agents and LLM integration over your own data — turning what you already collect into decisions.",
-    shape: "wide",
-  },
-  {
-    id: "technology-consulting",
-    index: "05",
-    title: "Technology Consulting",
-    copy: "Architecture reviews, technical due diligence and a roadmap you can budget against.",
-    shape: "wide",
-  },
-  {
-    id: "mobile-app-development",
-    index: "06",
-    title: "Mobile App Development",
-    copy: "Native and cross-platform apps, shipped to both stores.",
-    shape: "tall",
-  },
-  {
-    id: "cybersecurity-data-protection",
-    index: "07",
-    title: "Cybersecurity & Data Protection",
-    copy: "Penetration testing, hardening and compliance work, with the findings written up in language your board can act on.",
-    shape: "banner",
-  },
-];
+function PanelHeading({ title }: { title: string }) {
+  const words = title.split(" ");
+  const last = words.pop() ?? title;
+  const lead = words.join(" ");
 
-const SPAN: Record<Shape, string> = {
-  wide: "lg:col-span-7",
-  tall: "lg:col-span-5",
-  banner: "lg:col-span-12",
-};
-
-/** White, a hairline, and enough shadow to lift it off the page. */
-const SHELL =
-  "service-card group relative overflow-hidden rounded-[24px] border border-black/[0.07] bg-white " +
-  "shadow-[0_1px_2px_rgba(0,0,0,0.04),0_18px_44px_-28px_rgba(0,0,0,0.30)] " +
-  "transition-shadow duration-500 hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_30px_60px_-30px_rgba(0,0,0,0.38)]";
-
-function Copy({ card, large }: { card: ServiceCardData; large?: boolean }) {
   return (
-    <>
-      <span className="service-card-meta font-mono text-[11px] font-semibold leading-none tracking-[0.08em] text-ash-muted">
-        {card.index}
-      </span>
-
-      <h3
-        className={`service-card-title w-full font-display font-semibold leading-[1.04] tracking-[-0.03em] text-pure-black ${
-          large ? "text-[clamp(1.9rem,3.4vw,44px)]" : "text-[clamp(1.5rem,2.3vw,30px)]"
-        }`}
-      >
-        <Link href={`/services/${card.id}`} className="transition-opacity hover:opacity-70">
-          {card.title}
-        </Link>
-      </h3>
-
-      <p
-        className={`service-card-copy w-full font-body leading-[1.55] tracking-[-0.16px] text-neutral-paragraph ${
-          large ? "max-w-[460px] text-[15px]" : "max-w-[420px] text-[14px]"
-        }`}
-      >
-        {card.copy}
-      </p>
-
-      {/* A text link rather than a filled button: seven buttons down one page
-          is seven things shouting, and the card itself is the target. */}
-      <Link
-        href={`/services/${card.id}`}
-        className="service-card-cta group/cta mt-[2px] inline-flex items-center gap-[8px] font-body text-[14px] font-medium leading-none tracking-[-0.2px] text-pure-black"
-      >
-        <span className="border-b border-primary-green pb-[3px] transition-colors duration-300 group-hover/cta:border-pure-black">
-          Know more
-        </span>
-        <svg
-          width="15"
-          height="15"
-          viewBox="0 0 15 15"
-          fill="none"
-          aria-hidden="true"
-          className="shrink-0 transition-transform duration-300 group-hover/cta:translate-x-[4px]"
-        >
-          <path
-            d="M3 7.5h9M8.4 3.6 12.3 7.5 8.4 11.4"
-            stroke="currentColor"
-            strokeWidth="1.6"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </Link>
-    </>
+    <h3 className="w-full font-display text-[30px] font-semibold leading-[1.08] tracking-[-0.035em] text-pure-black lg:text-[36px]">
+      {lead && <span>{lead} </span>}
+      <span className="font-serif font-normal italic tracking-[-0.02em]">{last}</span>
+    </h3>
   );
 }
 
 /**
- * The artwork, on a plane turned away from the reader.
+ * One service, as a tall panel.
  *
- * These are screenshots and product renders — flat rectangles — and a flat
- * rectangle dropped into a white card reads as a thumbnail. Turning it a few
- * degrees in perspective, giving it a real shadow and letting it run off the
- * card's edge is what makes it read as an object on a surface instead. The
- * tilt eases back towards square on hover, so the card has somewhere to go.
+ * The artwork is a product screenshot, and a screenshot squared up inside a
+ * card reads as a thumbnail. Turning it a few degrees, letting it run past the
+ * panel's right edge and floating a label over it is what makes the panel read
+ * as a surface with things arranged on it. The tilt eases back under the
+ * cursor, so a hover has somewhere to go.
  *
- * `sizes` is the card's widest rendered width, not the artwork's own: the
- * plane is deliberately larger than the opening it shows through.
+ * `clone` marks the duplicate half of the marquee track: it is hidden from
+ * assistive technology and taken out of the tab order, so the fifteen services
+ * are announced and tabbed through once, not twice. It stays clickable, because
+ * a visitor pointing at a panel should not have to know which copy it is.
  */
-function Art({
-  card,
-  plane,
-  turn,
-  sizes,
-}: {
-  card: ServiceCardData;
-  /** Where the plane sits in the card, including the edge it runs past. */
-  plane: string;
-  /** Its resting angle, and the angle it eases to under the cursor. */
-  turn: string;
-  sizes: string;
-}) {
-  return (
-    <div className={`absolute [perspective:1600px] ${plane}`}>
-      <div
-        className={`relative size-full overflow-hidden rounded-[14px] bg-[#f2f2f0] shadow-[0_30px_64px_-30px_rgba(0,0,0,0.55)] transition-transform duration-[900ms] ease-out ${turn}`}
-      >
-        <Image
-          src={`/images/services/${card.id}.webp`}
-          alt={SERVICE_IMAGE_ALT[card.id]}
-          fill
-          sizes={sizes}
-          className="object-cover object-left-top transition-transform duration-[900ms] ease-out group-hover:scale-[1.04]"
-        />
-      </div>
-    </div>
-  );
-}
-
-/**
- * Where each shape's plane sits inside its card.
- *
- * Every one of them runs past an edge — the right on the two side-by-side
- * shapes, the bottom on the stacked one — which is the whole point: the card is
- * a window onto something larger, not a frame around a picture.
- */
-/**
- * Below `lg` every card is a single column, so every plane is the stacked one —
- * copy above, artwork running off the foot of the card. Turning a plane sideways
- * inside a 375px column throws away most of what it is showing.
- */
-const STACKED_PLANE = "left-[22px] right-[22px] top-[6px] bottom-[-50px]";
-const STACKED_TURN = "[transform:rotateX(9deg)]";
-
-const PLANE = {
-  wide: `${STACKED_PLANE} lg:left-[10px] lg:right-[-70px] lg:top-[28px] lg:bottom-[28px]`,
-  tall: `${STACKED_PLANE} lg:left-[26px] lg:right-[26px] lg:bottom-[-56px]`,
-  banner: `${STACKED_PLANE} lg:left-[10px] lg:right-[-80px] lg:top-[36px] lg:bottom-[36px]`,
-} as const;
-
-const TURN = {
-  wide: `${STACKED_TURN} lg:[transform:rotateY(-13deg)_rotateX(3deg)] lg:group-hover:[transform:rotateY(-7deg)_rotateX(1deg)]`,
-  tall: `${STACKED_TURN} lg:[transform:rotateX(10deg)] lg:group-hover:[transform:rotateX(5deg)]`,
-  banner: `${STACKED_TURN} lg:[transform:rotateY(-11deg)_rotateX(2deg)] lg:group-hover:[transform:rotateY(-6deg)_rotateX(1deg)]`,
-} as const;
-
-function WideCard({ card }: { card: ServiceCardData }) {
-  const banner = card.shape === "banner";
+function Panel({ service, index, clone }: { service: Service; index: number; clone?: boolean }) {
+  const key = artKey(service.slug);
 
   return (
-    <article
-      className={`${SHELL} ${SPAN[card.shape]} grid lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]`}
+    <Link
+      href={`/services/${service.slug}`}
+      aria-hidden={clone}
+      tabIndex={clone ? -1 : undefined}
+      className="service-panel group/panel relative flex h-[480px] w-[300px] shrink-0 flex-col overflow-hidden rounded-[28px] border border-black/[0.07] bg-gradient-to-b from-white via-white to-[#f3f1ed] shadow-[0_1px_2px_rgba(0,0,0,0.04),0_26px_60px_-34px_rgba(0,0,0,0.42)] transition-shadow duration-500 hover:shadow-[0_1px_2px_rgba(0,0,0,0.05),0_38px_80px_-36px_rgba(0,0,0,0.5)] sm:h-[540px] sm:w-[340px] lg:h-[580px] lg:w-[372px]"
     >
-      <div
-        className={`flex flex-col items-start justify-center gap-[14px] p-[26px] sm:p-[34px] lg:p-[44px] ${
-          banner ? "lg:gap-[18px] lg:p-[56px]" : ""
-        }`}
-      >
-        <Copy card={card} large={banner} />
+      <div className="flex items-center justify-between px-[26px] pt-[24px] lg:px-[30px] lg:pt-[28px]">
+        <span className="font-mono text-[11px] font-semibold leading-none tracking-[0.08em] text-ash-muted">
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <span className="rounded-full border border-black/10 px-[10px] py-[5px] font-mono text-[10px] uppercase leading-none tracking-[0.1em] text-ash-muted">
+          Service
+        </span>
       </div>
 
-      <div
-        className={`relative min-h-[260px] sm:min-h-[300px] ${banner ? "lg:min-h-[420px]" : "lg:min-h-[380px]"}`}
-      >
-        <Art
-          card={card}
-          plane={banner ? PLANE.banner : PLANE.wide}
-          turn={banner ? TURN.banner : TURN.wide}
-          sizes="(max-width: 1023px) 100vw, 780px"
-        />
-      </div>
-    </article>
-  );
-}
-
-function TallCard({ card }: { card: ServiceCardData }) {
-  return (
-    <article className={`${SHELL} ${SPAN[card.shape]} flex flex-col`}>
-      <div className="flex flex-col items-start gap-[13px] p-[26px] sm:p-[34px] lg:p-[40px]">
-        <Copy card={card} />
+      <div className="flex flex-col gap-[12px] px-[26px] pt-[18px] lg:px-[30px]">
+        <PanelHeading title={service.shortTitle} />
+        {/* The service page's own opening line, clamped. Without it the panel
+            is a title above a picture with a hole in between, and the title
+            alone does not tell anyone whether this is the service they want. */}
+        <p className="line-clamp-3 w-full font-body text-[13px] leading-[1.5] tracking-[-0.16px] text-neutral-paragraph lg:text-[14px]">
+          {service.statement}
+        </p>
       </div>
 
-      <div className="relative mt-auto min-h-[230px] w-full sm:min-h-[260px] lg:min-h-[250px]">
-        <Art card={card} plane={PLANE.tall} turn={TURN.tall} sizes="(max-width: 1023px) 100vw, 560px" />
+      {/* The artwork plane. It is wider than the panel on purpose and sits past
+          the right edge, so the panel is a window onto something larger. */}
+      <div className="relative mt-auto h-[250px] w-full [perspective:1600px] sm:h-[280px] lg:h-[300px]">
+        <div className="absolute bottom-[-34px] left-[26px] right-[-56px] top-[14px] overflow-hidden rounded-[16px] bg-[#f2f2f0] shadow-[0_30px_64px_-30px_rgba(0,0,0,0.55)] transition-transform duration-[900ms] ease-out [transform:rotateY(-14deg)_rotateX(5deg)] group-hover/panel:[transform:rotateY(-7deg)_rotateX(2deg)] lg:left-[30px]">
+          <Image
+            src={`/images/services/${key}.webp`}
+            alt={SERVICE_IMAGE_ALT[key] ?? service.title}
+            fill
+            sizes="(max-width: 639px) 360px, (max-width: 1023px) 400px, 440px"
+            // The track is always moving, so a panel can be scrolled into view
+            // by the animation rather than by the reader. Lazy loading reacts
+            // to that too late and the artwork pops in grey; the few that are
+            // on screen at rest are fetched up front instead.
+            loading={!clone && index < 4 ? "eager" : "lazy"}
+            className="object-cover object-left-top transition-transform duration-[900ms] ease-out group-hover/panel:scale-[1.04]"
+          />
+        </div>
+
+        {/* One capability, floated over the artwork the way the reference
+            floats its labels. It is the first entry of the list the service
+            page already shows, so the panel and the page cannot disagree. */}
+        {service.included[0] && (
+          <span className="absolute bottom-[54px] left-[18px] z-10 max-w-[200px] truncate rounded-full border border-black/[0.06] bg-white/90 px-[14px] py-[8px] font-body text-[12px] leading-none tracking-[-0.16px] text-pure-black shadow-[0_10px_24px_-14px_rgba(0,0,0,0.5)] backdrop-blur-[6px]">
+            {service.included[0]}
+          </span>
+        )}
+
+        <span className="absolute bottom-[18px] right-[18px] z-10 flex size-[42px] items-center justify-center rounded-full bg-primary-green text-pure-black shadow-[0_12px_28px_-12px_rgba(0,0,0,0.55)] transition-transform duration-300 group-hover/panel:translate-x-[3px]">
+          <svg width="16" height="16" viewBox="0 0 15 15" fill="none" aria-hidden="true">
+            <path
+              d="M3 7.5h9M8.4 3.6 12.3 7.5 8.4 11.4"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
       </div>
-    </article>
+    </Link>
   );
 }
 
@@ -273,6 +143,18 @@ type ServicesProps = {
   spacingClassName?: string;
 };
 
+/**
+ * What we build — the fifteen services, as one never-ending shelf.
+ *
+ * The track holds two identical sets and travels exactly one set's width, so
+ * the second has already taken the first one's place by the time it snaps back
+ * and the loop has no seam — at any width, with nothing measured and nothing
+ * running on the main thread. It is the technique the contact ribbons use.
+ *
+ * It stops under the cursor. A row that keeps sliding while somebody is trying
+ * to read a panel or aim at its link is a row that cannot be used, and that
+ * pause is what turns the motion from decoration into something browsable.
+ */
 export default function Services({
   spacingClassName = "py-[80px] lg:pb-[160px] lg:pt-[180px]",
 }: ServicesProps) {
@@ -296,28 +178,12 @@ export default function Services({
         scrollTrigger: reveal(sectionRef.current, { start: "top 90%" }),
       });
 
-      gsap.utils.toArray<HTMLElement>(".service-card").forEach((card) => {
-        gsap.from(card, {
-          y: 48,
-          opacity: 0,
-          duration: 0.85,
-          ease: "power3.out",
-          scrollTrigger: reveal(card, { start: "top 88%" }),
-        });
-
-        gsap.from(
-          card.querySelectorAll(
-            ".service-card-meta, .service-card-title, .service-card-copy, .service-card-cta",
-          ),
-          {
-            y: 18,
-            opacity: 0,
-            duration: 0.7,
-            ease: "power2.out",
-            stagger: 0.08,
-            scrollTrigger: reveal(card, { start: "top 82%" }),
-          },
-        );
+      gsap.from(".services-shelf", {
+        y: 40,
+        opacity: 0,
+        duration: 0.9,
+        ease: "power3.out",
+        scrollTrigger: reveal(sectionRef.current, { start: "top 84%" }),
       });
     },
     { scope: sectionRef },
@@ -328,26 +194,32 @@ export default function Services({
       <div className="mx-auto flex w-full max-w-[1440px] flex-col px-6 lg:px-[40px]">
         <div className="flex w-full flex-col gap-[8px]">
           <div className="services-meta flex w-full items-center justify-between text-[18px] leading-[25.714px] text-black">
-            {/* Carries the section heading so the card titles below have a
+            {/* Carries the section heading so the panel titles below have a
                 level to sit under on the services page, where no other h2
                 precedes them. */}
             <h2 className="font-display font-medium">&copy;Services</h2>
-            <p className="text-right font-body font-bold">{"//007 Selected"}</p>
+            <p className="text-right font-body font-bold">
+              {`//${String(SERVICES.length).padStart(3, "0")} Selected`}
+            </p>
           </div>
           <div className="services-meta-rule h-px w-full bg-black/20" />
         </div>
+      </div>
 
-        {/* One twelve-column grid rather than hand-built rows: the spans add up
-            to twelve three times over and then a full-width card, so the
-            browser flows the rows and every card in a row is the height of its
-            tallest neighbour without anything being measured. */}
-        <div className="mt-[36px] grid w-full gap-[16px] lg:mt-[64px] lg:grid-cols-12 lg:gap-[20px]">
-          {SERVICES.map((card) =>
-            card.shape === "tall" ? (
-              <TallCard key={card.id} card={card} />
-            ) : (
-              <WideCard key={card.id} card={card} />
-            ),
+      {/* Full bleed, and on a ground a shade darker than the page: the panels
+          are nearly white, and they only read as objects sitting on a surface
+          if the surface is not the colour they are. */}
+      <div className="services-shelf group/shelf mt-[36px] w-full overflow-hidden bg-[#f1efeb] py-[48px] lg:mt-[64px] lg:py-[64px]">
+        <div className="flex w-max animate-[marquee_90s_linear_infinite] gap-[20px] will-change-transform group-hover/shelf:[animation-play-state:paused] motion-reduce:animate-none">
+          {[false, true].map((clone) =>
+            SERVICES.map((service, index) => (
+              <Panel
+                key={`${clone ? "clone" : "set"}-${service.slug}`}
+                service={service}
+                index={index}
+                clone={clone}
+              />
+            )),
           )}
         </div>
       </div>

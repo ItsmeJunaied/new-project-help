@@ -45,7 +45,7 @@ export default function ServicesHero() {
         </h1>
 
         <p className="services-hero-intro w-full font-display text-[18px] font-medium leading-[1.2] tracking-[-0.18px] text-ash-dark lg:w-[467px] lg:pb-[4px]">
-          Seven service lines covering the full build — architecture, delivery, cloud and
+          Fifteen service lines covering the full build — architecture, delivery, cloud and
           the support that keeps the system running after launch.
         </p>
       </div>
