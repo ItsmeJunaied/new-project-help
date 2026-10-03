@@ -7,27 +7,27 @@ import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
 
 /**
- * The card, the same box fifteen times over.
+ * The card.
  *
- * Every card is now the same pale panel — the drawn artwork and the grounds it
- * sat on have gone, and the picture area is deliberately left empty for the
- * imagery that is coming. The file that drew the old cards,
- * components/sections/service-card-art.tsx, is untouched and no longer
- * imported: nothing else uses it, so bringing any of it back is an import away.
+ * Tall and narrow, and nearly touching its neighbours — the row reads as one
+ * surface cut into panes rather than a line of separate cards, which is what
+ * the small gap is for.
+ *
+ * The drawn artwork that used to fill these has gone;
+ * components/sections/service-card-art.tsx still holds it and is no longer
+ * imported by anything, so bringing any of it back is an import away.
  */
-const CARD_WIDTH = 360;
-const CARD_HEIGHT = 585;
-const CARD_GAP = 24;
-
 /**
- * Which service each card belongs to, in the order they are drawn.
- *
- * Every card goes somewhere. Eight of them used to go nowhere — they were on
- * the rail because they are what the company does, and a visitor who clicked
- * "ERP Systems" got a card that moved under the cursor and then nothing. They
- * have pages of their own now, so the rail is fifteen links rather than seven
- * links and eight posters.
+ * Capped rather than fixed: at 384 a card is wider than a 375px phone, so no
+ * card ever sat on screen whole. Holding it to a fraction of the viewport
+ * leaves the next one peeking in, which is also the only thing telling a
+ * visitor the row goes on. The lap is measured off the DOM, so a width that
+ * changes with the viewport costs the loop nothing.
  */
+const CARD_WIDTH = "min(384px, 86vw)";
+const CARD_HEIGHT = "min(624px, 148vw)";
+const CARD_GAP = 12;
+
 const CARDS: { slug: string; label: string }[] = [
   { slug: "saas-platform-development", label: "SaaS Platforms" },
   { slug: "ecommerce-digital-commerce", label: "eCommerce" },
@@ -46,63 +46,111 @@ const CARDS: { slug: string; label: string }[] = [
   { slug: "business-process-automation", label: "Business Automation" },
 ];
 
-/**
- * How many times the rail repeats itself.
- *
- * It scrolls back to the start after exactly one copy, which lands on an
- * identical frame and so has no seam. For that to be reachable the copies
- * BEHIND the first have to cover the window — otherwise the rail runs out of
- * its own scroll and stops dead before it comes round.
- *
- * Fifteen cards is 5,760px, so two copies cover any window worth designing for,
- * and so does the fourteen-card sibling row on a service page. The three-copy
- * branch is what keeps a short rail — anything under ten cards — from stranding
- * a wide monitor halfway through its own lap.
- */
 const railCopies = (count: number) => (count >= 10 ? 2 : 3);
 
-/**
- * Pixels a second. Slow enough to read a card as it passes, and stated as a
- * rate rather than a duration so the six-card row on a service page drifts at
- * the same speed as the fifteen-card one on /services.
- */
+/** Pixels a second. Slow enough to read a card as it passes. */
 const RAIL_SPEED = 34;
 
 /**
- * The card title, upright except for its last word.
+ * An empty image field: where a picture goes, and at what angle.
+ *
+ * Percentages of the card, so the whole arrangement scales with it. Every value
+ * is deliberate — the tiles overlap, sit at slightly different angles and run
+ * past the card's edges, because a grid of evenly spaced rectangles is the one
+ * thing this design is not.
+ */
+type Field = { left: string; top: string; width: string; height: string; turn: number };
+
+/**
+ * Four arrangements, cycled down the row.
+ *
+ * Fifteen identical cards would read as a spreadsheet. Each layout puts its
+ * fields in a different place and leaves the headline a different shape of room
+ * — which is what makes the row look composed rather than repeated.
+ */
+const LAYOUTS: Field[][] = [
+  [
+    { left: "6%", top: "40%", width: "52%", height: "30%", turn: -4 },
+    { left: "52%", top: "28%", width: "44%", height: "26%", turn: 5 },
+    { left: "30%", top: "72%", width: "46%", height: "22%", turn: -2 },
+  ],
+  [
+    { left: "14%", top: "30%", width: "58%", height: "34%", turn: 3 },
+    { left: "58%", top: "58%", width: "40%", height: "28%", turn: -5 },
+    { left: "-4%", top: "70%", width: "38%", height: "22%", turn: 2 },
+  ],
+  [
+    { left: "8%", top: "34%", width: "46%", height: "28%", turn: 4 },
+    { left: "48%", top: "46%", width: "50%", height: "32%", turn: -3 },
+    { left: "18%", top: "74%", width: "34%", height: "20%", turn: 6 },
+  ],
+  [
+    { left: "20%", top: "26%", width: "56%", height: "32%", turn: -5 },
+    { left: "4%", top: "60%", width: "44%", height: "26%", turn: 3 },
+    { left: "56%", top: "70%", width: "42%", height: "24%", turn: -2 },
+  ],
+];
+
+/**
+ * The headline, upright except for its last word.
  *
  * The site already sets the accent half of a headline in italic serif — the
- * contact pages do it in six places — so this is that rule applied to a card.
- * A single-word label ("Cybersecurity", "Microservices") turns completely,
- * which is the same gesture rather than an exception to it.
+ * contact pages do it in six places. A single-word label ("Cybersecurity",
+ * "Microservices") turns completely, which is the same gesture rather than an
+ * exception to it. Every fourth card rules its italic word, the way the
+ * reference boxes the word it wants you to land on.
  */
-function CardTitle({ label }: { label: string }) {
+function Headline({ label, ruled }: { label: string; ruled: boolean }) {
   const words = label.split(" ");
   const last = words.pop() ?? label;
   const lead = words.join(" ");
 
   return (
-    <h3 className="w-full font-display text-[32px] font-semibold leading-[1.05] tracking-[-0.04em] text-pure-black">
+    <h3 className="w-full font-display text-[40px] font-semibold leading-[1.04] tracking-[-0.04em] text-pure-black">
       {lead && <span>{lead} </span>}
-      <span className="font-serif font-normal italic tracking-[-0.02em]">{last}</span>
+      <span
+        className={`font-serif font-normal italic tracking-[-0.02em] ${
+          ruled ? "border-b-[2px] border-pure-black/80 pb-[2px]" : ""
+        }`}
+      >
+        {last}
+      </span>
     </h3>
   );
 }
 
 /**
- * What a card shows: its title, and the empty well the imagery will sit in.
+ * What a card shows: a headline, and the empty fields the imagery will sit in.
  *
- * The well is drawn rather than left blank. A panel with nothing in the bottom
- * two thirds reads as a page that failed to load; a tinted, inset, rounded area
- * reads as a space waiting for something, which is what it is.
+ * The fields are drawn rather than left blank. A panel with nothing below its
+ * headline reads as a page that failed to load, where a tilted, shadowed,
+ * slightly translucent tile reads as a space waiting for a picture.
  */
-function CardFace({ label }: { label: string }) {
+function CardFace({ label, layout, bottom }: { label: string; layout: Field[]; bottom: boolean }) {
   return (
-    <div className="flex h-full flex-col gap-[20px] p-[26px]">
-      <CardTitle label={label} />
+    <div className="relative h-full w-full">
+      {layout.map((field, i) => (
+        <div
+          key={i}
+          aria-hidden
+          className="absolute rounded-[14px] border border-white/60 bg-white/55 shadow-[0_18px_40px_-22px_rgba(0,0,0,0.45)] backdrop-blur-[6px]"
+          style={{
+            left: field.left,
+            top: field.top,
+            width: field.width,
+            height: field.height,
+            transform: `rotate(${field.turn}deg)`,
+          }}
+        />
+      ))}
 
-      {/* Image field — intentionally empty. */}
-      <div className="w-full flex-1 rounded-[20px] border border-black/[0.05] bg-[linear-gradient(160deg,rgba(255,255,255,0.9),rgba(0,0,0,0.035))] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]" />
+      {/* Above the fields, and only as wide as it needs to be: the headline is
+          the one thing that must stay readable whatever ends up underneath. */}
+      <div
+        className={`absolute left-[28px] right-[28px] ${bottom ? "bottom-[30px]" : "top-[30px]"}`}
+      >
+        <Headline label={label} ruled={false} />
+      </div>
     </div>
   );
 }
@@ -209,31 +257,36 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
   const copies = still ? 1 : railCopies(drawn.length);
 
   /**
-   * Every card is the same pale panel now, so the shell no longer varies by
-   * index. The hairline and the shadow are what hold it off the ground, which
-   * is a shade darker than the panel for exactly that reason.
+   * Frosted, not white.
+   *
+   * The panel is half-transparent and blurs what is behind it, which is the
+   * whole look: on a flat grey ground it reads as a sheet of glass laid over
+   * the page rather than a white box drawn on it. That only works while the
+   * ground stays darker than the glass, which is why the section sets one
+   * instead of inheriting the page's near-white.
    */
   const shell: CSSProperties = {
     position: "relative",
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     marginRight: CARD_GAP,
-    borderRadius: 32,
-    background: "linear-gradient(180deg, #ffffff 0%, #ffffff 58%, #f4f2ee 100%)",
+    borderRadius: 24,
+    background: "rgba(255,255,255,0.46)",
+    backdropFilter: "blur(26px)",
+    WebkitBackdropFilter: "blur(26px)",
     boxShadow:
-      "0 0 0 1px rgba(0,0,0,.06), 0 30px 64px -34px rgba(0,0,0,.42)",
+      "inset 0 1px 0 rgba(255,255,255,.75), 0 0 0 1px rgba(255,255,255,.35), 0 30px 70px -40px rgba(0,0,0,.45)",
     overflow: "hidden",
     flexShrink: 0,
   };
 
   return (
-    // A pale ground rather than the black one: the cards are nearly white, and
-    // they only read as objects sitting on a surface if the surface is not the
-    // colour they are.
+    // A flat mid-grey ground. The panels are frosted glass, and glass is only
+    // glass while there is something darker behind it to see through to.
     <section
       ref={sectionRef}
       style={{ fontFamily: "var(--font-display), system-ui, sans-serif" }}
-      className="w-full overflow-hidden bg-[#e7e5e1] pb-[32px] pt-[76px] lg:pb-[60px] lg:pt-[96px]"
+      className="w-full overflow-hidden bg-[#c9c8c4] pb-[32px] pt-[76px] lg:pb-[60px] lg:pt-[96px]"
     >
       <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="related-head flex w-full flex-wrap items-end justify-between gap-[18px]">
@@ -241,7 +294,7 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
             {currentSlug ? "Other " : "What we "}
             <span className="font-serif font-normal italic tracking-[-0.02em]">build</span>
           </h2>
-          <p className="font-body text-[15px] leading-none tracking-[-0.1px] text-black/50 lg:text-[17px]">
+          <p className="font-body text-[15px] leading-none tracking-[-0.1px] text-black/45 lg:text-[17px]">
             {drawn.length} services. Hover to pause.
           </p>
         </div>
@@ -262,6 +315,12 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
         <div className="flex w-max py-[40px] pl-6 lg:pl-[40px]">
           {Array.from({ length: copies }, (_, copy) =>
             drawn.map((card) => {
+              const layout = LAYOUTS[card.index % LAYOUTS.length];
+              // Every third card hangs its headline at the foot instead of the
+              // head, so the row has a rhythm down its length rather than one
+              // straight line of titles across the top.
+              const bottom = card.index % 3 === 1;
+
               // The copies behind the first exist to cover the loop. Putting
               // every service into the tab order twice, and having a screen
               // reader announce the whole row twice, is not worth that.
@@ -273,7 +332,7 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
                     className="related-card"
                     style={shell}
                   >
-                    <CardFace label={card.label} />
+                    <CardFace label={card.label} layout={layout} bottom={bottom} />
                   </div>
                 );
               }
@@ -286,7 +345,7 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
                   className="related-card"
                   style={shell}
                 >
-                  <CardFace label={card.label} />
+                  <CardFace label={card.label} layout={layout} bottom={bottom} />
                 </Link>
               );
             }),
