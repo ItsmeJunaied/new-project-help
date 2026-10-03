@@ -46,10 +46,6 @@ export default function Contact() {
     files,
     addFiles,
     removeFile,
-    setCaptchaToken,
-    captchaBroken,
-    setCaptchaBroken,
-    turnstileRef,
   } = useLeadForm();
 
   useGSAP(
@@ -372,10 +368,6 @@ export default function Contact() {
               files={files}
               addFiles={addFiles}
               removeFile={removeFile}
-              setCaptchaToken={setCaptchaToken}
-              captchaBroken={captchaBroken}
-              setCaptchaBroken={setCaptchaBroken}
-              turnstileRef={turnstileRef}
             />
 
             <div className="flex w-full flex-col items-start gap-[16px]">

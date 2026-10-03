@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { BACKEND_URL } from "@/lib/backend";
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 /**
  * Thin proxy onto the existing backend's /leads endpoint. Keeping the backend
@@ -8,6 +9,9 @@ import { BACKEND_URL } from "@/lib/backend";
  * no CORS setup and no way to read the API host out of the bundle.
  */
 export async function POST(request: NextRequest) {
+  const limit = rateLimit(request, "contact");
+  if (!limit.allowed) return tooManyRequests(limit.retryAfter);
+
   const body = await request.text();
 
   let backendResponse: Response;

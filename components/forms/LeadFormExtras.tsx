@@ -1,40 +1,27 @@
 "use client";
 
-import { type ChangeEvent, type RefObject } from "react";
+import { type ChangeEvent } from "react";
 
-import { Turnstile, type TurnstileHandle } from "@/components/ui/Turnstile";
-import {
-  formatBytes,
-  MAX_ATTACHMENTS,
-  TURNSTILE_SITE_KEY,
-} from "@/components/forms/useLeadForm";
+import { formatBytes, MAX_ATTACHMENTS } from "@/components/forms/useLeadForm";
 
 type LeadFormExtrasProps = {
   files: File[];
   addFiles: (files: File[]) => void;
   removeFile: (index: number) => void;
-  setCaptchaToken: (token: string | null) => void;
-  captchaBroken: boolean;
-  setCaptchaBroken: (broken: boolean) => void;
-  turnstileRef: RefObject<TurnstileHandle | null>;
   /** Light copy for the dark contact panel, dark for the pale one. */
   tone?: "light" | "dark";
   id: string;
 };
 
 /**
- * The two parts both contact forms need but neither design drew: file
- * attachments (the live site accepts up to three) and the Cloudflare Turnstile
- * check. Kept in one place so the two forms cannot drift apart on either.
+ * The part both contact forms need but neither design drew: file attachments,
+ * which the live site accepts up to three of. Kept in one place so the two
+ * forms cannot drift apart on it.
  */
 export default function LeadFormExtras({
   files,
   addFiles,
   removeFile,
-  setCaptchaToken,
-  captchaBroken,
-  setCaptchaBroken,
-  turnstileRef,
   tone = "dark",
   id,
 }: LeadFormExtrasProps) {
@@ -91,33 +78,6 @@ export default function LeadFormExtras({
           </ul>
         )}
       </div>
-
-      {TURNSTILE_SITE_KEY && !captchaBroken ? (
-        <Turnstile
-          ref={turnstileRef}
-          siteKey={TURNSTILE_SITE_KEY}
-          onVerify={setCaptchaToken}
-          onExpire={() => setCaptchaToken(null)}
-          onError={() => setCaptchaBroken(true)}
-        />
-      ) : (
-        // The backend rejects every lead whose token it cannot verify, so a
-        // missing key — or a widget that cannot run — means the form cannot be
-        // sent at all. Rendering nothing here hid that: the page looked
-        // finished and submits failed with the backend's "Captcha
-        // verification failed". Say it on the form instead.
-        <p
-          role="status"
-          className={`border-l-2 border-current pl-[12px] font-body text-[13px] leading-[19px] tracking-[-0.16px] ${body} opacity-80`}
-        >
-          Verification is unavailable, so the form can&rsquo;t be sent right now.
-          Please email{" "}
-          <a href="mailto:hello@projecthelpbd.com" className="underline">
-            hello@projecthelpbd.com
-          </a>{" "}
-          and we&rsquo;ll pick it up from there.
-        </p>
-      )}
 
       <p className={`font-body text-[12px] leading-[18px] tracking-[-0.16px] ${body} opacity-70`}>
         We reply within one business day. Your details are never shared or sold.

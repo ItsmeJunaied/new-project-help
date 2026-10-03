@@ -191,10 +191,6 @@ export default function ContactDetails() {
     files,
     addFiles,
     removeFile,
-    setCaptchaToken,
-    captchaBroken,
-    setCaptchaBroken,
-    turnstileRef,
   } = useLeadForm();
 
   useGSAP(
@@ -463,10 +459,6 @@ export default function ContactDetails() {
                 files={files}
                 addFiles={addFiles}
                 removeFile={removeFile}
-                setCaptchaToken={setCaptchaToken}
-                captchaBroken={captchaBroken}
-                setCaptchaBroken={setCaptchaBroken}
-                turnstileRef={turnstileRef}
               />
 
               <button

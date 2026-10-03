@@ -3,17 +3,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { trackLead } from "@/lib/analytics";
-import type { TurnstileHandle } from "@/components/ui/Turnstile";
 
 export type LeadStatus = "idle" | "sending" | "sent" | "error";
 
 const REQUIRED_MESSAGE = "Please fill in your name, email and project details.";
 const FAILED_MESSAGE =
   "We couldn't send that. Please try again, or email hello@projecthelpbd.com.";
-const CAPTCHA_MESSAGE = "Please complete the verification check before submitting.";
-// Deliberately short: the notice in the widget's place has already explained
-// the situation, so this only has to confirm the button did something.
-const CAPTCHA_MISSING_MESSAGE = "Please email hello@projecthelpbd.com instead.";
 const SLOW_MESSAGE =
   "The API didn't answer in time. Please try once more, or email hello@projecthelpbd.com.";
 
@@ -23,8 +18,6 @@ const SLOW_MESSAGE =
  * ending in a message rather than a spinner that never stops.
  */
 const SUBMIT_TIMEOUT_MS = 75_000;
-
-export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
 export const MAX_ATTACHMENTS = 3;
 export const MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024;
@@ -50,19 +43,17 @@ export function formatBytes(bytes: number) {
 /**
  * Shared submit behaviour for both contact forms. The two forms are drawn
  * differently, so this owns only the parts that must not diverge: the payload
- * shape the backend expects, the honeypot, the bot check, attachments, and the
+ * shape the backend expects, the honeypot, attachments, and the
  * sending/sent/error states.
+ *
+ * There is no longer a visitor-facing bot check. Abuse is held off the API by
+ * the honeypot below and by the per-caller limit in lib/rate-limit.ts, which
+ * the visitor never has to see, let alone pass.
  */
 export function useLeadForm() {
   const [status, setStatus] = useState<LeadStatus>("idle");
   const [error, setError] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
-  // Set when Turnstile reports it could not run. Treated exactly like a
-  // missing site key: no token can arrive, so the form says so up front
-  // rather than asking for a check the visitor has no way to complete.
-  const [captchaBroken, setCaptchaBroken] = useState(false);
-  const turnstileRef = useRef<TurnstileHandle>(null);
   const warmedRef = useRef(false);
 
   const reset = useCallback(() => {
@@ -139,22 +130,6 @@ export function useLeadForm() {
         return;
       }
 
-      // The backend verifies every token and rejects anything it cannot check,
-      // so a missing site key is a broken form rather than a form without a
-      // bot check. Say so plainly instead of sending a request that is certain
-      // to come back as "Captcha verification failed".
-      if (!TURNSTILE_SITE_KEY || captchaBroken) {
-        setStatus("error");
-        setError(CAPTCHA_MISSING_MESSAGE);
-        return;
-      }
-
-      if (!captchaToken) {
-        setStatus("error");
-        setError(CAPTCHA_MESSAGE);
-        return;
-      }
-
       setStatus("sending");
       setError("");
 
@@ -184,7 +159,6 @@ export function useLeadForm() {
             company: value(data, "company") || undefined,
             service: value(data, "service") || undefined,
             budget: value(data, "budget") || undefined,
-            captchaToken,
             attachments: attachments.length ? attachments : undefined,
             source,
             utmSource: params.get("utm_source") ?? undefined,
@@ -196,8 +170,9 @@ export function useLeadForm() {
 
         if (!response.ok) {
           // The API's own message is far more useful than "something went
-          // wrong" — a rejected bot check and an unreachable database read
-          // very differently to whoever has to diagnose it.
+          // wrong" — a caller over the rate limit and an unreachable database
+          // read very differently to whoever has to diagnose it, and the
+          // limiter's reply is written to be shown to the visitor as-is.
           const payload = (await response.json().catch(() => null)) as {
             error?: string | string[];
           } | null;
@@ -216,14 +191,9 @@ export function useLeadForm() {
         } else {
           setError(cause instanceof Error && cause.message ? cause.message : FAILED_MESSAGE);
         }
-      } finally {
-        // A Turnstile token is single-use, so a second submit from the same
-        // page needs a fresh one whether the first succeeded or not.
-        setCaptchaToken(null);
-        turnstileRef.current?.reset();
       }
     },
-    [captchaToken, captchaBroken, files],
+    [files],
   );
 
   return {
@@ -234,9 +204,5 @@ export function useLeadForm() {
     files,
     addFiles,
     removeFile,
-    setCaptchaToken,
-    captchaBroken,
-    setCaptchaBroken,
-    turnstileRef,
   };
 }

@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { BACKEND_URL } from "@/lib/backend";
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 /**
  * Proxy onto the existing backend's /newsletter endpoint, same shape as
@@ -8,6 +9,9 @@ import { BACKEND_URL } from "@/lib/backend";
  * talks to this app and there is no CORS setup to keep in sync.
  */
 export async function POST(request: NextRequest) {
+  const limit = rateLimit(request, "newsletter");
+  if (!limit.allowed) return tooManyRequests(limit.retryAfter);
+
   const body = await request.text();
 
   let backendResponse: Response;
