@@ -5,14 +5,15 @@ import { useRef, useState, type CSSProperties } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { prefersReducedMotion, reveal } from "@/lib/anim";
-import { BODIES, GROUNDS, Ramps } from "@/components/sections/service-card-art";
 
 /**
  * The card, the same box fifteen times over.
  *
- * Only the ground changes — white, graphite or near-black — and it comes from
- * the artwork file beside this one, because the ground is part of each card's
- * composition rather than a decision this section makes.
+ * Every card is now the same pale panel — the drawn artwork and the grounds it
+ * sat on have gone, and the picture area is deliberately left empty for the
+ * imagery that is coming. The file that drew the old cards,
+ * components/sections/service-card-art.tsx, is untouched and no longer
+ * imported: nothing else uses it, so bringing any of it back is an import away.
  */
 const CARD_WIDTH = 360;
 const CARD_HEIGHT = 585;
@@ -26,8 +27,6 @@ const CARD_GAP = 24;
  * "ERP Systems" got a card that moved under the cursor and then nothing. They
  * have pages of their own now, so the rail is fifteen links rather than seven
  * links and eight posters.
- *
- * `label` is the link's title; the card draws its own name.
  */
 const CARDS: { slug: string; label: string }[] = [
   { slug: "saas-platform-development", label: "SaaS Platforms" },
@@ -68,6 +67,45 @@ const railCopies = (count: number) => (count >= 10 ? 2 : 3);
  * the same speed as the fifteen-card one on /services.
  */
 const RAIL_SPEED = 34;
+
+/**
+ * The card title, upright except for its last word.
+ *
+ * The site already sets the accent half of a headline in italic serif — the
+ * contact pages do it in six places — so this is that rule applied to a card.
+ * A single-word label ("Cybersecurity", "Microservices") turns completely,
+ * which is the same gesture rather than an exception to it.
+ */
+function CardTitle({ label }: { label: string }) {
+  const words = label.split(" ");
+  const last = words.pop() ?? label;
+  const lead = words.join(" ");
+
+  return (
+    <h3 className="w-full font-display text-[32px] font-semibold leading-[1.05] tracking-[-0.04em] text-pure-black">
+      {lead && <span>{lead} </span>}
+      <span className="font-serif font-normal italic tracking-[-0.02em]">{last}</span>
+    </h3>
+  );
+}
+
+/**
+ * What a card shows: its title, and the empty well the imagery will sit in.
+ *
+ * The well is drawn rather than left blank. A panel with nothing in the bottom
+ * two thirds reads as a page that failed to load; a tinted, inset, rounded area
+ * reads as a space waiting for something, which is what it is.
+ */
+function CardFace({ label }: { label: string }) {
+  return (
+    <div className="flex h-full flex-col gap-[20px] p-[26px]">
+      <CardTitle label={label} />
+
+      {/* Image field — intentionally empty. */}
+      <div className="w-full flex-1 rounded-[20px] border border-black/[0.05] bg-[linear-gradient(160deg,rgba(255,255,255,0.9),rgba(0,0,0,0.035))] shadow-[inset_0_1px_0_rgba(255,255,255,0.8)]" />
+    </div>
+  );
+}
 
 export default function RelatedServices({ currentSlug }: { currentSlug: string }) {
   const sectionRef = useRef<HTMLElement>(null);
@@ -171,43 +209,39 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
   const copies = still ? 1 : railCopies(drawn.length);
 
   /**
-   * The ring is what separates a card from the section: five of the fifteen are
-   * near-black on black and would otherwise have no edge at all. The halo under
-   * it is green rather than black, because a black drop shadow on a black band
-   * is nothing — the colour is the only thing that can lift a card off it.
+   * Every card is the same pale panel now, so the shell no longer varies by
+   * index. The hairline and the shadow are what hold it off the ground, which
+   * is a shade darker than the panel for exactly that reason.
    */
-  const shell = (index: number): CSSProperties => ({
+  const shell: CSSProperties = {
     position: "relative",
     width: CARD_WIDTH,
     height: CARD_HEIGHT,
     marginRight: CARD_GAP,
-    borderRadius: 40,
-    background: GROUNDS[index],
+    borderRadius: 32,
+    background: "linear-gradient(180deg, #ffffff 0%, #ffffff 58%, #f4f2ee 100%)",
     boxShadow:
-      "0 0 0 1px rgba(255,255,255,.14), 0 30px 64px -34px color-mix(in srgb, var(--color-primary-green) 55%, transparent)",
+      "0 0 0 1px rgba(0,0,0,.06), 0 30px 64px -34px rgba(0,0,0,.42)",
     overflow: "hidden",
     flexShrink: 0,
-  });
+  };
 
   return (
-    // Black, so the cards read as lit objects rather than panels on a board —
-    // the white ones glow and the near-black ones are held by their ring alone.
-    // The whole section is set in the display face: the cards were drawn in it
-    // and their headlines are tuned to its widths.
+    // A pale ground rather than the black one: the cards are nearly white, and
+    // they only read as objects sitting on a surface if the surface is not the
+    // colour they are.
     <section
       ref={sectionRef}
       style={{ fontFamily: "var(--font-display), system-ui, sans-serif" }}
-      className="w-full overflow-hidden bg-black pb-[32px] pt-[76px] lg:pb-[60px] lg:pt-[96px]"
+      className="w-full overflow-hidden bg-[#e7e5e1] pb-[32px] pt-[76px] lg:pb-[60px] lg:pt-[96px]"
     >
-      <Ramps />
-
       <div className="mx-auto w-full max-w-[1440px] px-6 lg:px-[40px]">
         <div className="related-head flex w-full flex-wrap items-end justify-between gap-[18px]">
-          <h2 className="text-[clamp(2.2rem,4.4vw,60px)] font-bold leading-[0.95] tracking-[-0.055em] text-white">
+          <h2 className="text-[clamp(2.2rem,4.4vw,60px)] font-bold leading-[0.95] tracking-[-0.055em] text-pure-black">
             {currentSlug ? "Other " : "What we "}
-            <span style={{ color: "var(--color-primary-green)" }}>build</span>
+            <span className="font-serif font-normal italic tracking-[-0.02em]">build</span>
           </h2>
-          <p className="font-body text-[15px] leading-none tracking-[-0.1px] text-white/55 lg:text-[17px]">
+          <p className="font-body text-[15px] leading-none tracking-[-0.1px] text-black/50 lg:text-[17px]">
             {drawn.length} services. Hover to pause.
           </p>
         </div>
@@ -228,15 +262,6 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
         <div className="flex w-max py-[40px] pl-6 lg:pl-[40px]">
           {Array.from({ length: copies }, (_, copy) =>
             drawn.map((card) => {
-              const Body = BODIES[card.index];
-
-              /** Scale the 720-coordinate artwork into the shorter container. */
-              const inner = (
-                <div style={{ width: CARD_WIDTH, height: 720, transformOrigin: "top left", transform: `scaleY(${CARD_HEIGHT / 720})`, position: "relative" }}>
-                  <Body />
-                </div>
-              );
-
               // The copies behind the first exist to cover the loop. Putting
               // every service into the tab order twice, and having a screen
               // reader announce the whole row twice, is not worth that.
@@ -246,9 +271,9 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
                     key={`${copy}-${card.index}`}
                     aria-hidden
                     className="related-card"
-                    style={shell(card.index)}
+                    style={shell}
                   >
-                    {inner}
+                    <CardFace label={card.label} />
                   </div>
                 );
               }
@@ -259,9 +284,9 @@ export default function RelatedServices({ currentSlug }: { currentSlug: string }
                   href={`/services/${card.slug}`}
                   title={card.label}
                   className="related-card"
-                  style={shell(card.index)}
+                  style={shell}
                 >
-                  {inner}
+                  <CardFace label={card.label} />
                 </Link>
               );
             }),
