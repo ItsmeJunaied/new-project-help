@@ -41,8 +41,9 @@ Contact (both forms) → `/leads`. Newsletter → `/newsletter`. Careers →
 `/applications`. Unsubscribe → `/newsletter/unsubscribe`. All four proxies
 verified against the live API.
 
-Attachments (3 files, 4 MB each) restored. Turnstile ported and wired. Calendly
-in three places. WhatsApp floating button. Office map and direct channels on
+Attachments (3 files, 4 MB each) restored. No captcha: the forms are held
+against abuse by the honeypot and a per-caller rate limit on the proxies
+(`lib/rate-limit.ts`). Calendly in three places. WhatsApp floating button. Office map and direct channels on
 `/contact`. Conversion events fire for leads, newsletter signups, applications
 and scheduler clicks.
 
@@ -134,8 +135,9 @@ checklist.
     appears only when `siteConfig.showreelUrl` is set; otherwise it is a still.
 15. **Forms now surface the API's own error.** They previously threw it away and
     showed one generic line — which would have hidden the most likely launch
-    misconfiguration (Turnstile secret set on the backend, no site key here,
-    every submission rejected).
+    misconfiguration — at the time, a Turnstile secret set on the backend with
+    no site key here, rejecting every submission. The captcha is gone now, but
+    the same reasoning applies to the rate limiter's 429.
 16. **Stale Terms clause corrected.** It said job applications were "processed
     for demonstration purposes"; they now reach the hiring team. Worth a
     lawyer's eye, but leaving it was worse than fixing it.
@@ -190,8 +192,9 @@ not-yet-published articles both return 404.
 7. `NEXT_PUBLIC_GA_ID` and `NEXT_PUBLIC_META_PIXEL_ID` — no traffic or
    conversions are recorded without them.
 8. `NEXT_PUBLIC_GSC_VERIFICATION` — then submit the sitemap.
-9. `NEXT_PUBLIC_TURNSTILE_SITE_KEY` **and** `TURNSTILE_SECRET_KEY` in the
-   backend. Set them together: the secret alone rejects every submission.
+9. Nothing else. The captcha is gone, so there are no keys left to set for the
+   forms — but the backend must stop requiring `captchaToken` on `/leads`
+   before this build ships, or every lead is rejected. See §5.
 
 ### After the swap
 
@@ -221,8 +224,8 @@ approved design. They are the only items from the first checklist not addressed.
 
 1. Fill in whichever of §3's content lists you can. Nothing breaks if they stay
    empty — the sections simply do not render.
-2. Set the four env vars, and the Turnstile secret on the backend at the same
-   time.
+2. Set the three analytics env vars. Deploy the backend change in §5 **first**
+   — before this build, not alongside it.
 3. Submit one real lead, one newsletter signup, one unsubscribe and one job
    application through the deployed site. Confirm each lands in the admin and
    triggers its email.
@@ -247,3 +250,46 @@ approved design. They are the only items from the first checklist not addressed.
 11. A second content month. The October cluster leaves deliberate room: nothing
     yet on data migration, integration projects, or how to price a SaaS product
     — all high-intent, all linkable from what exists.
+
+---
+
+## 5. The backend change this build depends on
+
+The contact form no longer sends a `captchaToken`, because there is no longer
+a captcha. The API still demands one. Until that is changed, every lead from
+this build comes back as a 400:
+
+```
+captchaToken must be longer than or equal to 1 characters
+captchaToken must be a string
+```
+
+So the order matters, and it is the opposite of the usual one: **deploy the
+API change first, then this build.** The old build keeps working against the
+new API — it sends a token the API has stopped asking about, which is
+harmless — so there is no window where the form is down.
+
+On the API, in the leads DTO:
+
+- Drop the `captchaToken` field and its validators.
+- Drop the Turnstile verification call from the leads service, and the
+  `TURNSTILE_SECRET_KEY` it reads.
+
+What replaces it on this side:
+
+- The honeypot in `components/forms/useLeadForm.ts`, which already quietly
+  swallowed bot submissions and still does.
+- `lib/rate-limit.ts`, applied to `/api/contact`, `/api/newsletter` and
+  `/api/careers/apply`. Three leads per ten minutes per caller, three
+  applications and five signups per hour.
+
+One caveat worth writing down: that limiter counts in memory, so it is per
+instance and resets on a cold start. On a single always-warm instance it is
+exactly what it says. On a platform that fans out across instances, treat the
+real limit as the stated one multiplied by however many are running. If that
+ever matters, `lib/rate-limit.ts` is the only file to swap — the routes call
+it the same way whatever is behind it.
+
+The strongest version of this is a limit on the API itself, where every
+request lands no matter which front end sent it. The proxy limit is the one
+that could be added today without touching another repository.

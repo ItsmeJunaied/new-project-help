@@ -184,8 +184,7 @@ const DIRECT = [
 
 export default function ContactDetails() {
   const sectionRef = useRef<HTMLElement>(null);
-  const { status, error, submit, files, addFiles, removeFile } =
-    useLeadForm();
+  const { status, error, submit, files, addFiles, removeFile } = useLeadForm();
 
   useGSAP(
     () => {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { trackLead } from "@/lib/analytics";
 
@@ -9,6 +9,15 @@ export type LeadStatus = "idle" | "sending" | "sent" | "error";
 const REQUIRED_MESSAGE = "Please fill in your name, email and project details.";
 const FAILED_MESSAGE =
   "We couldn't send that. Please try again, or email hello@projecthelpbd.com.";
+const SLOW_MESSAGE =
+  "The API didn't answer in time. Please try once more, or email hello@projecthelpbd.com.";
+
+/**
+ * Generous enough to cover a backend cold start (around thirty seconds on the
+ * current hosting tier) plus the upload of three attachments, while still
+ * ending in a message rather than a spinner that never stops.
+ */
+const SUBMIT_TIMEOUT_MS = 75_000;
 
 export const MAX_ATTACHMENTS = 3;
 export const MAX_ATTACHMENT_BYTES = 4 * 1024 * 1024;
@@ -34,19 +43,41 @@ export function formatBytes(bytes: number) {
 /**
  * Shared submit behaviour for both contact forms. The two forms are drawn
  * differently, so this owns only the parts that must not diverge: the payload
- * shape the backend expects, the honeypot, the bot check, attachments, and the
+ * shape the backend expects, the honeypot, attachments, and the
  * sending/sent/error states.
+ *
+ * There is no longer a visitor-facing bot check. Abuse is held off the API by
+ * the honeypot below and by the per-caller limit in lib/rate-limit.ts, which
+ * the visitor never has to see, let alone pass.
  */
 export function useLeadForm() {
   const [status, setStatus] = useState<LeadStatus>("idle");
   const [error, setError] = useState("");
   const [files, setFiles] = useState<File[]>([]);
-
+  const warmedRef = useRef(false);
 
   const reset = useCallback(() => {
     setStatus("idle");
     setError("");
   }, []);
+
+  // The backend sleeps when idle and takes about half a minute to come back,
+  // which would otherwise be half a minute of the visitor staring at
+  // "Sending…". Waking it as soon as a page carrying the form renders puts
+  // that boot under the scroll, the read and the writing — all of which come
+  // before anyone can press send — rather than on top of the submit.
+  //
+  // Nothing waits on it and nothing reads the result: a failed wake just
+  // leaves the submit to take the slow path on its own.
+  const warm = useCallback(() => {
+    if (warmedRef.current) return;
+    warmedRef.current = true;
+    void fetch("/api/warm", { method: "GET", cache: "no-store" }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    warm();
+  }, [warm]);
 
   const addFiles = useCallback(
     (selected: File[]) => {
@@ -99,7 +130,6 @@ export function useLeadForm() {
         return;
       }
 
-
       setStatus("sending");
       setError("");
 
@@ -120,6 +150,7 @@ export function useLeadForm() {
         const response = await fetch("/api/contact", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
+          signal: AbortSignal.timeout(SUBMIT_TIMEOUT_MS),
           body: JSON.stringify({
             name,
             email,
@@ -139,8 +170,9 @@ export function useLeadForm() {
 
         if (!response.ok) {
           // The API's own message is far more useful than "something went
-          // wrong" — a rejected bot check and an unreachable database read
-          // very differently to whoever has to diagnose it.
+          // wrong" — a caller over the rate limit and an unreachable database
+          // read very differently to whoever has to diagnose it, and the
+          // limiter's reply is written to be shown to the visitor as-is.
           const payload = (await response.json().catch(() => null)) as {
             error?: string | string[];
           } | null;
@@ -154,7 +186,11 @@ export function useLeadForm() {
         trackLead(source);
       } catch (cause) {
         setStatus("error");
-        setError(cause instanceof Error && cause.message ? cause.message : FAILED_MESSAGE);
+        if (cause instanceof DOMException && cause.name === "TimeoutError") {
+          setError(SLOW_MESSAGE);
+        } else {
+          setError(cause instanceof Error && cause.message ? cause.message : FAILED_MESSAGE);
+        }
       }
     },
     [files],

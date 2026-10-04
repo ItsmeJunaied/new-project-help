@@ -39,8 +39,7 @@ export default function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
   const submitRef = useRef<HTMLButtonElement>(null);
   const whatsappRef = useRef<HTMLAnchorElement>(null);
-  const { status, error, submit, files, addFiles, removeFile } =
-    useLeadForm();
+  const { status, error, submit, files, addFiles, removeFile } = useLeadForm();
 
   useGSAP(
     () => {

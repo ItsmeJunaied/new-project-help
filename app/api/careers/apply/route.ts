@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { BACKEND_URL } from "@/lib/backend";
+import { rateLimit, tooManyRequests } from "@/lib/rate-limit";
 
 /**
  * Proxy onto the existing backend's /applications endpoint. Resumes arrive as
@@ -8,6 +9,9 @@ import { BACKEND_URL } from "@/lib/backend";
  * API, which is why this passes the body through untouched.
  */
 export async function POST(request: NextRequest) {
+  const limit = rateLimit(request, "careers");
+  if (!limit.allowed) return tooManyRequests(limit.retryAfter);
+
   const body = await request.text();
 
   let backendResponse: Response;

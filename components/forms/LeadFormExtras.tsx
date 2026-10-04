@@ -2,10 +2,7 @@
 
 import { type ChangeEvent } from "react";
 
-import {
-  formatBytes,
-  MAX_ATTACHMENTS,
-} from "@/components/forms/useLeadForm";
+import { formatBytes, MAX_ATTACHMENTS } from "@/components/forms/useLeadForm";
 
 type LeadFormExtrasProps = {
   files: File[];
@@ -17,8 +14,9 @@ type LeadFormExtrasProps = {
 };
 
 /**
- * Shared extras for both contact forms: file attachments and privacy copy.
- * Kept in one place so the two forms cannot drift apart.
+ * The part both contact forms need but neither design drew: file attachments,
+ * which the live site accepts up to three of. Kept in one place so the two
+ * forms cannot drift apart on it.
  */
 export default function LeadFormExtras({
   files,
@@ -80,7 +78,6 @@ export default function LeadFormExtras({
           </ul>
         )}
       </div>
-
 
       <p className={`font-body text-[12px] leading-[18px] tracking-[-0.16px] ${body} opacity-70`}>
         We reply within one business day. Your details are never shared or sold.
