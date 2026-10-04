@@ -4,7 +4,9 @@ import JsonLd from "@/components/JsonLd";
 import Header from "@/components/sections/Header";
 import ServicesHero from "@/components/sections/ServicesHero";
 import Services from "@/components/sections/Services";
-import RelatedServices from "@/components/sections/RelatedServices";
+// The "What we build" rail is hidden on this page — see below. The import is
+// commented with it so the file does not trip no-unused-vars in the meantime.
+// import RelatedServices from "@/components/sections/RelatedServices";
 import Testimonials from "@/components/sections/Testimonials";
 import ImageShowcase from "@/components/sections/ImageShowcase";
 import WorkingProcess from "@/components/sections/WorkingProcess";
@@ -36,11 +38,16 @@ export default function ServicesPage() {
         {/* The 374px of bottom padding this used to carry was room for the
             stack's last card to finish unsticking. There is no stack now. */}
         <Services spacingClassName="py-[80px] lg:pb-[150px] lg:pt-[127px]" />
-        {/* Straight after the cards: what we build, then how the building is
-            run. It answers the question the cards raise rather than pre-empting
-            it, and it is still far above the footer. */}
+        {/* Straight after the cards: how the building is run. */}
         <WorkingProcess />
-        <RelatedServices currentSlug="" />
+        {/* The scrolling "What we build" rail is hidden here on request. The
+            fifteen services it drifted through are already on this page, in
+            full, in <Services /> above — the rail was restating the section a
+            visitor had just finished reading. Uncomment this line and its
+            import to put it back; the component is untouched and still runs on
+            the individual service pages, where the row is the only place the
+            other fourteen services appear. */}
+        {/* <RelatedServices currentSlug="" /> */}
         <Testimonials />
         <ImageShowcase
           heightClassName="h-[420px] sm:h-[600px] lg:h-[1080px]"

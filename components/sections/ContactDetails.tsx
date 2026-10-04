@@ -223,12 +223,27 @@ export default function ContactDetails() {
                   // Square, not a disc: the portrait is square and the crop a
                   // circle would take off its corners is the shoulders, which
                   // is most of what makes a headshot read as a person.
+                  //
+                  // `priority`, because this sits above the fold: the tray
+                  // starts around 480px down and the photo is the first thing
+                  // in it. Left lazy, the face arrives after everything else
+                  // and until it does the box below shows through as a flat
+                  // grey square — which reads as a washed-out photo rather
+                  // than as one still loading.
                   <Image
                     src={READER.photo}
                     alt={`${READER.name}, ${READER.role}`}
                     width={360}
                     height={360}
-                    sizes="96px"
+                    // Twice the 96px box, on purpose. An accurate `sizes` lets
+                    // the browser pick off its own device-pixel ratio, and at
+                    // the 1.25 this machine reports it chose the 96w file for
+                    // a box needing 120 real pixels — a face upscaled 1.25x,
+                    // which is the soft, washed-out look this is fixing.
+                    // Asking for 192 pins it to a 2x source on every screen,
+                    // which costs single-digit kilobytes at this size.
+                    sizes="192px"
+                    priority
                     className="block size-[96px] rounded-[20px] bg-[#262624] object-cover"
                   />
                 ) : (
