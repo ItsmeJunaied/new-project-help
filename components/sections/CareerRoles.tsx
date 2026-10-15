@@ -17,6 +17,7 @@ type Role = {
 };
 
 // Derived from the real openings, so a card can never outlive its posting.
+// With hiring closed `JOBS` is empty and this section renders nothing.
 const ROLES: Role[] = JOBS.map((job) => ({
   id: job.slug,
   category: job.department,
@@ -63,6 +64,10 @@ export default function CareerRoles() {
     },
     { scope: sectionRef },
   );
+
+  // Nothing to list while hiring is closed. The hook above still runs — it is
+  // a hook — but finds no nodes under a scope that never mounts.
+  if (ROLES.length === 0) return null;
 
   return (
     <section

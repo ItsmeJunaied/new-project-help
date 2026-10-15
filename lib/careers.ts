@@ -1,6 +1,9 @@
 /**
- * Real, currently-open roles, carried over from the live site along with their
- * detail pages and application form.
+ * Hiring is closed: `JOBS` is empty, so the site advertises no openings. The
+ * postings themselves are kept below in `POSTED_JOBS` — see `HIRING_OPEN`.
+ *
+ * The roles below were carried over from the live site along with their detail
+ * pages and application form.
  *
  * `CareerRoles` also shows four further cards (Full-Stack Engineer, DevOps
  * Engineer, Product Designer, QA Engineer) that exist only as design
@@ -30,7 +33,18 @@ export type Job = {
   applyEmail: string;
 };
 
-export const JOBS: Job[] = [
+/**
+ * The switch. `false` takes every opening off the site at once: the openings
+ * grid and its heading disappear from /career, the intro points at the inbox
+ * instead of a list that is not there, every /career/<slug> page 404s
+ * (`dynamicParams` is false, so an empty list means no route), and the job
+ * URLs and their JobPosting entries leave the sitemap and structured data.
+ * Flip it back to `true` and all of that returns exactly as it was.
+ */
+export const HIRING_OPEN = false;
+
+/** Every posting we have written, open or not. Read `JOBS`, not this. */
+export const POSTED_JOBS: Job[] = [
   {
     slug: "technical-content-writer",
     title: "Technical Content Writer",
@@ -104,6 +118,12 @@ export const JOBS: Job[] = [
     applyEmail: "hello@projecthelpbd.com",
   },
 ];
+
+/**
+ * The postings the site may show. Empty while `HIRING_OPEN` is false, which is
+ * what makes one constant enough to close hiring everywhere.
+ */
+export const JOBS: Job[] = HIRING_OPEN ? POSTED_JOBS : [];
 
 export const JOB_SLUGS = JOBS.map((job) => job.slug);
 

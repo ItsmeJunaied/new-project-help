@@ -6,6 +6,10 @@ import { useRef } from "react";
 import { useGSAP } from "@gsap/react";
 import { gsap } from "@/lib/gsap";
 import { reveal } from "@/lib/anim";
+import { JOBS } from "@/lib/careers";
+import { siteConfig } from "@/lib/site";
+
+const HAS_OPEN_ROLES = JOBS.length > 0;
 
 export default function CareerIntro() {
   const sectionRef = useRef<HTMLElement>(null);
@@ -53,17 +57,19 @@ export default function CareerIntro() {
 
         <div className="flex w-full flex-col items-start gap-[48px] lg:max-w-[500px]">
           <p className="career-intro-copy font-body text-[18px] leading-[27px] tracking-[-0.25px] text-black lg:w-[428px]">
-            Review the open roles, choose the position that matches your experience, and
-            submit your portfolio and application. Shortlisted candidates receive the
-            next-step details directly from the hiring team.
+            {HAS_OPEN_ROLES
+              ? "Review the open roles, choose the position that matches your experience, and submit your portfolio and application. Shortlisted candidates receive the next-step details directly from the hiring team."
+              : "We are not hiring at the moment. Send your CV and portfolio anyway — we keep them on file and write to the people who fit when the next role opens."}
           </p>
 
+          {/* With no openings there is no list to scroll to, so the button
+              goes to the inbox instead of at a section that is not rendered. */}
           <Link
-            href="#open-roles"
+            href={HAS_OPEN_ROLES ? "#open-roles" : `mailto:${siteConfig.email}`}
             className="career-intro-copy flex items-center justify-center gap-[8px] rounded-[1000px] bg-black px-[32px] py-[16px] transition-opacity hover:opacity-90"
           >
             <span className="font-body text-[18px] font-medium leading-[27px] tracking-[-0.25px] text-white">
-              View Open Roles
+              {HAS_OPEN_ROLES ? "View Open Roles" : "Send Us Your CV"}
             </span>
             <span className="relative size-[22px] shrink-0">
               <Image
