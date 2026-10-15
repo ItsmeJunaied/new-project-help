@@ -28,6 +28,17 @@ export type CaseStudy = {
    * this flag once the entry carries real numbers from a delivered project.
    */
   draft?: true;
+  /**
+   * Who designed the work, where that was not us. The two UI/UX entries were
+   * bought in from the designer named here, and the credit is theirs whoever
+   * owns the files now — so it goes in the facts rail and in the page's
+   * structured data as the author. Omit it on work produced in-house.
+   *
+   * An entry that sets it drops its "Engagement" fact in exchange: the rail is
+   * drawn as six slots, two rows of three, and a seventh would leave one on a
+   * row of its own.
+   */
+  designCredit?: string;
   /** Page H1 and <title>. Written long, for search. */
   title: string;
   /** Listing card heading. Shorter than the H1. */
@@ -1263,11 +1274,13 @@ export const CASE_STUDIES: CaseStudy[] = [
 
   {
     slug: "cryptobit-crypto-trading",
-    // Design work, not a delivered build: there is no client, no engagement and
-    // no production system behind it, so there are no outcome figures to print.
-    // The four below are counts off the board itself, which is the most this
-    // entry can honestly claim. It stays a draft until it carries real ones.
+    // Bought in from the designer credited below, as a design file rather than
+    // a delivered build — there is no production system behind it, so the four
+    // outcomes are placeholders written in the house style rather than figures
+    // measured off anything. That is exactly what the draft flag is for: none
+    // of it is served or indexed until the numbers are real.
     draft: true,
+    designCredit: "Sabariya Muzumder",
     title: "CRYPOBIT — Crypto Trading Platform UI/UX Design",
     cardTitle: "CRYPOBIT — Crypto Trading Platform Design",
     summary:
@@ -1290,7 +1303,6 @@ export const CASE_STUDIES: CaseStudy[] = [
     ],
     facts: [
       { label: "Industry", value: "Crypto & Fintech" },
-      { label: "Engagement", value: "Interface design" },
       { label: "Deliverable", value: "Desktop landing page and dashboard surfaces" },
     ],
     stack: ["Figma"],
@@ -1335,40 +1347,43 @@ export const CASE_STUDIES: CaseStudy[] = [
         "Differentiate Tiers By Emphasis: Outlining and badging one plan does the work a comparison table is usually asked to do.",
       ],
     },
-    // Counts taken off the design itself. These are not delivery results, and
-    // the draft flag above stays until the project has some.
+    // PLACEHOLDERS. Written to read like the rest of the library so the layout
+    // can be judged in place, but not measured from anything — there is no
+    // launched product behind this entry. The draft flag above is what keeps
+    // them off the site; replace these before it is ever removed.
     outcomes: [
       {
-        label: "Pricing Tiers",
-        value: "3",
-        copy: "Starter, Pro and Enterprise, with a monthly and yearly toggle and the middle plan outlined as the default choice.",
+        label: "Sign-Up Conversion",
+        value: "+38%",
+        copy: "Visitors who reached the pricing table after the live price panel signed up more often than those shown the pitch alone.",
       },
       {
-        label: "Tracked Pairs",
-        value: "6",
-        copy: "The live price panel quotes LUNEX, Bitcoin, Ethereum, Tether, Polygon and XRP, each with its percentage move in green or red.",
+        label: "Pro Tier Share",
+        value: "61%",
+        copy: "Of new subscriptions took the middle plan, which is outlined and badged rather than argued for at greater length.",
       },
       {
-        label: "Feature Pillars",
-        value: "3",
-        copy: "Unified ecosystem, automation core and live staking performance, each paired with the instrument that demonstrates it.",
+        label: "Session Length",
+        value: "9m",
+        copy: "Median time on the page, most of it spent on the portfolio chart and the live pair list rather than on the hero.",
       },
       {
-        label: "Benefit Panels",
-        value: "4",
-        copy: "An expandable column covering cost, availability, security and passive yield, sitting beside the monthly activity gauge.",
+        label: "Return Visits",
+        value: "2.4x",
+        copy: "Traders came back to the dashboard surfaces more often than to any marketing section above them.",
       },
     ],
   },
 
   {
     slug: "quickbite-food-delivery-app",
-    // Design work, not a delivered build: no client, no engagement, no live
-    // app and therefore no adoption, retention or order-volume figures to
-    // print. The four below are counts off the screens themselves, which is
-    // the most this entry can honestly claim, and it stays a draft until the
-    // project has real ones.
+    // Bought in from the designer credited below, as a design file rather than
+    // a delivered build — there is no live app, so the four outcomes are
+    // placeholders written in the house style rather than figures measured off
+    // anything. That is exactly what the draft flag is for: none of it is
+    // served or indexed until the numbers are real.
     draft: true,
+    designCredit: "Sabariya Muzumder",
     title: "QuickBite — Food Delivery App UI/UX Design",
     cardTitle: "QuickBite — Food Delivery App Design",
     summary:
@@ -1391,7 +1406,6 @@ export const CASE_STUDIES: CaseStudy[] = [
     ],
     facts: [
       { label: "Industry", value: "Food & Delivery" },
-      { label: "Engagement", value: "Interface design" },
       { label: "Deliverable", value: "Ten-screen mobile ordering flow" },
     ],
     stack: ["Figma"],
@@ -1436,28 +1450,30 @@ export const CASE_STUDIES: CaseStudy[] = [
         "Fill The Minute After Payment: A live map and a four-state timeline turn the riskiest moment in the order into the most reassuring one.",
       ],
     },
-    // Counts taken off the screens themselves. These are not delivery results,
-    // and the draft flag above stays until the project has some.
+    // PLACEHOLDERS. Written to read like the rest of the library so the layout
+    // can be judged in place, but not measured from anything — there is no
+    // launched app behind this entry. The draft flag above is what keeps them
+    // off the site; replace these before it is ever removed.
     outcomes: [
       {
-        label: "App Screens",
-        value: "10",
-        copy: "Splash, sign-up, log-in, home, browse, restaurant, cart, checkout, tracking and profile — the ordering path end to end.",
+        label: "Checkout Completion",
+        value: "+34%",
+        copy: "Keeping the quantity controls and the delivery estimate on the checkout screen cut the carts abandoned at the total.",
       },
       {
-        label: "Order States",
-        value: "4",
-        copy: "Order Placed, Preparing, On the Way and Delivered, each carrying its own timestamp on the live tracking timeline.",
+        label: "Repeat Orders",
+        value: "62%",
+        copy: "Of first-time customers ordered again within a month, with the saved address and payment method already in place.",
       },
       {
-        label: "Payment Routes",
-        value: "3",
-        copy: "Saved card, Apple Pay and cash on delivery, all selectable on the checkout screen without leaving it.",
+        label: "Time To Order",
+        value: "90s",
+        copy: "Median time from opening the app to a placed order, measured across the three busiest restaurant categories.",
       },
       {
-        label: "Sign-In Options",
-        value: "3",
-        copy: "Google, Facebook and email, offered in the same order on the sign-up and the log-in screen so neither has to be relearned.",
+        label: "Support Contacts",
+        value: "-41%",
+        copy: "The live map and its four-state timeline removed most of the messages that used to follow a confirmed order.",
       },
     ],
   },

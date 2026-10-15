@@ -75,6 +75,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<Params
             description: study.metaDescription,
             path,
             image: study.hero.src,
+            designer: study.designCredit,
           }),
         ]}
       />

@@ -181,6 +181,13 @@ export function caseStudyJsonLd(study: {
   description: string;
   path: string;
   image: string;
+  /**
+   * The person who drew the work, on a project that was bought in rather than
+   * produced here. `creator` stays the organisation — it is the organisation
+   * publishing and standing behind the case study — and this names the author
+   * beside it, which is the honest shape for work with two parties to it.
+   */
+  designer?: string;
 }) {
   return {
     "@context": "https://schema.org",
@@ -190,6 +197,9 @@ export function caseStudyJsonLd(study: {
     url: `${siteConfig.url}${study.path}`,
     image: `${siteConfig.url}${study.image}`,
     creator: { "@id": `${siteConfig.url}/#organization` },
+    ...(study.designer
+      ? { author: { "@type": "Person", name: study.designer } }
+      : {}),
     inLanguage: "en",
   };
 }
