@@ -79,6 +79,7 @@ const fleet = images("fleet-logistics-tms");
 const wms = images("warehouse-inventory-wms");
 const lms = images("lms-training-platform");
 const realEstate = images("real-estate-portal");
+const cryptobit = images("cryptobit-crypto-trading");
 
 export const CASE_STUDIES: CaseStudy[] = [
   {
@@ -1255,6 +1256,103 @@ export const CASE_STUDIES: CaseStudy[] = [
         label: "Recurring Bills",
         value: "Automatic",
         copy: "Rent, subscriptions and utilities post themselves on schedule instead of relying on the user to remember them.",
+      },
+    ],
+  },
+
+  {
+    slug: "cryptobit-crypto-trading",
+    // Design work, not a delivered build: there is no client, no engagement and
+    // no production system behind it, so there are no outcome figures to print.
+    // The four below are counts off the board itself, which is the most this
+    // entry can honestly claim. It stays a draft until it carries real ones.
+    draft: true,
+    title: "CRYPOBIT — Crypto Trading Platform Interface Design",
+    cardTitle: "CRYPOBIT — Crypto Trading Interface",
+    summary:
+      "A dark-theme marketing and dashboard interface for a crypto trading platform: live pair pricing, portfolio analytics, staking performance and a three-tier plan structure, designed as one continuous page.",
+    metaDescription:
+      "UI/UX design for a crypto trading platform — live pair pricing, portfolio analytics, staking performance and a three-tier pricing structure in one dark-theme interface. Design case study.",
+    intro: {
+      heading: "A Trading Interface Has To Sell Before It Can Be Trusted",
+      body:
+        "A crypto platform's landing page carries two jobs that pull against each other. It has to convince a first-time visitor the product is worth signing up for, and it has to show enough real instrumentation — live prices, portfolio movement, staking yield — that an experienced trader believes the product exists behind it. CRYPOBIT was designed as one page that does both, moving from a marketing hero into working dashboard surfaces without changing voice.",
+    },
+    categories: ["UI/UX Design", "Fintech"],
+    keywords: [
+      "crypto trading platform UI design",
+      "fintech dashboard interface design",
+      "cryptocurrency website design Bangladesh",
+    ],
+    facts: [
+      { label: "Industry", value: "Crypto & Fintech" },
+      { label: "Engagement", value: "Interface design" },
+      { label: "Deliverable", value: "Desktop landing page and dashboard surfaces" },
+    ],
+    stack: ["Figma"],
+    card: { src: cryptobit.card, alt: "CRYPOBIT crypto trading landing page on a laptop screen" },
+    hero: { src: cryptobit.hero, alt: "CRYPOBIT landing page shown on a laptop against a blue wall" },
+    banner: { src: cryptobit.banner, alt: "CRYPOBIT feature cards, market analytics and pricing tiers side by side" },
+    problem: {
+      lead: "Credibility Is The Hard Part, Not Decoration",
+      paragraphs: [
+        "Crypto interfaces fail in one of two directions. Either they are all marketing — gradients, promises and no evidence the product does anything — or they are a wall of instrumentation that means nothing to someone deciding whether to sign up. The design had to put both on a single page without the join showing, and do it in a category where visitors arrive already sceptical.",
+      ],
+      issues: [
+        "Two Audiences, One Page: A first-time visitor and an active trader need different proof, and both land on the same screen.",
+        "Dense Data In A Dark Theme: Prices, percentage moves and chart lines have to stay legible against near-black without the page turning into noise.",
+        "Plan Choice Without A Wall Of Comparison: Three tiers had to differentiate themselves at a glance, rather than through a feature matrix nobody reads.",
+      ],
+    },
+    problemImages: [
+      { src: cryptobit.problem[0], alt: "CRYPOBIT hero section with headline, email capture and client logos" },
+      { src: cryptobit.problem[1], alt: "Activity summary gauge beside an expandable benefits panel" },
+      { src: cryptobit.problem[2], alt: "Feature cards above market analytics and a live price list" },
+    ],
+    solution: {
+      lead: "Marketing Surfaces Built Out Of Real Instruments",
+      paragraphs: [
+        "The page opens on a blue gradient hero and then drops into near-black for everything after it, so the shift from pitch to product is carried by the background rather than by a section break. Each feature claim is paired with the instrument that backs it: the ecosystem card with a network diagram, automation with a connected dashboard, staking with a live performance line.",
+        "The data surfaces are the proof. A balance chart tracks portfolio movement across eight months, a price panel lists six pairs against Tether with their percentage moves in green and red, and an activity gauge summarises profit against cost for the month. Pricing resolves into three tiers — free, twenty-nine and forty-nine dollars — with the middle plan outlined and badged rather than described at greater length.",
+      ],
+    },
+    solutionImages: [
+      { src: cryptobit.solution[0], alt: "Three-tier pricing with Starter, Pro and Enterprise plans" },
+      { src: cryptobit.solution[1], alt: "Portfolio balance chart beside a live crypto price list" },
+    ],
+    takeaway: {
+      lead: "Show The Instrument, Not A Picture Of One",
+      paragraphs: [
+        "The sections that work hardest here are the ones that look like working software rather than illustrations of it. A price list with real pairs and real percentage moves does more for credibility than a paragraph claiming the platform is fast, and it costs the same space. Where the design leans on stock reassurance instead, it reads as thinner — which is the clearest argument in the file for designing marketing pages out of the product's own surfaces.",
+      ],
+      lessons: [
+        "Let Contrast Carry The Structure: Moving from a blue hero into near-black separates pitch from product without a visible seam.",
+        "Pair Every Claim With Its Instrument: A feature card next to the chart that proves it is worth more than the same card next to an icon.",
+        "Differentiate Tiers By Emphasis: Outlining and badging one plan does the work a comparison table is usually asked to do.",
+      ],
+    },
+    // Counts taken off the design itself. These are not delivery results, and
+    // the draft flag above stays until the project has some.
+    outcomes: [
+      {
+        label: "Pricing Tiers",
+        value: "3",
+        copy: "Starter, Pro and Enterprise, with a monthly and yearly toggle and the middle plan outlined as the default choice.",
+      },
+      {
+        label: "Tracked Pairs",
+        value: "6",
+        copy: "The live price panel lists LUNEX, Bitcoin, Ethereum, Tether, Polygon and XRP against Tether, each with its percentage move.",
+      },
+      {
+        label: "Feature Pillars",
+        value: "3",
+        copy: "Unified ecosystem, automation core and live staking performance, each paired with the instrument that demonstrates it.",
+      },
+      {
+        label: "Benefit Panels",
+        value: "4",
+        copy: "An expandable column covering cost, availability, security and passive yield, sitting beside the monthly activity gauge.",
       },
     ],
   },
