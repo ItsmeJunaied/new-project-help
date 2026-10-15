@@ -1275,11 +1275,13 @@ export const CASE_STUDIES: CaseStudy[] = [
   {
     slug: "cryptobit-crypto-trading",
     // Bought in from the designer credited below, as a design file rather than
-    // a delivered build — there is no production system behind it, so the four
-    // outcomes are placeholders written in the house style rather than figures
-    // measured off anything. That is exactly what the draft flag is for: none
-    // of it is served or indexed until the numbers are real.
-    draft: true,
+    // a delivered build — there is no production system behind it, so the four outcomes
+    // below are placeholders rather than figures measured off anything.
+    //
+    // Live on the owner's instruction, without the draft flag that would
+    // normally hold an entry like this back. The thing to fix is the numbers,
+    // not this comment: until they are real, the page is making a claim about
+    // a delivery that has not happened.
     designCredit: "Sabariya Muzumder",
     title: "CRYPOBIT — Crypto Trading Platform UI/UX Design",
     cardTitle: "CRYPOBIT — Crypto Trading Platform Design",
@@ -1347,10 +1349,10 @@ export const CASE_STUDIES: CaseStudy[] = [
         "Differentiate Tiers By Emphasis: Outlining and badging one plan does the work a comparison table is usually asked to do.",
       ],
     },
-    // PLACEHOLDERS. Written to read like the rest of the library so the layout
-    // can be judged in place, but not measured from anything — there is no
-    // launched product behind this entry. The draft flag above is what keeps
-    // them off the site; replace these before it is ever removed.
+    // PLACEHOLDERS, and this entry is live — so these are on the site, being
+    // read as results. Written in the library's own register so the layout
+    // holds, but measured from nothing. Replace them with real numbers, or
+    // put the draft flag back.
     outcomes: [
       {
         label: "Sign-Up Conversion",
@@ -1378,11 +1380,13 @@ export const CASE_STUDIES: CaseStudy[] = [
   {
     slug: "quickbite-food-delivery-app",
     // Bought in from the designer credited below, as a design file rather than
-    // a delivered build — there is no live app, so the four outcomes are
-    // placeholders written in the house style rather than figures measured off
-    // anything. That is exactly what the draft flag is for: none of it is
-    // served or indexed until the numbers are real.
-    draft: true,
+    // a delivered build — there is no live app behind it, so the four outcomes
+    // below are placeholders rather than figures measured off anything.
+    //
+    // Live on the owner's instruction, without the draft flag that would
+    // normally hold an entry like this back. The thing to fix is the numbers,
+    // not this comment: until they are real, the page is making a claim about
+    // a delivery that has not happened.
     designCredit: "Sabariya Muzumder",
     title: "QuickBite — Food Delivery App UI/UX Design",
     cardTitle: "QuickBite — Food Delivery App Design",
@@ -1450,10 +1454,10 @@ export const CASE_STUDIES: CaseStudy[] = [
         "Fill The Minute After Payment: A live map and a four-state timeline turn the riskiest moment in the order into the most reassuring one.",
       ],
     },
-    // PLACEHOLDERS. Written to read like the rest of the library so the layout
-    // can be judged in place, but not measured from anything — there is no
-    // launched app behind this entry. The draft flag above is what keeps them
-    // off the site; replace these before it is ever removed.
+    // PLACEHOLDERS, and this entry is live — so these are on the site, being
+    // read as results. Written in the library's own register so the layout
+    // holds, but measured from nothing. Replace them with real numbers, or
+    // put the draft flag back.
     outcomes: [
       {
         label: "Checkout Completion",
