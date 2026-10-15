@@ -6,6 +6,19 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
 
+  // Every blog page and its OG card waits on the API, which runs on a host
+  // that sleeps when idle and is throttled when it is not: three requests
+  // timed back to back came in at 1.0s, 18.3s and 0.6s, and a cold start runs
+  // to the better part of a minute. The default budget here is 60 seconds per
+  // page, so a single slow response failed one card three times over and took
+  // the whole deployment with it.
+  //
+  // scripts/warm-backend.mjs pays the cold start once before the build so this
+  // is headroom rather than something the build routinely spends. Raising it
+  // cannot hide a broken page: a page that genuinely hangs still fails, three
+  // minutes later instead of one.
+  staticPageGenerationTimeout: 180,
+
   experimental: {
     // The whole stylesheet is ~13 KB of Tailwind, and it was the only
     // render-blocking request on the page. Inlining it into <head> removes that

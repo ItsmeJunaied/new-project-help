@@ -151,16 +151,38 @@ export function postPlainText(post: BlogPost) {
  */
 export const BLOG_REVALIDATE = 60;
 
+/**
+ * How long one API call may take before it is abandoned.
+ *
+ * The catch below was written to keep a blip at the API from taking the build
+ * down, and without this it could not do that: an unanswered fetch is not a
+ * failed one, so nothing was thrown and the request sat on undici's own
+ * default of five minutes. A page gets three, so the first slow response
+ * failed the page rather than the request, and the deployment with it.
+ *
+ * Thirty seconds is well past anything the API does once it is awake — the
+ * slowest call measured was 18s, and the usual one is under a second — and
+ * the cold start that beats it is paid before the build, not inside it.
+ */
+const BLOG_FETCH_TIMEOUT = 30_000;
+
 async function fetchJson<T>(path: string, fallback: T): Promise<T> {
   try {
     const response = await fetch(`${BACKEND_URL}${path}`, {
       next: { revalidate: BLOG_REVALIDATE, tags: ["blog"] },
+      signal: AbortSignal.timeout(BLOG_FETCH_TIMEOUT),
     });
     if (!response.ok) return fallback;
     return (await response.json()) as T;
   } catch {
     // The API is a separate service; a blip there must degrade the blog, not
     // take the whole site's build or render down with it.
+    //
+    // At build time that trade has a sharp edge: falling back here quietly
+    // produces a site with no articles in it, which is worse than a failed
+    // build because it ships. scripts/warm-backend.mjs is what stops that —
+    // it refuses to start a build the API cannot answer at all, so a fallback
+    // reached from here is one slow call among many rather than a dead API.
     return fallback;
   }
 }
