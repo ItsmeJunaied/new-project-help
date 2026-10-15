@@ -8,7 +8,9 @@ import AboutApproach from "@/components/sections/AboutApproach";
 import AboutCapabilities from "@/components/sections/AboutCapabilities";
 import TechStack from "@/components/sections/TechStack";
 import ImageShowcase from "@/components/sections/ImageShowcase";
-import AboutTeam from "@/components/sections/AboutTeam";
+// The [ Team ] section is off this page — see below. The import is
+// commented with it so the file does not trip no-unused-vars meanwhile.
+// import AboutTeam from "@/components/sections/AboutTeam";
 import Awards from "@/components/sections/Awards";
 import TeamCta from "@/components/sections/TeamCta";
 import Footer from "@/components/sections/Footer";
@@ -48,7 +50,13 @@ export default function AboutPage() {
           heightClassName="h-[420px] sm:h-[600px] lg:h-[1080px]"
           nodeId="156:8709"
         />
-        <AboutTeam />
+        {/* The "[ Team ] — The people behind Project Help" band is removed on
+            request. The component is untouched: it reads lib/team.ts and
+            already returns null on an empty list, so this line and its
+            import are all that bring the section back. The portraits in
+            lib/team.ts stay where they are — <ContactDetails /> still uses
+            them for the contact tray. */}
+        {/* <AboutTeam /> */}
         <Awards spacingClassName="py-[80px] lg:pb-[160px] lg:pt-[160px]" />
         <TeamCta />
       </main>
