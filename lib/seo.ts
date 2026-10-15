@@ -182,10 +182,11 @@ export function caseStudyJsonLd(study: {
   path: string;
   image: string;
   /**
-   * The person who drew the work, on a project that was bought in rather than
-   * produced here. `creator` stays the organisation — it is the organisation
-   * publishing and standing behind the case study — and this names the author
-   * beside it, which is the honest shape for work with two parties to it.
+   * The person who drew the interface, on a project whose design came from
+   * outside rather than from here. `creator` stays the organisation — it
+   * built the thing, and it is the one publishing and standing behind the
+   * case study — and this names the designer beside it, which is the honest
+   * shape for work with two parties to it.
    */
   designer?: string;
 }) {

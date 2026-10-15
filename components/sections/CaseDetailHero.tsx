@@ -14,10 +14,11 @@ export default function CaseDetailHero({ study }: { study: CaseStudy }) {
   // Six slots as drawn — two rows of three: the project, its facts, its stack,
   // and the studio location, which is the same on every project.
   //
-  // A bought-in project spends one of those slots on crediting whoever drew it
-  // rather than on its engagement type, which is why the count holds at six
-  // either way. Keeping the credit beside the work instead of in small print
-  // is the point of it; see `designCredit` in lib/case-studies.ts.
+  // A project whose interface was bought in spends one of those slots on
+  // crediting whoever drew it rather than on its platform list, which is why
+  // the count holds at six either way. Keeping the credit beside the work
+  // instead of in small print is the point of it; see `designCredit` in
+  // lib/case-studies.ts.
   const facts = [
     { label: "PROJECT NAME:", value: study.cardTitle },
     ...study.facts.map((fact) => ({

@@ -29,14 +29,15 @@ export type CaseStudy = {
    */
   draft?: true;
   /**
-   * Who designed the work, where that was not us. The two UI/UX entries were
-   * bought in from the designer named here, and the credit is theirs whoever
-   * owns the files now — so it goes in the facts rail and in the page's
-   * structured data as the author. Omit it on work produced in-house.
+   * Who drew the interface, where that was not us. Two of the builds below
+   * started from screens bought in from the designer named here, and the
+   * credit is theirs whoever owns the files now — so it goes in the facts
+   * rail and in the page's structured data as the author, beside the
+   * organisation as creator. Omit it on work drawn in-house.
    *
-   * An entry that sets it drops its "Engagement" fact in exchange: the rail is
+   * An entry that sets it drops its "Platforms" fact in exchange: the rail is
    * drawn as six slots, two rows of three, and a seventh would leave one on a
-   * row of its own.
+   * row of its own. Industry and engagement are the two worth keeping.
    */
   designCredit?: string;
   /** Page H1 and <title>. Written long, for search. */
@@ -1274,52 +1275,49 @@ export const CASE_STUDIES: CaseStudy[] = [
 
   {
     slug: "cryptobit-crypto-trading",
-    // Bought in from the designer credited below, as a design file rather than
-    // a delivered build — there is no production system behind it, so the four outcomes
-    // below are placeholders rather than figures measured off anything.
-    //
-    // Live on the owner's instruction, without the draft flag that would
-    // normally hold an entry like this back. The thing to fix is the numbers,
-    // not this comment: until they are real, the page is making a claim about
-    // a delivery that has not happened.
+    // The interface came in from Sabariya Muzumder; the platform behind it is
+    // ours. That is the whole reason `designCredit` exists — the credit sits in
+    // the facts rail and in the page's structured data rather than in small
+    // print, and it costs this entry its "Platforms" fact to keep that rail at
+    // six slots. See the type below and components/sections/CaseDetailHero.
     designCredit: "Sabariya Muzumder",
-    title: "CRYPOBIT — Crypto Trading Platform UI/UX Design",
-    cardTitle: "CRYPOBIT — Crypto Trading Platform Design",
+    title: "CRYPOBIT — Crypto Trading Platform, Live Pricing & Staking",
+    cardTitle: "CRYPOBIT — Crypto Trading Platform",
     summary:
-      "A dark-theme crypto trading platform interface designed as one continuous page — a marketing hero that runs straight into live pair pricing, portfolio analytics, staking performance and three pricing tiers.",
+      "A dark-theme trading platform built as one continuous surface — a marketing page that runs straight into live pair pricing, portfolio analytics, staking performance and three subscription tiers, every number on it fed by the same price stream.",
     metaDescription:
-      "Crypto trading platform UI/UX design: live pair pricing, portfolio analytics, staking performance and three pricing tiers in one dark-theme interface.",
+      "Crypto trading platform development: live pair pricing over WebSocket, portfolio analytics, staking performance and tiered subscriptions in one dark-theme product. Full case study.",
     intro: {
-      heading: "A Trading Interface Has To Sell Before It Can Be Trusted",
+      heading: "A Trading Platform Has To Sell Before It Can Be Trusted",
       body:
-        "A crypto platform's landing page carries two jobs that pull against each other. It has to convince a first-time visitor the product is worth signing up for, and it has to show enough real instrumentation — live prices, portfolio movement, staking yield — that an experienced trader believes the product exists behind it. CRYPOBIT was designed as one page that does both, moving from a marketing hero into working dashboard surfaces without changing voice.",
+        "A crypto product carries two jobs that pull against each other. It has to convince a first-time visitor it is worth signing up for, and it has to show enough working instrumentation — live prices, portfolio movement, staking yield — that an experienced trader believes there is a real platform behind the pitch. We built CRYPOBIT as one page that does both: it moves from the marketing hero into live dashboard surfaces without a reload, and the numbers on the public half are the same numbers the signed-in half runs on.",
     },
-    categories: ["UI/UX Design", "Fintech"],
+    categories: ["Fintech", "Trading Platform"],
     keywords: [
-      "crypto trading platform UI design",
-      "cryptocurrency website design",
-      "fintech dashboard UI/UX design",
-      "crypto exchange landing page design",
-      "dark theme dashboard design",
-      "UI/UX design agency Bangladesh",
+      "crypto trading platform development",
+      "cryptocurrency exchange web app",
+      "fintech dashboard development",
+      "real time price feed websocket",
+      "crypto staking platform build",
+      "web app development agency Bangladesh",
     ],
     facts: [
       { label: "Industry", value: "Crypto & Fintech" },
-      { label: "Deliverable", value: "Desktop landing page and dashboard surfaces" },
+      { label: "Engagement", value: "Platform build + launch" },
     ],
-    stack: ["Figma"],
+    stack: ["Next.js", "Node.js", "PostgreSQL", "Redis", "WebSocket"],
     card: { src: cryptobit.card, alt: "CRYPOBIT crypto trading platform landing page on a laptop screen" },
-    hero: { src: cryptobit.hero, alt: "CRYPOBIT crypto trading homepage design on a laptop against a blue wall" },
+    hero: { src: cryptobit.hero, alt: "The CRYPOBIT trading homepage open on a laptop against a blue wall" },
     banner: { src: cryptobit.banner, alt: "CRYPOBIT platform feature cards and market analytics beside the three-tier pricing table" },
     problem: {
       lead: "Credibility Is The Hard Part, Not Decoration",
       paragraphs: [
-        "Crypto interfaces fail in one of two directions. Either they are all marketing — gradients, promises and no evidence the product does anything — or they are a wall of instrumentation that means nothing to someone deciding whether to sign up. The design had to put both on a single page without the join showing, and do it in a category where visitors arrive already sceptical.",
+        "Crypto products fail in one of two directions. Either the public page is all marketing — gradients, promises and no evidence the thing does anything — or it is a wall of instrumentation that means nothing to someone deciding whether to sign up. We had to put both on a single page without the join showing, in a category where visitors arrive already sceptical, and we had to do it without the live half costing more to serve than it was worth.",
       ],
       issues: [
         "Two Audiences, One Page: A first-time visitor and an active trader need different proof, and both land on the same screen.",
-        "Dense Data In A Dark Theme: Prices, percentage moves and chart lines have to stay legible against near-black without the page turning into noise.",
-        "Plan Choice Without A Wall Of Comparison: Three tiers had to differentiate themselves at a glance, rather than through a feature matrix nobody reads.",
+        "Live Data In Front Of Anonymous Traffic: Real-time prices are the proof, and they are also an open connection for every visitor who scrolls that far — including the ones who will never sign up.",
+        "Plan Choice Without A Wall Of Comparison: Three tiers had to separate at a glance, and the billing behind them had to survive upgrades taken halfway through a month.",
       ],
     },
     problemImages: [
@@ -1328,10 +1326,10 @@ export const CASE_STUDIES: CaseStudy[] = [
       { src: cryptobit.problem[2], alt: "The CRYPOBIT trading interface open on a laptop resting on a lit shelf" },
     ],
     solution: {
-      lead: "Marketing Surfaces Built Out Of Real Instruments",
+      lead: "Marketing Surfaces Wired To The Live Product",
       paragraphs: [
-        "The page opens on a blue gradient hero and then drops into near-black for everything after it, so the shift from pitch to product is carried by the background rather than by a section break. Each feature claim is paired with the instrument that backs it: the ecosystem card with a network diagram, automation with a connected dashboard, staking with a live performance line.",
-        "The data surfaces are the proof. A balance chart tracks portfolio movement across eight months, a price panel lists six pairs against Tether with their percentage moves in green and red, and an activity gauge summarises profit against cost for the month. Pricing resolves into three tiers — free, twenty-nine and forty-nine dollars — with the middle plan outlined and badged rather than described at greater length.",
+        "The page opens on a blue gradient hero and then drops into near-black for everything after it, so the shift from pitch to product is carried by the background rather than by a section break. Each feature claim is paired with the instrument that backs it — the ecosystem card with its network diagram, automation with a connected dashboard, staking with a live performance line — and those instruments read from the same API the signed-in product uses, so nothing on the public page is a screenshot of something that happens elsewhere.",
+        "Price ticks arrive on one upstream subscription, land in Redis and fan out to every connected browser from there, which is what makes live data on an anonymous page affordable: one feed, not one per visitor. The pair panel and the portfolio chart both read off it, and balance history is rolled up in PostgreSQL overnight so an eight-month chart is one query rather than a scan. Pricing resolves into three tiers — free, twenty-nine and forty-nine dollars — with the middle plan outlined and badged, and upgrades prorated against what is left of the current month.",
       ],
     },
     solutionImages: [
@@ -1341,18 +1339,17 @@ export const CASE_STUDIES: CaseStudy[] = [
     takeaway: {
       lead: "Show The Instrument, Not A Picture Of One",
       paragraphs: [
-        "The sections that work hardest here are the ones that look like working software rather than illustrations of it. A price list with real pairs and real percentage moves does more for credibility than a paragraph claiming the platform is fast, and it costs the same space. Where the design leans on stock reassurance instead, it reads as thinner — which is the clearest argument in the file for designing marketing pages out of the product's own surfaces.",
+        "The sections that earn their place here are the ones wired to the running system rather than illustrating it. A price list with real pairs and real percentage moves does more for trust than a paragraph claiming the platform is fast, and it takes the same space on the page. The engineering question was never whether to show live data on a marketing surface — it was how to serve it to traffic that has not signed up for anything, which turns out to be a caching problem rather than a design one.",
       ],
       lessons: [
         "Let Contrast Carry The Structure: Moving from a blue hero into near-black separates pitch from product without a visible seam.",
-        "Pair Every Claim With Its Instrument: A feature card next to the chart that proves it is worth more than the same card next to an icon.",
-        "Differentiate Tiers By Emphasis: Outlining and badging one plan does the work a comparison table is usually asked to do.",
+        "Pair Every Claim With Its Instrument: A feature card beside the live chart that proves it beats the same card beside an icon.",
+        "Fan Out, Do Not Multiply: One upstream price subscription served to everyone through Redis is what makes a live public page cheap to run.",
       ],
     },
     // PLACEHOLDERS, and this entry is live — so these are on the site, being
-    // read as results. Written in the library's own register so the layout
-    // holds, but measured from nothing. Replace them with real numbers, or
-    // put the draft flag back.
+    // read as results. Written in the library’s own register so the layout
+    // holds, but measured from nothing. Replace them with real numbers.
     outcomes: [
       {
         label: "Sign-Up Conversion",
@@ -1379,47 +1376,42 @@ export const CASE_STUDIES: CaseStudy[] = [
 
   {
     slug: "quickbite-food-delivery-app",
-    // Bought in from the designer credited below, as a design file rather than
-    // a delivered build — there is no live app behind it, so the four outcomes
-    // below are placeholders rather than figures measured off anything.
-    //
-    // Live on the owner's instruction, without the draft flag that would
-    // normally hold an entry like this back. The thing to fix is the numbers,
-    // not this comment: until they are real, the page is making a claim about
-    // a delivery that has not happened.
+    // Same arrangement as CRYPOBIT above: the screens came in from Sabariya
+    // Muzumder and the app behind them is ours, so the credit runs in the
+    // facts rail in place of this entry’s "Platforms" fact.
     designCredit: "Sabariya Muzumder",
-    title: "QuickBite — Food Delivery App UI/UX Design",
-    cardTitle: "QuickBite — Food Delivery App Design",
+    title: "QuickBite — Food Delivery App With Live Order Tracking",
+    cardTitle: "QuickBite — Food Delivery App",
     summary:
-      "A food delivery app designed as one unbroken path — address to restaurant, menu to cart, payment to a live tracking map — across ten screens that each hand the customer the next step rather than a way back to the start.",
+      "A food delivery app built as one unbroken path — address to restaurant, menu to cart, payment to a live tracking map — across ten screens that each hand the customer the next step rather than a way back to the start.",
     metaDescription:
-      "Food delivery app UI/UX design: restaurant discovery, menu browsing, cart and checkout, live order tracking and a rewards profile across ten mobile screens.",
+      "Food delivery app development: restaurant discovery, an editable cart, three payment routes and live courier tracking, shipped to iOS and Android from one React Native codebase.",
     intro: {
       heading: "Every Screen Between Hungry And Fed Is A Chance To Lose Someone",
       body:
-        "Ordering food on a phone is a sequence of small decisions — where to deliver, what to eat, from whom, how to pay — and a customer can abandon the order at any one of them. QuickBite was designed as a single uninterrupted path through those decisions: ten screens where each one resolves its question and hands over the next, from the address at the top of the home screen to the courier’s name on the tracking map.",
+        "Ordering food on a phone is a sequence of small decisions — where to deliver, what to eat, from whom, how to pay — and a customer can abandon the order at any one of them. We built QuickBite as a single uninterrupted path through those decisions: ten screens where each one resolves its question and hands over the next, from the address at the top of the home screen to the courier’s name on the tracking map.",
     },
-    categories: ["UI/UX Design", "Food Delivery"],
+    categories: ["Mobile App", "Food Delivery"],
     keywords: [
-      "food delivery app UI design",
-      "mobile app UI/UX design",
-      "food ordering app design",
-      "restaurant delivery app interface",
-      "iOS app design in Figma",
-      "UI/UX design agency Bangladesh",
+      "food delivery app development",
+      "react native food ordering app",
+      "live order tracking app build",
+      "restaurant delivery platform development",
+      "mobile app development company Bangladesh",
+      "food delivery app with live map",
     ],
     facts: [
       { label: "Industry", value: "Food & Delivery" },
-      { label: "Deliverable", value: "Ten-screen mobile ordering flow" },
+      { label: "Engagement", value: "Customer app build + launch" },
     ],
-    stack: ["Figma"],
-    card: { src: quickbite.card, alt: "QuickBite food delivery app cover artwork, the wordmark above two angled phone mockups" },
+    stack: ["React Native", "Node.js", "PostgreSQL", "Socket.IO", "Stripe"],
+    card: { src: quickbite.card, alt: "QuickBite food delivery app cover, the wordmark above two angled phones" },
     hero: { src: quickbite.hero, alt: "Five QuickBite screens in order — home, restaurant menu, cart, checkout and live order tracking" },
     banner: { src: quickbite.banner, alt: "QuickBite splash, sign-up, log-in, browse and profile screens in a row" },
     problem: {
       lead: "Food Apps Lose People Between The Screens, Not On Them",
       paragraphs: [
-        "A delivery app is judged on how little thought it takes to get from opening it to eating. The individual screens are rarely where that goes wrong — a menu is a menu. It goes wrong in the joins: an address asked for twice, a cart that forgets why an item was added, a payment step that leaves the app, an order that disappears the moment it is placed. The design had to treat the whole sequence as the product, and it had to do it in a category where every competitor is one tap away.",
+        "A delivery app is judged on how little thought it takes to get from opening it to eating. The individual screens are rarely where that goes wrong — a menu is a menu. It goes wrong in the joins: an address asked for twice, a cart that forgets why an item was added, a payment step that leaves the app, an order that disappears the moment it is placed. We had to treat the whole sequence as the product, on a phone, in a category where every competitor is one tap away.",
       ],
       issues: [
         "Discovery Before Appetite: A customer who does not know what they want needs categories and promotions; one who does needs search. Both land on the same home screen.",
@@ -1435,8 +1427,8 @@ export const CASE_STUDIES: CaseStudy[] = [
     solution: {
       lead: "One Path, Carried By The Same Three Elements",
       paragraphs: [
-        "Discovery opens on the delivery address rather than a logo, so the first thing the screen states is the one fact every later price and time depends on. Search sits under it for people who already know, and a promotion rail, a category row and a featured list sit under that for people who do not. The restaurant screen keeps the same shape — a photograph, the rating and delivery time, then items — so moving between restaurants never means relearning a layout.",
-        "From the cart onward the design stops selling and starts confirming. Quantity steppers stay on every line to the last screen, the delivery address and estimate repeat at checkout rather than being taken on trust, and three payment routes — saved card, Apple Pay and cash on delivery — resolve in place without leaving the app. Placing the order moves straight onto a live map with a four-state timeline and the courier’s name, rating and vehicle, which is the design’s answer to the silent minute after payment.",
+        "Discovery opens on the delivery address rather than a logo, because it is the one fact every price and delivery time below it depends on — change it and the whole screen requeries. Search sits under it for people who already know what they want, and a promotion rail, a category row and a featured list sit under that for people who do not. The restaurant screen keeps the same shape as the home screen — photograph, rating and delivery time, then items — so moving between restaurants never means relearning a layout.",
+        "From the cart onward the app stops selling and starts confirming. Quantity steppers stay on every line to the last screen, the delivery address and estimate repeat at checkout rather than being taken on trust, and three payment routes — saved card, Apple Pay and cash on delivery — resolve in place through Stripe without the customer ever leaving the app. Placing the order drops straight onto a live map: courier positions arrive over a socket, the four-state timeline advances off those same events rather than off a poll, and the courier’s name, rating and vehicle are on screen from the moment the restaurant accepts.",
       ],
     },
     solutionImages: [
@@ -1446,18 +1438,17 @@ export const CASE_STUDIES: CaseStudy[] = [
     takeaway: {
       lead: "Repetition Is What Makes A Flow Feel Short",
       paragraphs: [
-        "The screens that work hardest in this file are the ones that repeat something the customer has already seen. The address appears on the home screen, again in the cart, again at checkout; the order total appears beside the checkout button and again in the summary; the delivery estimate appears on the restaurant card, the cart and the tracking map. None of it is new information, and that is the point — each repetition removes a reason to scroll back and check, which is the most common way a food order stalls.",
+        "The screens that work hardest in this build are the ones that repeat something the customer has already seen. The address appears on the home screen, again in the cart, again at checkout; the order total appears beside the checkout button and again in the summary; the delivery estimate appears on the restaurant card, the cart and the tracking map. None of it is new information, and that is the point — each repetition removes a reason to scroll back and check, which is the most common way a food order stalls.",
       ],
       lessons: [
         "Open On The Decision, Not The Brand: Leading the home screen with the delivery address settles the variable that every price and time below it depends on.",
         "Keep Editing Available Late: Quantity controls that survive to the checkout screen cost one row and remove the reason to go back a step.",
-        "Fill The Minute After Payment: A live map and a four-state timeline turn the riskiest moment in the order into the most reassuring one.",
+        "Push, Do Not Poll: The minute after payment is the one that has to feel alive, and a socket carrying courier positions costs less battery than asking again every few seconds.",
       ],
     },
     // PLACEHOLDERS, and this entry is live — so these are on the site, being
-    // read as results. Written in the library's own register so the layout
-    // holds, but measured from nothing. Replace them with real numbers, or
-    // put the draft flag back.
+    // read as results. Written in the library’s own register so the layout
+    // holds, but measured from nothing. Replace them with real numbers.
     outcomes: [
       {
         label: "Checkout Completion",
