@@ -80,6 +80,7 @@ const wms = images("warehouse-inventory-wms");
 const lms = images("lms-training-platform");
 const realEstate = images("real-estate-portal");
 const cryptobit = images("cryptobit-crypto-trading");
+const quickbite = images("quickbite-food-delivery-app");
 
 export const CASE_STUDIES: CaseStudy[] = [
   {
@@ -1356,6 +1357,107 @@ export const CASE_STUDIES: CaseStudy[] = [
         label: "Benefit Panels",
         value: "4",
         copy: "An expandable column covering cost, availability, security and passive yield, sitting beside the monthly activity gauge.",
+      },
+    ],
+  },
+
+  {
+    slug: "quickbite-food-delivery-app",
+    // Design work, not a delivered build: no client, no engagement, no live
+    // app and therefore no adoption, retention or order-volume figures to
+    // print. The four below are counts off the screens themselves, which is
+    // the most this entry can honestly claim, and it stays a draft until the
+    // project has real ones.
+    draft: true,
+    title: "QuickBite — Food Delivery App UI/UX Design",
+    cardTitle: "QuickBite — Food Delivery App Design",
+    summary:
+      "A food delivery app designed as one unbroken path — address to restaurant, menu to cart, payment to a live tracking map — across ten screens that each hand the customer the next step rather than a way back to the start.",
+    metaDescription:
+      "Food delivery app UI/UX design: restaurant discovery, menu browsing, cart and checkout, live order tracking and a rewards profile across ten mobile screens.",
+    intro: {
+      heading: "Every Screen Between Hungry And Fed Is A Chance To Lose Someone",
+      body:
+        "Ordering food on a phone is a sequence of small decisions — where to deliver, what to eat, from whom, how to pay — and a customer can abandon the order at any one of them. QuickBite was designed as a single uninterrupted path through those decisions: ten screens where each one resolves its question and hands over the next, from the address at the top of the home screen to the courier’s name on the tracking map.",
+    },
+    categories: ["UI/UX Design", "Food Delivery"],
+    keywords: [
+      "food delivery app UI design",
+      "mobile app UI/UX design",
+      "food ordering app design",
+      "restaurant delivery app interface",
+      "iOS app design in Figma",
+      "UI/UX design agency Bangladesh",
+    ],
+    facts: [
+      { label: "Industry", value: "Food & Delivery" },
+      { label: "Engagement", value: "Interface design" },
+      { label: "Deliverable", value: "Ten-screen mobile ordering flow" },
+    ],
+    stack: ["Figma"],
+    card: { src: quickbite.card, alt: "QuickBite food delivery app cover artwork, the wordmark above two angled phone mockups" },
+    hero: { src: quickbite.hero, alt: "Five QuickBite screens in order — home, restaurant menu, cart, checkout and live order tracking" },
+    banner: { src: quickbite.banner, alt: "QuickBite splash, sign-up, log-in, browse and profile screens in a row" },
+    problem: {
+      lead: "Food Apps Lose People Between The Screens, Not On Them",
+      paragraphs: [
+        "A delivery app is judged on how little thought it takes to get from opening it to eating. The individual screens are rarely where that goes wrong — a menu is a menu. It goes wrong in the joins: an address asked for twice, a cart that forgets why an item was added, a payment step that leaves the app, an order that disappears the moment it is placed. The design had to treat the whole sequence as the product, and it had to do it in a category where every competitor is one tap away.",
+      ],
+      issues: [
+        "Discovery Before Appetite: A customer who does not know what they want needs categories and promotions; one who does needs search. Both land on the same home screen.",
+        "A Cart That Has To Stay Editable: Quantities change at the last second, and a cart that makes that awkward is a cart that gets abandoned at the total.",
+        "Silence After Checkout: The riskiest minute in a delivery order is the one just after paying, when nothing on screen says the food exists.",
+      ],
+    },
+    problemImages: [
+      { src: quickbite.problem[0], alt: "QuickBite splash screen beside the sign-up screen offering Google, Facebook and email" },
+      { src: quickbite.problem[1], alt: "QuickBite browse screen beside the home screen showing promotions, categories and featured restaurants" },
+      { src: quickbite.problem[2], alt: "QuickBite cart with quantity steppers beside the checkout screen’s payment methods and order summary" },
+    ],
+    solution: {
+      lead: "One Path, Carried By The Same Three Elements",
+      paragraphs: [
+        "Discovery opens on the delivery address rather than a logo, so the first thing the screen states is the one fact every later price and time depends on. Search sits under it for people who already know, and a promotion rail, a category row and a featured list sit under that for people who do not. The restaurant screen keeps the same shape — a photograph, the rating and delivery time, then items — so moving between restaurants never means relearning a layout.",
+        "From the cart onward the design stops selling and starts confirming. Quantity steppers stay on every line to the last screen, the delivery address and estimate repeat at checkout rather than being taken on trust, and three payment routes — saved card, Apple Pay and cash on delivery — resolve in place without leaving the app. Placing the order moves straight onto a live map with a four-state timeline and the courier’s name, rating and vehicle, which is the design’s answer to the silent minute after payment.",
+      ],
+    },
+    solutionImages: [
+      { src: quickbite.solution[0], alt: "QuickBite home, browse and restaurant menu screens showing discovery from address to dish" },
+      { src: quickbite.solution[1], alt: "QuickBite checkout, live order tracking and rewards profile screens" },
+    ],
+    takeaway: {
+      lead: "Repetition Is What Makes A Flow Feel Short",
+      paragraphs: [
+        "The screens that work hardest in this file are the ones that repeat something the customer has already seen. The address appears on the home screen, again in the cart, again at checkout; the order total appears beside the checkout button and again in the summary; the delivery estimate appears on the restaurant card, the cart and the tracking map. None of it is new information, and that is the point — each repetition removes a reason to scroll back and check, which is the most common way a food order stalls.",
+      ],
+      lessons: [
+        "Open On The Decision, Not The Brand: Leading the home screen with the delivery address settles the variable that every price and time below it depends on.",
+        "Keep Editing Available Late: Quantity controls that survive to the checkout screen cost one row and remove the reason to go back a step.",
+        "Fill The Minute After Payment: A live map and a four-state timeline turn the riskiest moment in the order into the most reassuring one.",
+      ],
+    },
+    // Counts taken off the screens themselves. These are not delivery results,
+    // and the draft flag above stays until the project has some.
+    outcomes: [
+      {
+        label: "App Screens",
+        value: "10",
+        copy: "Splash, sign-up, log-in, home, browse, restaurant, cart, checkout, tracking and profile — the ordering path end to end.",
+      },
+      {
+        label: "Order States",
+        value: "4",
+        copy: "Order Placed, Preparing, On the Way and Delivered, each carrying its own timestamp on the live tracking timeline.",
+      },
+      {
+        label: "Payment Routes",
+        value: "3",
+        copy: "Saved card, Apple Pay and cash on delivery, all selectable on the checkout screen without leaving it.",
+      },
+      {
+        label: "Sign-In Options",
+        value: "3",
+        copy: "Google, Facebook and email, offered in the same order on the sign-up and the log-in screen so neither has to be relearned.",
       },
     ],
   },
