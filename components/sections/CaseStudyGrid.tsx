@@ -34,6 +34,8 @@ function CaseCard({ item, wide }: { item: CaseStudy; wide?: boolean }) {
             alt={item.card.alt}
             fill
             sizes={wide ? "(max-width: 1023px) 100vw, 1440px" : "(max-width: 1023px) 100vw, 710px"}
+            // Case-study images are interface screenshots, not photographs; 75 bleeds their small text and hairline borders (next.config.ts).
+            quality={90}
             className="object-cover"
           />
         </div>

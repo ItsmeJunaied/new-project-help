@@ -123,6 +123,8 @@ export default function CaseDetailBody({ study }: { study: CaseStudy }) {
                   alt={image.alt}
                   fill
                   sizes="(max-width: 1023px) 33vw, 230px"
+                  // Case-study images are interface screenshots, not photographs; 75 bleeds their small text and hairline borders (next.config.ts).
+                  quality={90}
                   className="object-cover"
                 />
               </div>
@@ -140,6 +142,8 @@ export default function CaseDetailBody({ study }: { study: CaseStudy }) {
                     alt={image.alt}
                     fill
                     sizes="(max-width: 1023px) 50vw, 350px"
+                    // Case-study images are interface screenshots, not photographs; 75 bleeds their small text and hairline borders (next.config.ts).
+                    quality={90}
                     className="object-cover"
                   />
                 </div>

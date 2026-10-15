@@ -95,6 +95,8 @@ export default function CaseDetailHero({ study }: { study: CaseStudy }) {
             src={study.hero.src}
             alt={study.hero.alt}
             sizes="(max-width: 1023px) 100vw, 1440px"
+            // Case-study images are interface screenshots, not photographs; 75 bleeds their small text and hairline borders (next.config.ts).
+            quality={90}
             className="relative h-[280px] w-full sm:h-[440px] lg:h-[679px]"
           />
         </div>
@@ -129,6 +131,8 @@ export default function CaseDetailHero({ study }: { study: CaseStudy }) {
             src={study.banner.src}
             alt={study.banner.alt}
             sizes="(max-width: 1023px) 100vw, 1440px"
+            // Case-study images are interface screenshots, not photographs; 75 bleeds their small text and hairline borders (next.config.ts).
+            quality={90}
             className="relative h-[240px] w-full sm:h-[380px] lg:h-[535px]"
           />
         </div>

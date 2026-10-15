@@ -1267,12 +1267,12 @@ export const CASE_STUDIES: CaseStudy[] = [
     // The four below are counts off the board itself, which is the most this
     // entry can honestly claim. It stays a draft until it carries real ones.
     draft: true,
-    title: "CRYPOBIT — Crypto Trading Platform Interface Design",
-    cardTitle: "CRYPOBIT — Crypto Trading Interface",
+    title: "CRYPOBIT — Crypto Trading Platform UI/UX Design",
+    cardTitle: "CRYPOBIT — Crypto Trading Platform Design",
     summary:
-      "A dark-theme marketing and dashboard interface for a crypto trading platform: live pair pricing, portfolio analytics, staking performance and a three-tier plan structure, designed as one continuous page.",
+      "A dark-theme crypto trading platform interface designed as one continuous page — a marketing hero that runs straight into live pair pricing, portfolio analytics, staking performance and three pricing tiers.",
     metaDescription:
-      "UI/UX design for a crypto trading platform — live pair pricing, portfolio analytics, staking performance and a three-tier pricing structure in one dark-theme interface. Design case study.",
+      "Crypto trading platform UI/UX design: live pair pricing, portfolio analytics, staking performance and three pricing tiers in one dark-theme interface.",
     intro: {
       heading: "A Trading Interface Has To Sell Before It Can Be Trusted",
       body:
@@ -1281,8 +1281,11 @@ export const CASE_STUDIES: CaseStudy[] = [
     categories: ["UI/UX Design", "Fintech"],
     keywords: [
       "crypto trading platform UI design",
-      "fintech dashboard interface design",
-      "cryptocurrency website design Bangladesh",
+      "cryptocurrency website design",
+      "fintech dashboard UI/UX design",
+      "crypto exchange landing page design",
+      "dark theme dashboard design",
+      "UI/UX design agency Bangladesh",
     ],
     facts: [
       { label: "Industry", value: "Crypto & Fintech" },
@@ -1290,9 +1293,9 @@ export const CASE_STUDIES: CaseStudy[] = [
       { label: "Deliverable", value: "Desktop landing page and dashboard surfaces" },
     ],
     stack: ["Figma"],
-    card: { src: cryptobit.card, alt: "CRYPOBIT crypto trading landing page on a laptop screen" },
-    hero: { src: cryptobit.hero, alt: "CRYPOBIT landing page shown on a laptop against a blue wall" },
-    banner: { src: cryptobit.banner, alt: "CRYPOBIT feature cards, market analytics and pricing tiers side by side" },
+    card: { src: cryptobit.card, alt: "CRYPOBIT crypto trading platform landing page on a laptop screen" },
+    hero: { src: cryptobit.hero, alt: "CRYPOBIT crypto trading homepage design on a laptop against a blue wall" },
+    banner: { src: cryptobit.banner, alt: "CRYPOBIT platform feature cards and market analytics beside the three-tier pricing table" },
     problem: {
       lead: "Credibility Is The Hard Part, Not Decoration",
       paragraphs: [
@@ -1305,9 +1308,9 @@ export const CASE_STUDIES: CaseStudy[] = [
       ],
     },
     problemImages: [
-      { src: cryptobit.problem[0], alt: "CRYPOBIT hero section with headline, email capture and client logos" },
-      { src: cryptobit.problem[1], alt: "Activity summary gauge beside an expandable benefits panel" },
-      { src: cryptobit.problem[2], alt: "Feature cards above market analytics and a live price list" },
+      { src: cryptobit.problem[0], alt: "CRYPOBIT hero headline, email capture and client logo strip above three platform feature cards" },
+      { src: cryptobit.problem[1], alt: "CRYPOBIT pricing table with Starter, Pro and Enterprise plans on a dark background" },
+      { src: cryptobit.problem[2], alt: "The CRYPOBIT trading interface open on a laptop resting on a lit shelf" },
     ],
     solution: {
       lead: "Marketing Surfaces Built Out Of Real Instruments",
@@ -1317,8 +1320,8 @@ export const CASE_STUDIES: CaseStudy[] = [
       ],
     },
     solutionImages: [
-      { src: cryptobit.solution[0], alt: "Three-tier pricing with Starter, Pro and Enterprise plans" },
-      { src: cryptobit.solution[1], alt: "Portfolio balance chart beside a live crypto price list" },
+      { src: cryptobit.solution[0], alt: "Monthly activity gauge beside expandable panels for cost, availability, security and yield" },
+      { src: cryptobit.solution[1], alt: "Portfolio balance chart beside a live crypto price list showing six pairs against Tether" },
     ],
     takeaway: {
       lead: "Show The Instrument, Not A Picture Of One",
@@ -1342,7 +1345,7 @@ export const CASE_STUDIES: CaseStudy[] = [
       {
         label: "Tracked Pairs",
         value: "6",
-        copy: "The live price panel lists LUNEX, Bitcoin, Ethereum, Tether, Polygon and XRP against Tether, each with its percentage move.",
+        copy: "The live price panel quotes LUNEX, Bitcoin, Ethereum, Tether, Polygon and XRP, each with its percentage move in green or red.",
       },
       {
         label: "Feature Pillars",

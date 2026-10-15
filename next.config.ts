@@ -25,7 +25,12 @@ const nextConfig: NextConfig = {
     // for. `qualities` must list every value passed to <Image quality>.
     deviceSizes: [640, 750, 828, 1080, 1200, 1440, 1920],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
-    qualities: [75],
+    // 75 for photographs, where nobody can see the difference. 90 for the
+    // case-study images, which are screenshots of interfaces: at 75 the AVIF
+    // encoder softens hairline borders and bleeds the colour off small text
+    // against a dark panel, which is most of what "faded" looks like on a
+    // page that is mostly dark panels and small text.
+    qualities: [75, 90],
     minimumCacheTTL: 31_536_000,
   },
 

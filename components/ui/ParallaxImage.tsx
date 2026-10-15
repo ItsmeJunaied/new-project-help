@@ -23,6 +23,8 @@ type ParallaxImageProps = {
   /** Classes for the image itself — object-position, mostly. */
   imageClassName?: string;
   preload?: boolean;
+  /** Only for screenshot-like images — see `qualities` in next.config.ts. */
+  quality?: number;
 };
 
 export default function ParallaxImage({
@@ -32,6 +34,7 @@ export default function ParallaxImage({
   className = "relative h-full w-full",
   imageClassName = "object-center",
   preload = false,
+  quality,
 }: ParallaxImageProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const layerRef = useRef<HTMLDivElement>(null);
@@ -75,6 +78,7 @@ export default function ParallaxImage({
           sizes={sizes}
           className={`object-cover ${imageClassName}`}
           preload={preload}
+          quality={quality}
         />
       </div>
     </div>
